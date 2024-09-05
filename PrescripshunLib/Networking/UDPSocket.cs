@@ -5,7 +5,7 @@ using System.Text;
 namespace PrescripshunLib.Networking
 {
     // TODO: Make abstract class. Make Server & Client classes.
-    public abstract class UdpSocket
+    public abstract class UdpSocket : ISocket
     {
         public Socket _socket;
         private const int bufSize = 8 * 1024;
@@ -29,7 +29,7 @@ namespace PrescripshunLib.Networking
             }, state);
         }
 
-        protected void Receive()
+        public void Receive()
         {
             _socket.BeginReceiveFrom(state.buffer, 0, bufSize, SocketFlags.None, ref epFrom, recv = (ar) =>
             {
