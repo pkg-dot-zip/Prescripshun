@@ -13,7 +13,7 @@ internal class Client : IReceiveCallback
         c.Send("TEST!");
 
         Console.ReadLine();
-        c._socket.Close();
+        c.Socket.Close();
         Console.WriteLine("Closed client \n Press any key to exit");
         Console.ReadKey();
     }

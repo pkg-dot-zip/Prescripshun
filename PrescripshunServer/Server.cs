@@ -13,7 +13,7 @@ internal class Server : IReceiveCallback
         _server = new NetworkServer(NetworkHandler.IpAddress, NetworkHandler.Port, this);
 
         Console.ReadKey();
-        _server._socket.Close();
+        _server.Socket.Close();
         Console.WriteLine("Closed Server \n Press any key to exit");
         Console.ReadKey();
     }
