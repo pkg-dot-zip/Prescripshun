@@ -1,7 +1,7 @@
 ﻿using PrescripshunLib.Networking;
 
 UDPSocket s = new UDPSocket();
-s.Server("127.0.0.1", 27000);
+s.Server(NetworkHandler.IpAddress, NetworkHandler.Port);
 
 Console.ReadKey();
 s._socket.Close();

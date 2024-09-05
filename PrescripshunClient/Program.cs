@@ -5,7 +5,7 @@ Console.WriteLine("Hello, World!");
 
 
 UDPSocket c = new UDPSocket();
-c.Client("127.0.0.1", 27000);
+c.Client(NetworkHandler.IpAddress, NetworkHandler.Port);
 c.Send("TEST!");
 
 Console.ReadLine();

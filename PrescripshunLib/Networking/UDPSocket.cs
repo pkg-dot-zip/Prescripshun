@@ -4,6 +4,7 @@ using System.Text;
 
 namespace PrescripshunLib.Networking
 {
+    // TODO: Make abstract class. Make Server & Client classes.
     public class UDPSocket
     {
         public Socket _socket;
