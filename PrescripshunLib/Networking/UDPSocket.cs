@@ -5,7 +5,7 @@ using System.Text;
 namespace PrescripshunLib.Networking
 {
     // TODO: Make abstract class. Make Server & Client classes.
-    public class UDPSocket
+    public abstract class UdpSocket
     {
         public Socket _socket;
         private const int bufSize = 8 * 1024;
@@ -16,21 +16,6 @@ namespace PrescripshunLib.Networking
         public class State
         {
             public byte[] buffer = new byte[bufSize];
-        }
-
-        public void Server(string address, int port)
-        {
-            _socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
-            _socket.Bind(new IPEndPoint(IPAddress.Parse(address), port));
-            Receive();
-        }
-
-        public void Client(string address, int port)
-        {
-            _socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            _socket.Connect(IPAddress.Parse(address), port);
-            Receive();
         }
 
         public void Send(string text)
@@ -44,7 +29,7 @@ namespace PrescripshunLib.Networking
             }, state);
         }
 
-        private void Receive()
+        protected void Receive()
         {
             _socket.BeginReceiveFrom(state.buffer, 0, bufSize, SocketFlags.None, ref epFrom, recv = (ar) =>
             {

@@ -9,8 +9,7 @@ internal class Client
     {
         Console.WriteLine("Hello, World!");
 
-        UDPSocket c = new UDPSocket();
-        c.Client(NetworkHandler.IpAddress, NetworkHandler.Port);
+        UdpSocket c = new NetworkClient(NetworkHandler.IpAddress, NetworkHandler.Port);
         c.Send("TEST!");
 
         Console.ReadLine();
