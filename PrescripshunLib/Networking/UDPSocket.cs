@@ -4,7 +4,6 @@ using System.Text;
 
 namespace PrescripshunLib.Networking
 {
-    // TODO: Make abstract class. Make Server & Client classes.
     public abstract class UdpSocket : ISocket
     {
         public Socket _socket;
@@ -23,13 +22,24 @@ namespace PrescripshunLib.Networking
             byte[] data = Encoding.ASCII.GetBytes(text);
             _socket.BeginSend(data, 0, data.Length, SocketFlags.None, (ar) =>
             {
+                State so = (State)ar.AsyncState;
+                int bytes = _socket.EndSend(ar);
+                Console.WriteLine("SEND: {0}, {1}", bytes, text);
+            }, state);
+        }
+
+        public void SendTo(string text, EndPoint endPoint)
+        {
+            byte[] data = Encoding.ASCII.GetBytes(text);
+            _socket.BeginSendTo(data, 0, data.Length, SocketFlags.None, endPoint, (ar) =>
+            {
                 State so = (State) ar.AsyncState;
                 int bytes = _socket.EndSend(ar);
                 Console.WriteLine("SEND: {0}, {1}", bytes, text);
             }, state);
         }
 
-        public void Receive()
+        public void Receive(IReceiveCallback? callback = null)
         {
             _socket.BeginReceiveFrom(state.buffer, 0, bufSize, SocketFlags.None, ref epFrom, recv = (ar) =>
             {
@@ -38,8 +48,11 @@ namespace PrescripshunLib.Networking
                     State so = (State) ar.AsyncState;
                     int bytes = _socket.EndReceiveFrom(ar, ref epFrom);
                     _socket.BeginReceiveFrom(so.buffer, 0, bufSize, SocketFlags.None, ref epFrom, recv, so);
-                    Console.WriteLine("RECV: {0}: {1}, {2}", epFrom.ToString(), bytes,
-                        Encoding.ASCII.GetString(so.buffer, 0, bytes));
+
+                    if (callback != null)
+                    {
+                        callback.OnReceive(new ReceivedArgs(epFrom, bytes, Encoding.ASCII.GetString(so.buffer, 0, bytes)));
+                    }
                 }
                 catch
                 {
