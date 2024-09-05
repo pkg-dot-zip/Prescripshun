@@ -5,7 +5,7 @@ namespace PrescripshunLib.Networking
 {
     public class NetworkServer : UdpSocket
     {
-        public NetworkServer(string address, int port, IReceiveCallback? callback = null)
+        public NetworkServer(string address, int port, IReceiveCallback callback)
         {
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);

@@ -39,7 +39,7 @@ namespace PrescripshunLib.Networking
             }, state);
         }
 
-        public void Receive(IReceiveCallback? callback = null)
+        public void Receive(IReceiveCallback callback)
         {
             _socket.BeginReceiveFrom(state.buffer, 0, bufSize, SocketFlags.None, ref epFrom, recv = (ar) =>
             {
@@ -49,10 +49,7 @@ namespace PrescripshunLib.Networking
                     int bytes = _socket.EndReceiveFrom(ar, ref epFrom);
                     _socket.BeginReceiveFrom(so.buffer, 0, bufSize, SocketFlags.None, ref epFrom, recv, so);
 
-                    if (callback != null)
-                    {
-                        callback.OnReceive(new ReceivedArgs(epFrom, bytes, Encoding.ASCII.GetString(so.buffer, 0, bytes)));
-                    }
+                    callback.OnReceive(new ReceivedArgs(epFrom, bytes, Encoding.ASCII.GetString(so.buffer, 0, bytes)));
                 }
                 catch
                 {
