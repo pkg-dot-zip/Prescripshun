@@ -1,5 +1,6 @@
 ﻿using PrescripshunLib.Networking;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using Unclassified.Net;
 
@@ -9,7 +10,9 @@ internal class Server : AsyncTcpClient, IReceiveCallback
 {
     private static void Main(string[] args)
     {
-        RunAsync(new Server()).GetAwaiter().GetResult();
+        var server = new Server();
+        server.RegisterEvents();
+        RunAsync(server).GetAwaiter().GetResult();
     }
 
     private static async Task RunAsync(Server receiveCallback)
@@ -26,15 +29,8 @@ internal class Server : AsyncTcpClient, IReceiveCallback
                 {
                     ServerTcpClient = tcpClient,
 
-                    // ON CONNECT:
-                    ConnectedCallback = async (serverClient, isReconnected) =>
-                    {
-                        await Task.Delay(500);
-                        byte[] bytes = Encoding.UTF8.GetBytes($"Hello, {tcpClient.Client.RemoteEndPoint}, my name is Server. Talk to me.");
-                        await serverClient.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
-                    },
+                    ConnectedCallback = async (serverClient, isReconnected) => ServerEvents.Get.OnConnect.Invoke(tcpClient, serverClient, isReconnected),
 
-                    // ON RECEIVE:
                     ReceivedCallback = async (serverClient, count) =>
                     {
                         byte[] bytes = serverClient.ByteBuffer.Dequeue(count);
@@ -46,7 +42,7 @@ internal class Server : AsyncTcpClient, IReceiveCallback
 
                         if (message == "bye") serverClient.Disconnect(); // Let the server close the connection
 
-                        receiveCallback.OnReceive(new ReceivedArgs(serverClient.ServerTcpClient.Client.RemoteEndPoint, message));
+                        receiveCallback.OnReceive(new ReceivedArgs(serverClient.ServerTcpClient.Client.RemoteEndPoint!, message));
                     }
                 }.RunAsync()
         };
@@ -57,11 +53,23 @@ internal class Server : AsyncTcpClient, IReceiveCallback
     }
 
 
-    public void OnReceive(ReceivedArgs args)
-    {
-        var sender = args.EndPointReceivedFrom;
-        var message = args.Text;
+    public void OnReceive(ReceivedArgs args) => ServerEvents.Get.OnReceiveMessage.Invoke(args);
 
-        Console.WriteLine($"Printing from OnReceive: \"{message}\" - {sender}");
+    public void RegisterEvents()
+    {
+        ServerEvents.Get.OnConnect += async (client, server, reconnected) =>
+        {
+            await Task.Delay(500);
+            byte[] bytes = Encoding.UTF8.GetBytes($"Hello, {client.Client.RemoteEndPoint}, my name is Server. Talk to me.");
+            await server.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
+        };
+
+        ServerEvents.Get.OnReceiveMessage += args =>
+        {
+            var sender = args.EndPointReceivedFrom;
+            var message = args.Text;
+
+            Console.WriteLine($"Printing from OnReceive: \"{message}\" - {sender}");
+        };
     }
 }
