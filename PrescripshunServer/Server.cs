@@ -15,7 +15,7 @@ internal class Server : AsyncTcpClient, IReceiveCallback
         RunAsync(server).GetAwaiter().GetResult();
     }
 
-    private static async Task RunAsync(Server receiveCallback)
+    private static async Task RunAsync(IReceiveCallback receiveCallback)
     {
         int port = NetworkHandler.Port;
 

@@ -14,10 +14,13 @@ namespace PrescripshunServer
 
         public static ServerEvents Get => instance ??= new ServerEvents();
 
+        #region Events
         public delegate Task OnConnectDelegate(TcpClient connectedClient, AsyncTcpClient serverClient, bool isReconnected);
         public OnConnectDelegate OnConnect { get; set; }
 
         public delegate void OnReceiveMessageDelegate(ReceivedArgs args);
         public OnReceiveMessageDelegate OnReceiveMessage { get; set; }
+        #endregion
+
     }
 }

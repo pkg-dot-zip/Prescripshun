@@ -7,7 +7,12 @@ namespace PrescripshunClient;
 
 internal class Client : AsyncTcpClient
 {
-    private static void Main(string[] args) => RunAsync().GetAwaiter().GetResult();
+    private static void Main(string[] args)
+    {
+        var client = new Client();
+        client.RegisterEvents();
+        RunAsync().GetAwaiter().GetResult();
+    }
 
     private static async Task RunAsync()
     {
@@ -61,7 +66,7 @@ internal class Client : AsyncTcpClient
             {
                 byte[] bytes = c.ByteBuffer.Dequeue(count);
                 string message = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
-                Console.WriteLine("Client: received: " + message);
+                ClientEvents.Get.OnReceive.Invoke(c, message);
                 return Task.CompletedTask;
             }
         };
@@ -69,5 +74,10 @@ internal class Client : AsyncTcpClient
         var clientTask = client.RunAsync();
 
         await clientTask;
+    }
+
+    public void RegisterEvents()
+    {
+        ClientEvents.Get.OnReceive += (client, text) => Console.WriteLine("Client: received: " + text);
     }
 }
