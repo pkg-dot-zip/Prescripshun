@@ -1,34 +1,28 @@
 ﻿using PrescripshunLib.Networking;
-using System;
 using System.Net;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Unclassified.Net;
 
 namespace PrescripshunClient;
 
 internal class Client : AsyncTcpClient
 {
-    private static void Main(string[] args)
-    {
-        RunAsync().GetAwaiter().GetResult();
-    }
+    private static void Main(string[] args) => RunAsync().GetAwaiter().GetResult();
 
     private static async Task RunAsync()
     {
-        var port = NetworkHandler.Port;
-
         var client = new AsyncTcpClient
         {
             IPAddress = IPAddress.IPv6Loopback,
-            Port = port,
+            Port = NetworkHandler.Port,
             //AutoReconnect = true,
+
+            // ON CONNECT:
             ConnectedCallback = async (c, isReconnected) =>
             {
-                await c.WaitAsync();   // Wait for server banner
-                await Task.Delay(50);   // Let the banner land in the console window
-                Console.WriteLine("Client: type a message at the prompt, or empty to quit (server shutdown in 10s)");
+                await c.WaitAsync(); // Wait for server banner
+                await Task.Delay(50); // Let the banner land in the console window
+                Console.WriteLine("Client: type a message at the prompt, or empty to quit.");
                 while (true)
                 {
                     Console.Write("> ");
@@ -39,8 +33,7 @@ internal class Client : AsyncTcpClient
                     var completedTask = await Task.WhenAny(consoleReadTask, c.ClosedTask);
                     if (completedTask == c.ClosedTask)
                     {
-                        // Closed connection
-                        consoleReadCts.Cancel();
+                        consoleReadCts.Cancel();  // Closed connection
                         break;
                     }
 
@@ -48,23 +41,22 @@ internal class Client : AsyncTcpClient
                     string enteredMessage = await consoleReadTask;
                     if (enteredMessage == "")
                     {
-                        // Close the client connection
-                        c.Disconnect();
+                        c.Disconnect(); // Close the client connection
                         break;
                     }
+
                     byte[] bytes = Encoding.UTF8.GetBytes(enteredMessage);
                     await c.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
 
                     // Wait for server response or closed connection
                     await c.ByteBuffer.WaitAsync();
-                    if (c.IsClosing)
-                    {
-                        break;
-                    }
+                    if (c.IsClosing) break;
                 }
                 // NOTE: The client connection will NOT be closed automatically when this method
                 //       returns. It has to be closed explicitly when desired.
             },
+
+            // ON RECEIVE:
             ReceivedCallback = (c, count) =>
             {
                 byte[] bytes = c.ByteBuffer.Dequeue(count);
