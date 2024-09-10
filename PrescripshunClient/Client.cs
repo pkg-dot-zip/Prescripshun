@@ -78,6 +78,6 @@ internal class Client : AsyncTcpClient
 
     public void RegisterEvents()
     {
-        ClientEvents.Get.OnReceive += (client, text) => Console.WriteLine("Client: received: " + text);
+        ClientEvents.Get.OnReceive += async (client, text) => await Console.Out.WriteLineAsync("Client: received: " + text);
     }
 }

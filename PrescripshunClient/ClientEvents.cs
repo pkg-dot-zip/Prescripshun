@@ -15,7 +15,7 @@ namespace PrescripshunClient
         public static ClientEvents Get => instance ??= new ClientEvents();
 
 
-        public delegate void OnReceiveDelegate(AsyncTcpClient client, string text);
+        public delegate Task OnReceiveDelegate(AsyncTcpClient client, string text);
         public OnReceiveDelegate OnReceive { get; set; }
     }
 }
