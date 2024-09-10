@@ -1,6 +1,4 @@
 ﻿using PrescripshunLib.Networking;
-using System.Net;
-using System.Net.Sockets;
 using System.Text;
 using Unclassified.Net;
 
@@ -10,8 +8,12 @@ internal class Server : AsyncTcpClient
 {
     private static void Main(string[] args)
     {
+        // First we create an instance of the server and register all the events.
         var server = new Server();
         server.RegisterEvents();
+
+        // Then we run the logic.
+        ServerEvents.Get.OnApplicationBoot.Invoke(args);
         RunAsync().GetAwaiter().GetResult();
     }
 
@@ -52,6 +54,21 @@ internal class Server : AsyncTcpClient
 
     public void RegisterEvents()
     {
+        ServerEvents.Get.OnApplicationBoot += args =>
+        {
+            Console.WriteLine($"Starting server at {DateTime.Now} on {Environment.MachineName} {NetworkHandler.AnyIpAddress}:{NetworkHandler.Port}.");
+            Console.WriteLine();
+        };
+
+        ServerEvents.Get.OnApplicationBoot += args =>
+        {
+            // Console.Beep() only works on Windows.
+            if (!OperatingSystem.IsWindows()) return;
+            Console.Beep(262, 200); // Approx C4.
+            Console.Beep(330, 200); // Approx E4.
+            Console.Beep(392, 200); // Approx G4.
+        };
+
         ServerEvents.Get.OnConnect += async (client, server, reconnected) =>
         {
             await Task.Delay(500);
