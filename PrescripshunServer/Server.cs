@@ -63,8 +63,7 @@ internal class Server : AsyncTcpClient
     {
         ServerEvents.Get.OnApplicationBoot += async args =>
         {
-            Logger.Info(
-                $"Starting server at {DateTime.Now} on {Environment.MachineName}.");
+            Logger.Info($"Starting server at {DateTime.Now} on {Environment.MachineName}.");
         };
 
         ServerEvents.Get.OnApplicationBoot += async args =>

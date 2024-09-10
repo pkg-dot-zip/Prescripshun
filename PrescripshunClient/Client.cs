@@ -48,7 +48,7 @@ internal class Client : AsyncTcpClient
                     var completedTask = await Task.WhenAny(consoleReadTask, c.ClosedTask);
                     if (completedTask == c.ClosedTask)
                     {
-                        consoleReadCts.Cancel();  // Closed connection
+                        consoleReadCts.Cancel(); // Closed connection
                         break;
                     }
 
@@ -90,8 +90,7 @@ internal class Client : AsyncTcpClient
     {
         ClientEvents.Get.OnApplicationBoot += async args =>
         {
-            Logger.Info(
-                $"Starting client at {DateTime.Now} on {Environment.MachineName}.");
+            Logger.Info($"Starting client at {DateTime.Now} on {Environment.MachineName}.");
         };
         ClientEvents.Get.OnReceive += async (client, text) => Logger.Trace("Client: received: " + text);
 
