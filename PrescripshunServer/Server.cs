@@ -1,13 +1,18 @@
 ﻿using PrescripshunLib.Networking;
 using System.Text;
+using PrescripshunLib.Logging;
 using Unclassified.Net;
 
 namespace PrescripshunServer;
 
 internal class Server : AsyncTcpClient
 {
+    private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
     private static void Main(string[] args)
     {
+        LogHandler.Configure("server");
+
         // First we create an instance of the server and register all the events.
         var server = new Server();
         server.RegisterEvents();
@@ -36,8 +41,8 @@ internal class Server : AsyncTcpClient
                     {
                         byte[] bytes = serverClient.ByteBuffer.Dequeue(count);
                         string message = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
-                        Console.WriteLine("Server client: received: " + message +
-                                          $" | FROM: {serverClient.ServerTcpClient.Client.RemoteEndPoint}");
+                        Logger.Info("Server: received: " + message +
+                                    $" | FROM: {serverClient.ServerTcpClient.Client.RemoteEndPoint}");
 
                         bytes = Encoding.UTF8.GetBytes("You said: " + message);
                         await serverClient.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
@@ -48,7 +53,7 @@ internal class Server : AsyncTcpClient
                     }
                 }.RunAsync()
         };
-        server.Message += (s, a) => Console.WriteLine("Server: " + a.Message);
+        server.Message += (s, a) => Logger.Debug("Server: " + a.Message);
         var serverTask = server.RunAsync();
 
         await serverTask;
@@ -58,9 +63,8 @@ internal class Server : AsyncTcpClient
     {
         ServerEvents.Get.OnApplicationBoot += async args =>
         {
-            Console.WriteLine(
+            Logger.Info(
                 $"Starting server at {DateTime.Now} on {Environment.MachineName}.");
-            Console.WriteLine();
         };
 
         ServerEvents.Get.OnApplicationBoot += async args =>
@@ -85,7 +89,13 @@ internal class Server : AsyncTcpClient
 
         ServerEvents.Get.OnReceiveMessage += (sender, server, message) =>
         {
-            Console.WriteLine($"Printing from OnReceive: \"{message}\" - {sender.Client.RemoteEndPoint}");
+            Logger.Trace($"Printing from OnReceive: \"{message}\" - {sender.Client.RemoteEndPoint}");
+        };
+
+        ServerEvents.Get.OnApplicationExit += args =>
+        {
+            NLog.LogManager.Shutdown();
+            return Task.CompletedTask;
         };
     }
 }

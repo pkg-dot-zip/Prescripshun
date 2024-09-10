@@ -1,4 +1,5 @@
-﻿using PrescripshunLib.Networking;
+﻿using PrescripshunLib.Logging;
+using PrescripshunLib.Networking;
 using System.Text;
 using Unclassified.Net;
 
@@ -6,8 +7,12 @@ namespace PrescripshunClient;
 
 internal class Client : AsyncTcpClient
 {
+    private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
     private static void Main(string[] args)
     {
+        LogHandler.Configure("client");
+
         // First we create an instance of the client and register all the events.
         var client = new Client();
         client.RegisterEvents();
@@ -15,6 +20,8 @@ internal class Client : AsyncTcpClient
         // Then we run the logic.
         ClientEvents.Get.OnApplicationBoot.Invoke(args);
         RunAsync().GetAwaiter().GetResult();
+
+        ClientEvents.Get.OnApplicationExit.Invoke(args);
     }
 
     private static async Task RunAsync()
@@ -73,7 +80,7 @@ internal class Client : AsyncTcpClient
                 return Task.CompletedTask;
             }
         };
-        client.Message += (s, a) => Console.WriteLine("Client: " + a.Message);
+        client.Message += (s, a) => Logger.Debug("Client: " + a.Message);
         var clientTask = client.RunAsync();
 
         await clientTask;
@@ -83,10 +90,15 @@ internal class Client : AsyncTcpClient
     {
         ClientEvents.Get.OnApplicationBoot += async args =>
         {
-            Console.WriteLine(
+            Logger.Info(
                 $"Starting client at {DateTime.Now} on {Environment.MachineName}.");
-            Console.WriteLine();
         };
-        ClientEvents.Get.OnReceive += async (client, text) => await Console.Out.WriteLineAsync("Client: received: " + text);
+        ClientEvents.Get.OnReceive += async (client, text) => Logger.Trace("Client: received: " + text);
+
+        ClientEvents.Get.OnApplicationExit += args =>
+        {
+            NLog.LogManager.Shutdown();
+            return Task.CompletedTask;
+        };
     }
 }

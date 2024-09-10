@@ -23,6 +23,14 @@ namespace PrescripshunServer
         public OnApplicationBootDelegate OnApplicationBoot { get; set; }
 
 
+        public delegate Task OnApplicationExitDelegate(string[] args);
+
+        /// <summary>
+        /// Event that gets invoked on exit of the server, after the server is closed.
+        /// </summary>
+        public OnApplicationBootDelegate OnApplicationExit { get; set; }
+
+
         public delegate Task OnConnectDelegate(TcpClient sender, AsyncTcpClient serverClient, bool isReconnected);
 
         /// <summary>
