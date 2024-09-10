@@ -59,7 +59,7 @@ internal class Server : AsyncTcpClient
         ServerEvents.Get.OnApplicationBoot += async args =>
         {
             Console.WriteLine(
-                $"Starting server at {DateTime.Now} on {Environment.MachineName} {NetworkHandler.AnyIpAddress}:{NetworkHandler.Port}.");
+                $"Starting server at {DateTime.Now} on {Environment.MachineName}.");
             Console.WriteLine();
         };
 

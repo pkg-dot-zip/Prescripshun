@@ -1,5 +1,4 @@
 ﻿using PrescripshunLib.Networking;
-using System.Net;
 using System.Text;
 using Unclassified.Net;
 
@@ -9,8 +8,12 @@ internal class Client : AsyncTcpClient
 {
     private static void Main(string[] args)
     {
+        // First we create an instance of the client and register all the events.
         var client = new Client();
         client.RegisterEvents();
+
+        // Then we run the logic.
+        ClientEvents.Get.OnApplicationBoot.Invoke(args);
         RunAsync().GetAwaiter().GetResult();
     }
 
@@ -78,6 +81,12 @@ internal class Client : AsyncTcpClient
 
     public void RegisterEvents()
     {
+        ClientEvents.Get.OnApplicationBoot += async args =>
+        {
+            Console.WriteLine(
+                $"Starting client at {DateTime.Now} on {Environment.MachineName}.");
+            Console.WriteLine();
+        };
         ClientEvents.Get.OnReceive += async (client, text) => await Console.Out.WriteLineAsync("Client: received: " + text);
     }
 }

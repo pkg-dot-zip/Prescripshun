@@ -18,7 +18,7 @@ namespace PrescripshunServer
         public delegate Task OnApplicationBootDelegate(string[] args);
 
         /// <summary>
-        /// Event that gets invoked on initiation of the server, before any server code is executed.
+        /// Event that gets invoked on initiation of the server, before any network code is executed.
         /// </summary>
         public OnApplicationBootDelegate OnApplicationBoot { get; set; }
 
