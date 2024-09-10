@@ -29,13 +29,15 @@ internal class Server : AsyncTcpClient
                 {
                     ServerTcpClient = tcpClient,
 
-                    ConnectedCallback = async (serverClient, isReconnected) => ServerEvents.Get.OnConnect.Invoke(tcpClient, serverClient, isReconnected),
+                    ConnectedCallback = async (serverClient, isReconnected) =>
+                        ServerEvents.Get.OnConnect.Invoke(tcpClient, serverClient, isReconnected),
 
                     ReceivedCallback = async (serverClient, count) =>
                     {
                         byte[] bytes = serverClient.ByteBuffer.Dequeue(count);
                         string message = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
-                        Console.WriteLine("Server client: received: " + message + $" | FROM: {serverClient.ServerTcpClient.Client.RemoteEndPoint}");
+                        Console.WriteLine("Server client: received: " + message +
+                                          $" | FROM: {serverClient.ServerTcpClient.Client.RemoteEndPoint}");
 
                         bytes = Encoding.UTF8.GetBytes("You said: " + message);
                         await serverClient.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
@@ -54,25 +56,30 @@ internal class Server : AsyncTcpClient
 
     public void RegisterEvents()
     {
-        ServerEvents.Get.OnApplicationBoot += args =>
+        ServerEvents.Get.OnApplicationBoot += async args =>
         {
-            Console.WriteLine($"Starting server at {DateTime.Now} on {Environment.MachineName} {NetworkHandler.AnyIpAddress}:{NetworkHandler.Port}.");
+            Console.WriteLine(
+                $"Starting server at {DateTime.Now} on {Environment.MachineName} {NetworkHandler.AnyIpAddress}:{NetworkHandler.Port}.");
             Console.WriteLine();
         };
 
-        ServerEvents.Get.OnApplicationBoot += args =>
+        ServerEvents.Get.OnApplicationBoot += async args =>
         {
-            // Console.Beep() only works on Windows.
-            if (!OperatingSystem.IsWindows()) return;
-            Console.Beep(262, 200); // Approx C4.
-            Console.Beep(330, 200); // Approx E4.
-            Console.Beep(392, 200); // Approx G4.
+            await Task.Run(() =>
+            {
+                // Console.Beep() only works on Windows.
+                if (!OperatingSystem.IsWindows()) return;
+                Console.Beep(262, 200); // Approx C4.
+                Console.Beep(330, 200); // Approx E4.
+                Console.Beep(392, 200); // Approx G4.
+            });
         };
 
         ServerEvents.Get.OnConnect += async (client, server, reconnected) =>
         {
             await Task.Delay(500);
-            byte[] bytes = Encoding.UTF8.GetBytes($"Hello, {client.Client.RemoteEndPoint}, my name is Server. Talk to me.");
+            byte[] bytes =
+                Encoding.UTF8.GetBytes($"Hello, {client.Client.RemoteEndPoint}, my name is Server. Talk to me.");
             await server.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         };
 

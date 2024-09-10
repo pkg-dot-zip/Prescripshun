@@ -1,5 +1,4 @@
 ﻿using System.Net.Sockets;
-using PrescripshunLib.Networking;
 using Unclassified.Net;
 
 namespace PrescripshunServer
@@ -16,14 +15,26 @@ namespace PrescripshunServer
 
         #region Events
 
-        public delegate void OnApplicationBootDelegate(string[] args);
+        public delegate Task OnApplicationBootDelegate(string[] args);
+
+        /// <summary>
+        /// Event that gets invoked on initiation of the server, before any server code is executed.
+        /// </summary>
         public OnApplicationBootDelegate OnApplicationBoot { get; set; }
 
 
-        public delegate Task OnConnectDelegate(TcpClient connectedClient, AsyncTcpClient serverClient, bool isReconnected);
+        public delegate Task OnConnectDelegate(TcpClient sender, AsyncTcpClient serverClient, bool isReconnected);
+
+        /// <summary>
+        /// Event that gets invoked on the connection of a single client.
+        /// </summary>
         public OnConnectDelegate OnConnect { get; set; }
 
         public delegate void OnReceiveMessageDelegate(TcpClient sender, AsyncTcpClient serverClient, string message);
+
+        /// <summary>
+        /// Event that gets invoked upon receiving a message from a client.
+        /// </summary>
         public OnReceiveMessageDelegate OnReceiveMessage { get; set; }
         #endregion
 
