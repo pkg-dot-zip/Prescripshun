@@ -18,7 +18,7 @@ internal class Client : AsyncTcpClient
     {
         var client = new AsyncTcpClient
         {
-            IPAddress = IPAddress.IPv6Loopback,
+            IPAddress = NetworkHandler.LocalIpAddress,
             Port = NetworkHandler.Port,
             //AutoReconnect = true,
 

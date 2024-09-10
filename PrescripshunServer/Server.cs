@@ -6,23 +6,21 @@ using Unclassified.Net;
 
 namespace PrescripshunServer;
 
-internal class Server : AsyncTcpClient, IReceiveCallback
+internal class Server : AsyncTcpClient
 {
     private static void Main(string[] args)
     {
         var server = new Server();
         server.RegisterEvents();
-        RunAsync(server).GetAwaiter().GetResult();
+        RunAsync().GetAwaiter().GetResult();
     }
 
-    private static async Task RunAsync(IReceiveCallback receiveCallback)
+    private static async Task RunAsync()
     {
-        int port = NetworkHandler.Port;
-
         var server = new AsyncTcpListener
         {
-            IPAddress = IPAddress.IPv6Any,
-            Port = port,
+            IPAddress = NetworkHandler.AnyIpAddress,
+            Port = NetworkHandler.Port,
 
             ClientConnectedCallback = tcpClient =>
                 new AsyncTcpClient
@@ -42,7 +40,7 @@ internal class Server : AsyncTcpClient, IReceiveCallback
 
                         if (message == "bye") serverClient.Disconnect(); // Let the server close the connection
 
-                        receiveCallback.OnReceive(new ReceivedArgs(serverClient.ServerTcpClient.Client.RemoteEndPoint!, message));
+                        ServerEvents.Get.OnReceiveMessage.Invoke(tcpClient, serverClient, message);
                     }
                 }.RunAsync()
         };
@@ -51,9 +49,6 @@ internal class Server : AsyncTcpClient, IReceiveCallback
 
         await serverTask;
     }
-
-
-    public void OnReceive(ReceivedArgs args) => ServerEvents.Get.OnReceiveMessage.Invoke(args);
 
     public void RegisterEvents()
     {
@@ -64,12 +59,9 @@ internal class Server : AsyncTcpClient, IReceiveCallback
             await server.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         };
 
-        ServerEvents.Get.OnReceiveMessage += args =>
+        ServerEvents.Get.OnReceiveMessage += (sender, server, message) =>
         {
-            var sender = args.EndPointReceivedFrom;
-            var message = args.Text;
-
-            Console.WriteLine($"Printing from OnReceive: \"{message}\" - {sender}");
+            Console.WriteLine($"Printing from OnReceive: \"{message}\" - {sender.Client.RemoteEndPoint}");
         };
     }
 }
