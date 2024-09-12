@@ -49,7 +49,9 @@ internal class Server : AsyncTcpClient
                         if (message == "bye") serverClient.Disconnect(); // Let the server close the connection.
 
                         ServerEvents.Get.OnReceiveMessage.Invoke(tcpClient, serverClient, message);
-                    }
+                    },
+
+                    ClosedCallback = (client, closedByRemote) => ServerEvents.Get.OnConnectionClosed.Invoke(client, closedByRemote),
                 }.RunAsync()
         };
         server.Message += (s, a) => Logger.Debug("Server: " + a.Message);
@@ -96,6 +98,12 @@ internal class Server : AsyncTcpClient
         {
             var bytes = Encoding.UTF8.GetBytes("You said: " + message);
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
+        };
+
+        ServerEvents.Get.OnConnectionClosed += (client, closedByRemote) =>
+        {
+            Logger.Info($"Connection closed by remote: {closedByRemote}");
+            return Task.CompletedTask;
         };
 
         ServerEvents.Get.OnApplicationExit += args =>

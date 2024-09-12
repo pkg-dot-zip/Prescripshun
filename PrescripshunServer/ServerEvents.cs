@@ -44,6 +44,14 @@ namespace PrescripshunServer
         /// Event that gets invoked upon receiving a message from a client.
         /// </summary>
         public OnReceiveMessageDelegate OnReceiveMessage { get; set; }
+
+
+
+        public delegate Task OnConnectionClosedDelegate(AsyncTcpClient client, bool closedByRemote);
+        /// <summary>
+        /// Event that gets invoked upon...
+        /// </summary>
+        public OnConnectionClosedDelegate OnConnectionClosed { get; set; }
         #endregion
 
     }
