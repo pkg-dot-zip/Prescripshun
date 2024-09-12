@@ -86,7 +86,7 @@ internal class Client : AsyncTcpClient
         await clientTask;
     }
 
-    public void RegisterEvents()
+    private void RegisterEvents()
     {
         ClientEvents.Get.OnApplicationBoot += async args =>
         {
