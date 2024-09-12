@@ -31,7 +31,7 @@ internal class Server : AsyncTcpClient
             IPAddress = NetworkHandler.AnyIpAddress,
             Port = NetworkHandler.Port,
 
-            ClientConnectedCallback = tcpClient =>
+            ClientConnectedCallback = tcpClient => // tcpClient = acceptedConnection.
                 new AsyncTcpClient
                 {
                     ServerTcpClient = tcpClient,
@@ -60,9 +60,10 @@ internal class Server : AsyncTcpClient
 
     public void RegisterEvents()
     {
-        ServerEvents.Get.OnApplicationBoot += async args =>
+        ServerEvents.Get.OnApplicationBoot += args =>
         {
             Logger.Info($"Starting server at {DateTime.Now} on {Environment.MachineName}.");
+            return Task.CompletedTask;
         };
 
         ServerEvents.Get.OnApplicationBoot += async args =>
@@ -77,24 +78,24 @@ internal class Server : AsyncTcpClient
             });
         };
 
-        ServerEvents.Get.OnConnect += async (client, server, reconnected) =>
+        ServerEvents.Get.OnConnect += async (sender, client, reconnected) =>
         {
             await Task.Delay(500);
             byte[] bytes =
-                Encoding.UTF8.GetBytes($"Hello, {client.Client.RemoteEndPoint}, my name is Server. Talk to me.");
-            await server.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
+                Encoding.UTF8.GetBytes($"Hello, {sender.Client.RemoteEndPoint}, my name is Server. Talk to me.");
+            await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         };
 
-        ServerEvents.Get.OnReceiveMessage += (sender, server, message) =>
+        ServerEvents.Get.OnReceiveMessage += (sender, client, message) =>
         {
             Logger.Trace($"Printing from OnReceive: \"{message}\" - {sender.Client.RemoteEndPoint}");
             return Task.CompletedTask;
         };
 
-        ServerEvents.Get.OnReceiveMessage += async (sender, server, message) =>
+        ServerEvents.Get.OnReceiveMessage += async (sender, client, message) =>
         {
             var bytes = Encoding.UTF8.GetBytes("You said: " + message);
-            await server.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
+            await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         };
 
         ServerEvents.Get.OnApplicationExit += args =>
