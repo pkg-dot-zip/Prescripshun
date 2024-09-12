@@ -8,6 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NLog" Version="5.3.3" />
+    <PackageReference Include="Unclassified.AsyncTcpClient" Version="1.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PrescripshunLib\PrescripshunLib.csproj" />
   </ItemGroup>
 
