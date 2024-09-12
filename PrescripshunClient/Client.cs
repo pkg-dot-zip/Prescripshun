@@ -72,13 +72,15 @@ internal class Client : AsyncTcpClient
             },
 
             // ON RECEIVE:
-            ReceivedCallback = (c, count) =>
+            ReceivedCallback = (c, count) => // count = number of bytes received.
             {
                 byte[] bytes = c.ByteBuffer.Dequeue(count);
                 string message = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
                 ClientEvents.Get.OnReceive.Invoke(c, message);
                 return Task.CompletedTask;
-            }
+            },
+
+            ClosedCallback = (client, closedByRemote) => ClientEvents.Get.OnConnectionClosed.Invoke(client, closedByRemote),
         };
         client.Message += (s, a) => Logger.Debug("Client: " + a.Message);
         var clientTask = client.RunAsync();
@@ -93,6 +95,12 @@ internal class Client : AsyncTcpClient
             Logger.Info($"Starting client at {DateTime.Now} on {Environment.MachineName}.");
         };
         ClientEvents.Get.OnReceive += async (client, text) => Logger.Trace("Client: received: " + text);
+
+        ClientEvents.Get.OnConnectionClosed += (client, remote) =>
+        {
+            Logger.Info($"Connection closed by remote: {remote}");
+            return Task.CompletedTask;
+        };
 
         ClientEvents.Get.OnApplicationExit += args =>
         {

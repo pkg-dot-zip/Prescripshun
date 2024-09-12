@@ -38,6 +38,13 @@ namespace PrescripshunClient
         /// </summary>
         public OnReceiveDelegate OnReceive { get; set; }
 
+
+        public delegate Task OnConnectionClosedDelegate(AsyncTcpClient client, bool closedByRemote);
+        /// <summary>
+        /// Event that gets invoked upon the connection ceasing between the client and the server.
+        /// </summary>
+        public OnConnectionClosedDelegate OnConnectionClosed { get; set; }
+
         #endregion
     }
 }
