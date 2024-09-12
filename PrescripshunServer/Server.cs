@@ -46,10 +46,7 @@ internal class Server : AsyncTcpClient
                         Logger.Info("Server: received: " + message +
                                     $" | FROM: {serverClient.ServerTcpClient.Client.RemoteEndPoint}");
 
-                        bytes = Encoding.UTF8.GetBytes("You said: " + message);
-                        await serverClient.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
-
-                        if (message == "bye") serverClient.Disconnect(); // Let the server close the connection
+                        if (message == "bye") serverClient.Disconnect(); // Let the server close the connection.
 
                         ServerEvents.Get.OnReceiveMessage.Invoke(tcpClient, serverClient, message);
                     }
@@ -91,6 +88,13 @@ internal class Server : AsyncTcpClient
         ServerEvents.Get.OnReceiveMessage += (sender, server, message) =>
         {
             Logger.Trace($"Printing from OnReceive: \"{message}\" - {sender.Client.RemoteEndPoint}");
+            return Task.CompletedTask;
+        };
+
+        ServerEvents.Get.OnReceiveMessage += async (sender, server, message) =>
+        {
+            var bytes = Encoding.UTF8.GetBytes("You said: " + message);
+            await server.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         };
 
         ServerEvents.Get.OnApplicationExit += args =>

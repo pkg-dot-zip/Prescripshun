@@ -38,7 +38,7 @@ namespace PrescripshunServer
         /// </summary>
         public OnConnectDelegate OnConnect { get; set; }
 
-        public delegate void OnReceiveMessageDelegate(TcpClient sender, AsyncTcpClient serverClient, string message);
+        public delegate Task OnReceiveMessageDelegate(TcpClient sender, AsyncTcpClient serverClient, string message);
 
         /// <summary>
         /// Event that gets invoked upon receiving a message from a client.
