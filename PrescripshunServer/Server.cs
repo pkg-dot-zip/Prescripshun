@@ -20,6 +20,8 @@ internal class Server : AsyncTcpClient
         // Then we run the logic.
         ServerEvents.Get.OnApplicationBoot.Invoke(args);
         server.RunServer().GetAwaiter().GetResult();
+
+        ServerEvents.Get.OnApplicationExit.Invoke(args);
     }
 
     private async Task RunServer()
