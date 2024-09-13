@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Reflection;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace PrescripshunLib.Networking
 {
@@ -50,6 +51,36 @@ namespace PrescripshunLib.Networking
 
 
                 Text = input.Text;
+
+                message = this;
+                return true;
+            }
+        }
+
+        public class MessageTest : BaseMessage
+        {
+            public int? IntegerTest { get; set; }
+            public double? DoubleTest { get; set; }
+            public float? FloatTest { get; set; }
+
+            public override bool InitializeFromJsonString(string jsonString, out IMessage message)
+            {
+                MessageTest input = null;
+
+                try
+                {
+                    input = JsonConvert.DeserializeObject<MessageTest>(jsonString) ?? throw new InvalidOperationException();
+                }
+                catch
+                {
+                    message = this;
+                    return false;
+                }
+
+
+                IntegerTest = input.IntegerTest;
+                DoubleTest = input.DoubleTest;
+                FloatTest = input.FloatTest;
 
                 message = this;
                 return true;

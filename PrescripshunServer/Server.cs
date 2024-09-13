@@ -120,9 +120,15 @@ internal class Server : AsyncTcpClient
 
         ServerEvents.Get.OnReceiveMessage.AddHandler<Message.DebugPrint>(async (sender, client, message) =>
         {
-            Console.WriteLine($"Received {typeof(Message)}: " + message.Text);
+            Console.WriteLine($"Received {typeof(Message.DebugPrint)}: " + message.Text);
 
             var bytes = Encoding.UTF8.GetBytes($"You said in {typeof(Message)}: " + message.Text);
+            await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
+        });
+
+        ServerEvents.Get.OnReceiveMessage.AddHandler<Message.MessageTest>(async (sender, client, message) =>
+        {
+            var bytes = Encoding.UTF8.GetBytes($"You said in {typeof(Message.MessageTest)}: {message.IntegerTest}, {message.DoubleTest}, {message.FloatTest}");
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         });
     }

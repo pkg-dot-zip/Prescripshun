@@ -60,10 +60,26 @@ internal class Client : AsyncTcpClient
                         break;
                     }
 
-                    var toSend = new PrescripshunLib.Networking.Message.DebugPrint()
+                    IMessage toSend = null;
+
+
+                    if (enteredMessage.StartsWith("1"))
                     {
-                        Text = enteredMessage
-                    };
+                        toSend = new Message.MessageTest()
+                        {
+                            IntegerTest = 1,
+                            DoubleTest = 2.0,
+                            FloatTest = 3.0F,
+                        };
+                    }
+                    else
+                    {
+                        toSend = new PrescripshunLib.Networking.Message.DebugPrint()
+                        {
+                            Text = enteredMessage
+                        };
+                    }
+
                     byte[] bytes = Encoding.UTF8.GetBytes(toSend.ToJsonString());
                     await c.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
 
