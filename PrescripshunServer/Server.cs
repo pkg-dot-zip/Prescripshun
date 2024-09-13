@@ -105,10 +105,10 @@ internal class Server : AsyncTcpClient
             switch (message)
             {
                 case "1":
-                    await ServerEvents.Get.ReceiveMessage(sender, client, new Message.MessageImplementation1());
+                    await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, new Message.MessageImplementation1());
                     break;
                 case "2":
-                    await ServerEvents.Get.ReceiveMessage(sender, client, new Message.MessageImplementation2());
+                    await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, new Message.MessageImplementation2());
                     break;
             }
         };
@@ -127,14 +127,14 @@ internal class Server : AsyncTcpClient
 
 
         // Subscribing to MessageImplementation1
-        ServerEvents.Get.AddOnReceiveMessageHandler<Message.MessageImplementation1>(async (sender, client, message) =>
+        ServerEvents.Get.OnReceiveMessage.AddHandler<Message.MessageImplementation1>(async (sender, client, message) =>
         {
             // This only gets run if we receive MessageImplementation1!
             Console.WriteLine("Received MessageImplementation1: " + message);
         });
 
         // Subscribing to MessageImplementation2
-        ServerEvents.Get.AddOnReceiveMessageHandler<Message.MessageImplementation2>(async (sender, client, message) =>
+        ServerEvents.Get.OnReceiveMessage.AddHandler<Message.MessageImplementation2>(async (sender, client, message) =>
         {
             // This only gets run if we receive MessageImplementation2!
             Console.WriteLine("Received MessageImplementation2: " + message);

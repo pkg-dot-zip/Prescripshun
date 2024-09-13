@@ -1,4 +1,5 @@
 ﻿using System.Net.Sockets;
+using PrescripshunLib;
 using PrescripshunLib.Networking;
 using Unclassified.Net;
 
@@ -53,50 +54,8 @@ namespace PrescripshunServer
         /// Event that gets invoked upon...
         /// </summary>
         public OnConnectionClosedDelegate OnConnectionClosed { get; set; }
+
+        public GenericEvent<IMessage> OnReceiveMessage { get; } = new();
         #endregion
-
-
-
-        private readonly Dictionary<Type, Delegate> _messageHandlers = new();
-        public delegate Task OnReceiveMessageDelegate<TMessage>(TcpClient sender, AsyncTcpClient serverClient, TMessage message) where TMessage : IMessage;
-
-        // Method to add a handler for a specific message type
-        public void AddOnReceiveMessageHandler<TMessage>(OnReceiveMessageDelegate<TMessage> handler) where TMessage : IMessage
-        {
-            var messageType = typeof(TMessage);
-            if (_messageHandlers.ContainsKey(messageType))
-            {
-                _messageHandlers[messageType] = Delegate.Combine(_messageHandlers[messageType], handler);
-            }
-            else
-            {
-                _messageHandlers[messageType] = handler;
-            }
-        }
-
-        // Method to remove a handler for a specific message type
-        public void RemoveOnReceiveMessageHandler<TMessage>(OnReceiveMessageDelegate<TMessage> handler) where TMessage : IMessage
-        {
-            var messageType = typeof(TMessage);
-            if (_messageHandlers.ContainsKey(messageType))
-            {
-                _messageHandlers[messageType] = Delegate.Remove(_messageHandlers[messageType], handler);
-            }
-        }
-
-        // Method to invoke the event based on the message type
-        public async Task ReceiveMessage<TMessage>(TcpClient sender, AsyncTcpClient serverClient, TMessage message) where TMessage : IMessage
-        {
-            var messageType = typeof(TMessage);
-            if (_messageHandlers.ContainsKey(messageType))
-            {
-                var handler = _messageHandlers[messageType] as OnReceiveMessageDelegate<TMessage>;
-                if (handler != null)
-                {
-                    await handler.Invoke(sender, serverClient, message);
-                }
-            }
-        }
-
     }
 }
