@@ -1,4 +1,5 @@
-﻿using PrescripshunLib.Networking;
+﻿using System.Net.Sockets;
+using PrescripshunLib.Networking;
 using System.Text;
 using PrescripshunLib.Logging;
 using Unclassified.Net;
@@ -100,18 +101,7 @@ internal class Server : AsyncTcpClient
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         };
 
-        ServerEvents.Get.OnReceiveString += async (sender, client, message) =>
-        {
-            switch (message)
-            {
-                case "1":
-                    await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, new Message.MessageImplementation1());
-                    break;
-                case "2":
-                    await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, new Message.MessageImplementation2());
-                    break;
-            }
-        };
+        ServerEvents.Get.OnReceiveString += ProcessReceivedString;
 
         ServerEvents.Get.OnConnectionClosed += (client, closedByRemote) =>
         {
@@ -139,5 +129,18 @@ internal class Server : AsyncTcpClient
             // This only gets run if we receive MessageImplementation2!
             Console.WriteLine("Received MessageImplementation2: " + message);
         });
+    }
+
+    private async Task ProcessReceivedString(TcpClient sender, AsyncTcpClient client, string message)
+    {
+        switch (message)
+        {
+            case "1":
+                await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, new Message.MessageImplementation1());
+                break;
+            case "2":
+                await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, new Message.MessageImplementation2());
+                break;
+        }
     }
 }
