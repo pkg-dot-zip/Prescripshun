@@ -31,19 +31,29 @@ namespace PrescripshunLib
             }
         }
 
+
         /// <summary>
-        /// Removes a <see cref="handler"/>> for a specific message <see langword="type"/> <see cref="TImplementationType"/>.
+        /// Removes a <see cref="handler"/>> for a specific message <see langword="type"/> <see cref="TImplementationType"/>. Returns <see langword="true"/> if successful.
         /// </summary>
-        /// <typeparam name="TImplementationType"><see langword="type"/> of message</typeparam>
+        /// <typeparam name="TImplementationType">><see langword="type"/> of message.</typeparam>
         /// <param name="handler">Implementation for handling <see langword="type"/> <see cref="TImplementationType"/>.</param>
-        /// <exception cref="NullReferenceException">If <see cref="handler"/>> could not be found.</exception>
-        public void RemoveHandler<TImplementationType>(OnReceiveMessageDelegate<TImplementationType> handler) where TImplementationType : T
+        /// <returns><see langword="true"/> if successful. <see langword="false"/> if <see cref="handler"/> could not be found.</returns>
+        public bool RemoveHandler<TImplementationType>(OnReceiveMessageDelegate<TImplementationType> handler) where TImplementationType : T
         {
             var messageType = typeof(TImplementationType);
             if (_handlers.ContainsKey(messageType))
             {
-                _handlers[messageType] = Delegate.Remove(_handlers[messageType], handler) ?? throw new NullReferenceException(); // TODO: Don't throw exception, instead handle this manually. Maybe return a bool?
+                try
+                {
+                    _handlers[messageType] = Delegate.Remove(_handlers[messageType], handler) ?? throw new InvalidOperationException();
+                }
+                catch
+                {
+                    return false;
+                }
             }
+
+            return true;
         }
 
         /// <summary>
