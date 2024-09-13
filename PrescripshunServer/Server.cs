@@ -1,6 +1,8 @@
-﻿using System.Net.Sockets;
+﻿using System.Net.Mime;
+using System.Net.Sockets;
 using PrescripshunLib.Networking;
 using System.Text;
+using NLog.MessageTemplates;
 using PrescripshunLib.Logging;
 using Unclassified.Net;
 
@@ -116,31 +118,19 @@ internal class Server : AsyncTcpClient
         };
 
 
-        // Subscribing to MessageImplementation1
-        ServerEvents.Get.OnReceiveMessage.AddHandler<Message.MessageImplementation1>(async (sender, client, message) =>
+        ServerEvents.Get.OnReceiveMessage.AddHandler<Message.DebugPrint>(async (sender, client, message) =>
         {
-            // This only gets run if we receive MessageImplementation1!
-            Console.WriteLine("Received MessageImplementation1: " + message);
-        });
+            Console.WriteLine($"Received {typeof(Message)}: " + message.Text);
 
-        // Subscribing to MessageImplementation2
-        ServerEvents.Get.OnReceiveMessage.AddHandler<Message.MessageImplementation2>(async (sender, client, message) =>
-        {
-            // This only gets run if we receive MessageImplementation2!
-            Console.WriteLine("Received MessageImplementation2: " + message);
+            var bytes = Encoding.UTF8.GetBytes($"You said in {typeof(Message)}: " + message.Text);
+            await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         });
     }
 
     private async Task ProcessReceivedString(TcpClient sender, AsyncTcpClient client, string message)
     {
-        switch (message)
-        {
-            case "1":
-                await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, new Message.MessageImplementation1());
-                break;
-            case "2":
-                await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, new Message.MessageImplementation2());
-                break;
-        }
+        var messageParam = PrescripshunLib.Networking.Message.GetMessageFromJsonString(message);
+        Logger.Trace($"Invoking for {messageParam.GetType()} at {nameof(ProcessReceivedString)}");
+        await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, messageParam);
     }
 }

@@ -60,7 +60,11 @@ internal class Client : AsyncTcpClient
                         break;
                     }
 
-                    byte[] bytes = Encoding.UTF8.GetBytes(enteredMessage);
+                    var toSend = new PrescripshunLib.Networking.Message.DebugPrint()
+                    {
+                        Text = enteredMessage
+                    };
+                    byte[] bytes = Encoding.UTF8.GetBytes(toSend.ToJsonString());
                     await c.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
 
                     // Wait for server response or closed connection
