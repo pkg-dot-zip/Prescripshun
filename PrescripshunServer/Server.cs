@@ -48,7 +48,7 @@ internal class Server : AsyncTcpClient
 
                         if (message == "bye") serverClient.Disconnect(); // Let the server close the connection.
 
-                        ServerEvents.Get.OnReceiveMessage.Invoke(tcpClient, serverClient, message);
+                        ServerEvents.Get.OnReceiveString.Invoke(tcpClient, serverClient, message);
                     },
 
                     ClosedCallback = (client, closedByRemote) => ServerEvents.Get.OnConnectionClosed.Invoke(client, closedByRemote),
@@ -88,16 +88,29 @@ internal class Server : AsyncTcpClient
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         };
 
-        ServerEvents.Get.OnReceiveMessage += (sender, client, message) =>
+        ServerEvents.Get.OnReceiveString += (sender, client, message) =>
         {
             Logger.Trace($"Printing from OnReceive: \"{message}\" - {sender.Client.RemoteEndPoint}");
             return Task.CompletedTask;
         };
 
-        ServerEvents.Get.OnReceiveMessage += async (sender, client, message) =>
+        ServerEvents.Get.OnReceiveString += async (sender, client, message) =>
         {
             var bytes = Encoding.UTF8.GetBytes("You said: " + message);
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
+        };
+
+        ServerEvents.Get.OnReceiveString += async (sender, client, message) =>
+        {
+            switch (message)
+            {
+                case "1":
+                    await ServerEvents.Get.ReceiveMessage(sender, client, new Message.MessageImplementation1());
+                    break;
+                case "2":
+                    await ServerEvents.Get.ReceiveMessage(sender, client, new Message.MessageImplementation2());
+                    break;
+            }
         };
 
         ServerEvents.Get.OnConnectionClosed += (client, closedByRemote) =>
@@ -111,5 +124,20 @@ internal class Server : AsyncTcpClient
             NLog.LogManager.Shutdown();
             return Task.CompletedTask;
         };
+
+
+        // Subscribing to MessageImplementation1
+        ServerEvents.Get.AddOnReceiveMessageHandler<Message.MessageImplementation1>(async (sender, client, message) =>
+        {
+            // This only gets run if we receive MessageImplementation1!
+            Console.WriteLine("Received MessageImplementation1: " + message);
+        });
+
+        // Subscribing to MessageImplementation2
+        ServerEvents.Get.AddOnReceiveMessageHandler<Message.MessageImplementation2>(async (sender, client, message) =>
+        {
+            // This only gets run if we receive MessageImplementation2!
+            Console.WriteLine("Received MessageImplementation2: " + message);
+        });
     }
 }
