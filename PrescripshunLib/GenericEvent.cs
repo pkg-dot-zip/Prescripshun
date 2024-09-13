@@ -33,7 +33,7 @@ namespace PrescripshunLib
 
 
         /// <summary>
-        /// Removes a <see cref="handler"/>> for a specific message <see langword="type"/> <see cref="TImplementationType"/>. Returns <see langword="true"/> if successful.
+        /// Removes a <see cref="handler"/> for a specific message <see langword="type"/> <see cref="TImplementationType"/>. Returns <see langword="true"/> if successful.
         /// </summary>
         /// <typeparam name="TImplementationType">><see langword="type"/> of message.</typeparam>
         /// <param name="handler">Implementation for handling <see langword="type"/> <see cref="TImplementationType"/>.</param>
