@@ -17,6 +17,15 @@ namespace PrescripshunLib
         private readonly Dictionary<Type, Delegate> _handlers = new();
         public delegate Task OnReceiveMessageDelegate<in TImplementationType>(TcpClient sender, AsyncTcpClient serverClient, TImplementationType message) where TImplementationType : T;
 
+
+        public void PrintHandlers()
+        {
+            foreach (var (key, value) in _handlers)
+            {
+                Console.WriteLine($"Type: {key} with {value}");
+            }
+        }
+
         /// <summary>
         /// Adds a <see cref="handler"/>> for a specific message <see langword="type"/> <see cref="TImplementationType"/>.
         /// </summary>
@@ -66,7 +75,8 @@ namespace PrescripshunLib
         /// <returns></returns>
         public async Task Invoke<TImplementationType>(TcpClient sender, AsyncTcpClient serverClient, TImplementationType message) where TImplementationType : T
         {
-            if (_handlers.TryGetValue(typeof(TImplementationType), out var messageHandler))
+            Console.WriteLine($"Invoking for {message.GetType()}");
+            if (_handlers.TryGetValue(message.GetType(), out var messageHandler))
             {
                 if (messageHandler is OnReceiveMessageDelegate<TImplementationType> handler)
                 {

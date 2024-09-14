@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using PrescripshunLib.Networking;
 using System.Text;
 using NLog.MessageTemplates;
+using PrescripshunLib;
 using PrescripshunLib.Logging;
 using Unclassified.Net;
 
@@ -51,7 +52,7 @@ internal class Server : AsyncTcpClient
 
                         if (message == "bye") serverClient.Disconnect(); // Let the server close the connection.
 
-                        ServerEvents.Get.OnReceiveString.Invoke(tcpClient, serverClient, message);
+                        ServerEvents.Get.OnReceiveJsonString.Invoke(tcpClient, serverClient, message);
                     },
 
                     ClosedCallback = (client, closedByRemote) => ServerEvents.Get.OnConnectionClosed.Invoke(client, closedByRemote),
@@ -91,19 +92,19 @@ internal class Server : AsyncTcpClient
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         };
 
-        ServerEvents.Get.OnReceiveString += (sender, client, message) =>
+        ServerEvents.Get.OnReceiveJsonString += (sender, client, jsonString) =>
         {
-            Logger.Trace($"Printing from OnReceive: \"{message}\" - {sender.Client.RemoteEndPoint}");
+            // Logger.Trace($"Printing from OnReceive: \"{message}\" - {sender.Client.RemoteEndPoint}");
             return Task.CompletedTask;
         };
         
-        ServerEvents.Get.OnReceiveString += async (sender, client, message) =>
+        ServerEvents.Get.OnReceiveJsonString += async (sender, client, jsonString) =>
         {
-            var bytes = Encoding.UTF8.GetBytes("You said: " + message);
-            await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
+            // var bytes = Encoding.UTF8.GetBytes("You said: " + message);
+            // await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         };
 
-        ServerEvents.Get.OnReceiveString += ProcessReceivedString;
+        ServerEvents.Get.OnReceiveJsonString += ProcessReceivedString;
 
         ServerEvents.Get.OnConnectionClosed += (client, closedByRemote) =>
         {
@@ -121,7 +122,7 @@ internal class Server : AsyncTcpClient
         ServerEvents.Get.OnReceiveMessage.AddHandler<Message.DebugPrint>(async (sender, client, message) =>
         {
             Console.WriteLine($"Received {typeof(Message.DebugPrint)}: " + message.Text);
-
+            
             var bytes = Encoding.UTF8.GetBytes($"You said in {typeof(Message.DebugPrint)}: " + message.Text);
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         });
@@ -131,30 +132,22 @@ internal class Server : AsyncTcpClient
             var bytes = Encoding.UTF8.GetBytes($"You said in {typeof(Message.MessageTest)}: {message.IntegerTest}, {message.DoubleTest}, {message.FloatTest}");
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         });
+
+        ServerEvents.Get.OnReceiveMessage.PrintHandlers();
     }
 
-    private async Task ProcessReceivedString(TcpClient sender, AsyncTcpClient client, string message)
+    private async Task ProcessReceivedString(TcpClient sender, AsyncTcpClient client, string jsonString)
     {
-        // var messageParam = PrescripshunLib.Networking.Message.GetMessageFromJsonString(message);
-        // Logger.Trace($"Invoking for {messageParam.GetType()} at {nameof(ProcessReceivedString)}");
-        // await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, messageParam);
+        var messageParam = PrescripshunLib.Networking.Message.GetMessageFromJsonString(jsonString);
+        Logger.Trace($"Invoking for {messageParam.GetType()} at {nameof(ProcessReceivedString)}");
 
-        switch (message)
+
+        if (messageParam is Message.DebugPrint)
         {
-            case "1":
-                await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, new Message.DebugPrint()
-                {
-                    Text = "TestText"
-                });
-                break;
-            case "2":
-                await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, new Message.MessageTest()
-                {
-                    IntegerTest = 5,
-                    DoubleTest = 5.0D,
-                    FloatTest = 5F
-                });
-                break;
+            await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, messageParam as Message.DebugPrint);
+        } else if (messageParam is Message.MessageTest)
+        {
+            await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, messageParam as Message.MessageTest);
         }
     }
 }

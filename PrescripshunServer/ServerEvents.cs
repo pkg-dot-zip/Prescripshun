@@ -40,12 +40,12 @@ namespace PrescripshunServer
         /// </summary>
         public OnConnectDelegate OnConnect { get; set; }
 
-        public delegate Task OnReceiveStringDelegate(TcpClient sender, AsyncTcpClient serverClient, string message);
+        public delegate Task OnReceiveStringDelegate(TcpClient sender, AsyncTcpClient serverClient, string jsonString);
 
         /// <summary>
         /// Event that gets invoked upon receiving a message from a client.
         /// </summary>
-        public OnReceiveStringDelegate OnReceiveString { get; set; }
+        public OnReceiveStringDelegate OnReceiveJsonString { get; set; }
 
 
 

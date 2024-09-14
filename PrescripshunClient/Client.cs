@@ -65,6 +65,7 @@ internal class Client : AsyncTcpClient
 
                     if (enteredMessage.StartsWith("1"))
                     {
+                        Logger.Info($"Found {typeof(Message.MessageTest)} to send!");
                         toSend = new Message.MessageTest()
                         {
                             IntegerTest = 1,
@@ -74,12 +75,15 @@ internal class Client : AsyncTcpClient
                     }
                     else
                     {
+                        Logger.Info($"Found {typeof(Message.DebugPrint)} to send!");
                         toSend = new PrescripshunLib.Networking.Message.DebugPrint()
                         {
                             Text = enteredMessage
                         };
                     }
 
+
+                    if (toSend is null) throw new NullReferenceException();
                     byte[] bytes = Encoding.UTF8.GetBytes(toSend.ToJsonString());
                     await c.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
 
