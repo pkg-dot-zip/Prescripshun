@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net.Sockets;
-using NLog;
-using PrescripshunLib.Networking;
+﻿using System.Net.Sockets;
 using Unclassified.Net;
 
 namespace PrescripshunLib
@@ -17,9 +14,7 @@ namespace PrescripshunLib
     /// <typeparam name="T">Parameter <see langword="type"/> used in the <see langword="delegate"/>.</typeparam>
     public class GenericEvent<T>
     {
-        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-
-        private readonly Dictionary<string, Delegate> _handlers = new();
+        private readonly Dictionary<Type, Delegate> _handlers = new();
         public delegate Task OnReceiveMessageDelegate<in TImplementationType>(TcpClient sender, AsyncTcpClient serverClient, TImplementationType message) where TImplementationType : T;
 
         /// <summary>
@@ -30,10 +25,9 @@ namespace PrescripshunLib
         public void AddHandler<TImplementationType>(OnReceiveMessageDelegate<TImplementationType> handler) where TImplementationType : T
         {
             var messageType = typeof(TImplementationType);
-            Logger.Info("Adding handle for {0}", messageType.Name);
-            if (!_handlers.TryAdd(messageType.Name, handler))
+            if (!_handlers.TryAdd(messageType, handler))
             {
-                _handlers[messageType.Name] = Delegate.Combine(_handlers[messageType.Name], handler);
+                _handlers[messageType] = Delegate.Combine(_handlers[messageType], handler);
             }
         }
 
@@ -47,12 +41,11 @@ namespace PrescripshunLib
         public bool RemoveHandler<TImplementationType>(OnReceiveMessageDelegate<TImplementationType> handler) where TImplementationType : T
         {
             var messageType = typeof(TImplementationType);
-            Logger.Info("Removing handle for {0}", messageType.Name);
-            if (_handlers.ContainsKey(messageType.Name))
+            if (_handlers.ContainsKey(messageType))
             {
                 try
                 {
-                    _handlers[messageType.Name] = Delegate.Remove(_handlers[messageType.Name], handler) ?? throw new InvalidOperationException();
+                    _handlers[messageType] = Delegate.Remove(_handlers[messageType], handler) ?? throw new InvalidOperationException();
                 }
                 catch
                 {
@@ -73,23 +66,12 @@ namespace PrescripshunLib
         /// <returns></returns>
         public async Task Invoke<TImplementationType>(TcpClient sender, AsyncTcpClient serverClient, TImplementationType message) where TImplementationType : T
         {
-            Debug.Assert(message != null, nameof(message) + " != null");
-            Logger.Info("Attempting Invoke handle for {0}", message.GetType().Name);
-            if (_handlers.TryGetValue(message.GetType().Name, out var messageHandler))
+            if (_handlers.TryGetValue(typeof(TImplementationType), out var messageHandler))
             {
                 if (messageHandler is OnReceiveMessageDelegate<TImplementationType> handler)
                 {
                     await handler.Invoke(sender, serverClient, message);
                 }
-                else
-                {
-                    Logger.Info("Couldn't invoke handle for {0}", message.GetType().Name);
-                    messageHandler.DynamicInvoke(sender, serverClient, Convert.ChangeType(message, message.GetType()));
-                }
-            }
-            else
-            {
-                throw new ArgumentException($"Couldn't Invoke for type: {typeof(TImplementationType)}");
             }
         }
     }

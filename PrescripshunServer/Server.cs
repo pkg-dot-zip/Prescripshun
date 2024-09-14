@@ -96,7 +96,7 @@ internal class Server : AsyncTcpClient
             Logger.Trace($"Printing from OnReceive: \"{message}\" - {sender.Client.RemoteEndPoint}");
             return Task.CompletedTask;
         };
-
+        
         ServerEvents.Get.OnReceiveString += async (sender, client, message) =>
         {
             var bytes = Encoding.UTF8.GetBytes("You said: " + message);
@@ -122,7 +122,7 @@ internal class Server : AsyncTcpClient
         {
             Console.WriteLine($"Received {typeof(Message.DebugPrint)}: " + message.Text);
 
-            var bytes = Encoding.UTF8.GetBytes($"You said in {typeof(Message)}: " + message.Text);
+            var bytes = Encoding.UTF8.GetBytes($"You said in {typeof(Message.DebugPrint)}: " + message.Text);
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         });
 
@@ -135,8 +135,26 @@ internal class Server : AsyncTcpClient
 
     private async Task ProcessReceivedString(TcpClient sender, AsyncTcpClient client, string message)
     {
-        var messageParam = PrescripshunLib.Networking.Message.GetMessageFromJsonString(message);
-        Logger.Trace($"Invoking for {messageParam.GetType()} at {nameof(ProcessReceivedString)}");
-        await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, messageParam);
+        // var messageParam = PrescripshunLib.Networking.Message.GetMessageFromJsonString(message);
+        // Logger.Trace($"Invoking for {messageParam.GetType()} at {nameof(ProcessReceivedString)}");
+        // await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, messageParam);
+
+        switch (message)
+        {
+            case "1":
+                await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, new Message.DebugPrint()
+                {
+                    Text = "TestText"
+                });
+                break;
+            case "2":
+                await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, new Message.MessageTest()
+                {
+                    IntegerTest = 5,
+                    DoubleTest = 5.0D,
+                    FloatTest = 5F
+                });
+                break;
+        }
     }
 }
