@@ -1,10 +1,7 @@
-﻿using System.Net.Sockets;
-using PrescripshunLib.Networking;
-using System.Text;
+﻿using PrescripshunLib.Networking;
 using PrescripshunLib.Logging;
 using Unclassified.Net;
 using System.Diagnostics.CodeAnalysis;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace PrescripshunServer;
 
