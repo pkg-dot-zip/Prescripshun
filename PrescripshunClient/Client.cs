@@ -135,7 +135,7 @@ internal class Client : AsyncTcpClient
 
         ClientEvents.Get.OnReceiveMessage.AddHandler<Message.DebugPrint>((client, message) =>
         {
-            Logger.Info("DEBUGPRINT: {0}", message.Text);
+            Logger.Info("{0}", message.GetPrintString());
             return Task.CompletedTask;
         });
 

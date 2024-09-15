@@ -93,6 +93,13 @@ namespace PrescripshunLib.Networking
         public class DebugPrint : BaseMessage
         {
             public string? Text { get; set; }
+            public bool PrintPrefix { get; set; } = true;
+
+            public string GetPrintString()
+            {
+                if (PrintPrefix) return $"DebugPrint: {Text}";
+                else return Text ?? string.Empty;
+            }
         }
 
         public class MessageTest : BaseMessage

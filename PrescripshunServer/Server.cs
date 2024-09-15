@@ -100,7 +100,8 @@ internal class Server : AsyncTcpClient
             byte[] bytes =
                 new Message.DebugPrint()
                 {
-                    Text = $"Hello, {client.ServerTcpClient.Client.RemoteEndPoint}, my name is Server. Talk to me."
+                    Text = $"Hello, {client.ServerTcpClient.Client.RemoteEndPoint}, my name is Server. Talk to me.",
+                    PrintPrefix = false
                 }.Encrypt();
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         };
@@ -119,6 +120,12 @@ internal class Server : AsyncTcpClient
             NLog.LogManager.Shutdown();
             return Task.CompletedTask;
         };
+
+        ServerEvents.Get.OnReceiveMessage.AddHandler<Message.DebugPrint>((client, message) =>
+        {
+            Logger.Info("{0}", message.GetPrintString());
+            return Task.CompletedTask;
+        });
 
         ServerEvents.Get.OnReceiveMessage.AddHandler<Message.DebugPrint>(async (client, message) =>
         {
