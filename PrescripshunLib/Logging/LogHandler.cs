@@ -13,20 +13,20 @@ namespace PrescripshunLib.Logging
         {
             // Layout options: https://nlog-project.org/config/?tab=layout-renderers.
 
-            var fileName = $"log_{fileNamePrefix}_{DateTime.Now:yyyy-MM-dd_HH-mm_ss}.txt";
+            var fileName = $"log_{fileNamePrefix}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.txt";
 
             LogManager.Setup().LoadConfiguration(builder =>
             {
                 builder.ForLogger().FilterMinLevel(LogLevel.Trace).WriteToConsole(layout: ConsoleLayout);
                 builder.ForLogger().FilterMinLevel(LogLevel.Debug)
-                    .WriteToFile(fileName: fileName, layout: logFileLayout);
+                    .WriteToFile(fileName: fileName, layout: LogFileLayout);
             });
         }
 
         private static readonly Layout ConsoleLayout =
-            Layout.FromString("${time}|${logger}|${threadid}|${message}|${exception:format=tostring}");
+            Layout.FromString("${time}|${level:uppercase=true}|${logger}|${threadid}|${message}|${exception:format=tostring}");
 
-        private static readonly Layout logFileLayout =
+        private static readonly Layout LogFileLayout =
             Layout.FromString(
                 "${longdate}|${level:uppercase=true}|${logger}|${threadid}|${message}|${exception:format=tostring}");
     }
