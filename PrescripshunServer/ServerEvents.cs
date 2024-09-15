@@ -1,4 +1,6 @@
-﻿using System.Net.Sockets;
+﻿using System.Diagnostics.CodeAnalysis;
+using PrescripshunLib;
+using PrescripshunLib.Networking;
 using Unclassified.Net;
 
 namespace PrescripshunServer
@@ -28,22 +30,22 @@ namespace PrescripshunServer
         /// <summary>
         /// Event that gets invoked on exit of the server, after the server is closed.
         /// </summary>
-        public OnApplicationBootDelegate OnApplicationExit { get; set; }
+        public OnApplicationExitDelegate OnApplicationExit { get; set; }
 
 
-        public delegate Task OnConnectDelegate(TcpClient sender, AsyncTcpClient serverClient, bool isReconnected);
+        public delegate Task OnConnectDelegate(AsyncTcpClient serverClient, bool isReconnected);
 
         /// <summary>
         /// Event that gets invoked on the connection of a single client.
         /// </summary>
         public OnConnectDelegate OnConnect { get; set; }
 
-        public delegate Task OnReceiveMessageDelegate(TcpClient sender, AsyncTcpClient serverClient, string message);
+        public delegate Task OnReceiveStringDelegate(AsyncTcpClient serverClient, [StringSyntax(StringSyntaxAttribute.Json)] string jsonString);
 
         /// <summary>
         /// Event that gets invoked upon receiving a message from a client.
         /// </summary>
-        public OnReceiveMessageDelegate OnReceiveMessage { get; set; }
+        public OnReceiveStringDelegate OnReceiveJsonString { get; set; }
 
 
 
@@ -52,7 +54,8 @@ namespace PrescripshunServer
         /// Event that gets invoked upon...
         /// </summary>
         public OnConnectionClosedDelegate OnConnectionClosed { get; set; }
-        #endregion
 
+        public GenericEvent<IMessage> OnReceiveMessage { get; } = new();
+        #endregion
     }
 }

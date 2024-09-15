@@ -1,13 +1,16 @@
 ﻿using PrescripshunLib.Networking;
-using System.Text;
 using PrescripshunLib.Logging;
 using Unclassified.Net;
+using System.Diagnostics.CodeAnalysis;
+using PrescripshunLib.ExtensionMethods;
 
 namespace PrescripshunServer;
 
 internal class Server : AsyncTcpClient
 {
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
+    public bool IsRunning = true;
 
     private static void Main(string[] args)
     {
@@ -19,7 +22,15 @@ internal class Server : AsyncTcpClient
 
         // Then we run the logic.
         ServerEvents.Get.OnApplicationBoot.Invoke(args);
-        server.RunServer().GetAwaiter().GetResult();
+        server.RunServer();
+
+        while (server.IsRunning)
+        {
+            string inputLine = Console.ReadLine() ?? string.Empty;
+
+            if (inputLine == string.Empty) continue;
+            if (inputLine == "quit") server.IsRunning = false;
+        }
 
         ServerEvents.Get.OnApplicationExit.Invoke(args);
     }
@@ -37,27 +48,28 @@ internal class Server : AsyncTcpClient
                     ServerTcpClient = tcpClient,
 
                     ConnectedCallback = async (serverClient, isReconnected) =>
-                        ServerEvents.Get.OnConnect.Invoke(tcpClient, serverClient, isReconnected),
+                        ServerEvents.Get.OnConnect.Invoke(serverClient, isReconnected),
 
                     ReceivedCallback = async (serverClient, count) =>
                     {
                         byte[] bytes = serverClient.ByteBuffer.Dequeue(count);
-                        string message = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
-                        Logger.Info("Server: received: " + message +
+                        string jsonString = bytes.Decrypt();
+                        Logger.Info("Server: received: " + jsonString +
                                     $" | FROM: {serverClient.ServerTcpClient.Client.RemoteEndPoint}");
 
-                        if (message == "bye") serverClient.Disconnect(); // Let the server close the connection.
+                        if (jsonString == "bye") serverClient.Disconnect(); // Let the server close the connection.
 
-                        ServerEvents.Get.OnReceiveMessage.Invoke(tcpClient, serverClient, message);
+                        ServerEvents.Get.OnReceiveJsonString.Invoke(serverClient, jsonString);
                     },
 
-                    ClosedCallback = (client, closedByRemote) => ServerEvents.Get.OnConnectionClosed.Invoke(client, closedByRemote),
+                    ClosedCallback = (client, closedByRemote) =>
+                        ServerEvents.Get.OnConnectionClosed.Invoke(client, closedByRemote),
                 }.RunAsync()
         };
         server.Message += (s, a) => Logger.Debug("Server: " + a.Message);
         var serverTask = server.RunAsync();
-
         await serverTask;
+        IsRunning = false;
     }
 
     private void RegisterEvents()
@@ -80,25 +92,17 @@ internal class Server : AsyncTcpClient
             });
         };
 
-        ServerEvents.Get.OnConnect += async (sender, client, reconnected) =>
+        ServerEvents.Get.OnConnect += async (client, reconnected) =>
         {
             await Task.Delay(500);
-            byte[] bytes =
-                Encoding.UTF8.GetBytes($"Hello, {sender.Client.RemoteEndPoint}, my name is Server. Talk to me.");
-            await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
+            await client.Send(new Message.DebugPrint()
+            {
+                Text = $"Hello, {client.ServerTcpClient.Client.RemoteEndPoint}, my name is Server. Talk to me.",
+                PrintPrefix = false
+            });
         };
 
-        ServerEvents.Get.OnReceiveMessage += (sender, client, message) =>
-        {
-            Logger.Trace($"Printing from OnReceive: \"{message}\" - {sender.Client.RemoteEndPoint}");
-            return Task.CompletedTask;
-        };
-
-        ServerEvents.Get.OnReceiveMessage += async (sender, client, message) =>
-        {
-            var bytes = Encoding.UTF8.GetBytes("You said: " + message);
-            await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
-        };
+        ServerEvents.Get.OnReceiveJsonString += ProcessReceivedString;
 
         ServerEvents.Get.OnConnectionClosed += (client, closedByRemote) =>
         {
@@ -108,8 +112,40 @@ internal class Server : AsyncTcpClient
 
         ServerEvents.Get.OnApplicationExit += args =>
         {
+            Logger.Info("Shutting down server.");
             NLog.LogManager.Shutdown();
             return Task.CompletedTask;
         };
+
+        ServerEvents.Get.OnReceiveMessage.AddHandler<Message.DebugPrint>((client, message) =>
+        {
+            Logger.Info("{0}", message.GetPrintString());
+            return Task.CompletedTask;
+        });
+
+        ServerEvents.Get.OnReceiveMessage.AddHandler<Message.DebugPrint>(async (client, message) =>
+        {
+            await client.Send(new Message.DebugPrint()
+            {
+                Text = $"You said in {typeof(Message.DebugPrint)}: " + message.Text
+            });
+        });
+
+        ServerEvents.Get.OnReceiveMessage.AddHandler<Message.MessageTest>(async (client, message) =>
+        {
+            await client.Send(new Message.DebugPrint()
+            {
+                Text =
+                    $"You said in {typeof(Message.MessageTest)}: {message.IntegerTest}, {message.DoubleTest}, {message.FloatTest}"
+            });
+        });
+    }
+
+    private async Task ProcessReceivedString(AsyncTcpClient client,
+        [StringSyntax(StringSyntaxAttribute.Json)]
+        string jsonString)
+    {
+        var messageParam = PrescripshunLib.Networking.Message.GetMessageFromJsonString(jsonString);
+        await ServerEvents.Get.OnReceiveMessage.Invoke(client, messageParam);
     }
 }
