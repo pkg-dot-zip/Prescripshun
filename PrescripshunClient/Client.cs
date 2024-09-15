@@ -2,6 +2,7 @@
 using PrescripshunLib.Networking;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using PrescripshunLib.ExtensionMethods;
 using Unclassified.Net;
 
 namespace PrescripshunClient;
@@ -114,8 +115,7 @@ internal class Client : AsyncTcpClient
 
 
         if (toSend is null) throw new NullReferenceException();
-        byte[] bytes = toSend.Encrypt();
-        await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
+        await client.Send(toSend);
     }
 
     private void RegisterEvents()

@@ -2,6 +2,7 @@
 using PrescripshunLib.Logging;
 using Unclassified.Net;
 using System.Diagnostics.CodeAnalysis;
+using PrescripshunLib.ExtensionMethods;
 
 namespace PrescripshunServer;
 
@@ -94,13 +95,11 @@ internal class Server : AsyncTcpClient
         ServerEvents.Get.OnConnect += async (client, reconnected) =>
         {
             await Task.Delay(500);
-            byte[] bytes =
-                new Message.DebugPrint()
-                {
-                    Text = $"Hello, {client.ServerTcpClient.Client.RemoteEndPoint}, my name is Server. Talk to me.",
-                    PrintPrefix = false
-                }.Encrypt();
-            await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
+            await client.Send(new Message.DebugPrint()
+            {
+                Text = $"Hello, {client.ServerTcpClient.Client.RemoteEndPoint}, my name is Server. Talk to me.",
+                PrintPrefix = false
+            });
         };
 
         ServerEvents.Get.OnReceiveJsonString += ProcessReceivedString;
@@ -126,21 +125,19 @@ internal class Server : AsyncTcpClient
 
         ServerEvents.Get.OnReceiveMessage.AddHandler<Message.DebugPrint>(async (client, message) =>
         {
-            var bytes = new Message.DebugPrint()
+            await client.Send(new Message.DebugPrint()
             {
                 Text = $"You said in {typeof(Message.DebugPrint)}: " + message.Text
-            }.Encrypt();
-            await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
+            });
         });
 
         ServerEvents.Get.OnReceiveMessage.AddHandler<Message.MessageTest>(async (client, message) =>
         {
-            var bytes = new Message.DebugPrint()
+            await client.Send(new Message.DebugPrint()
             {
                 Text =
                     $"You said in {typeof(Message.MessageTest)}: {message.IntegerTest}, {message.DoubleTest}, {message.FloatTest}"
-            }.Encrypt();
-            await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
+            });
         });
     }
 
