@@ -1,9 +1,6 @@
-﻿using System.Net.Mime;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using PrescripshunLib.Networking;
 using System.Text;
-using NLog.MessageTemplates;
-using PrescripshunLib;
 using PrescripshunLib.Logging;
 using Unclassified.Net;
 using System.Diagnostics.CodeAnalysis;
@@ -13,6 +10,8 @@ namespace PrescripshunServer;
 internal class Server : AsyncTcpClient
 {
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
+    public bool IsRunning = true;
 
     private static void Main(string[] args)
     {
@@ -24,7 +23,15 @@ internal class Server : AsyncTcpClient
 
         // Then we run the logic.
         ServerEvents.Get.OnApplicationBoot.Invoke(args);
-        server.RunServer().GetAwaiter().GetResult();
+        server.RunServer();
+
+        while (server.IsRunning)
+        {
+            string inputLine = Console.ReadLine() ?? string.Empty;
+
+            if (inputLine == string.Empty) continue;
+            if (inputLine == "quit") server.IsRunning = false;
+        }
 
         ServerEvents.Get.OnApplicationExit.Invoke(args);
     }
@@ -61,8 +68,8 @@ internal class Server : AsyncTcpClient
         };
         server.Message += (s, a) => Logger.Debug("Server: " + a.Message);
         var serverTask = server.RunAsync();
-
         await serverTask;
+        IsRunning = false;
     }
 
     private void RegisterEvents()
@@ -103,6 +110,7 @@ internal class Server : AsyncTcpClient
 
         ServerEvents.Get.OnApplicationExit += args =>
         {
+            Logger.Info("Shutting down server.");
             NLog.LogManager.Shutdown();
             return Task.CompletedTask;
         };
