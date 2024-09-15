@@ -17,21 +17,21 @@ namespace PrescripshunLib
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public delegate Task Handler<in TEventType>(TcpClient sender, AsyncTcpClient serverClient, TEventType message)
+        public delegate Task Handler<in TEventType>(AsyncTcpClient serverClient, TEventType message)
             where TEventType : T;
 
         public interface IEventDelegate
         {
-            Task OnEvent(TcpClient sender, AsyncTcpClient serverClient, T message);
+            Task OnEvent(AsyncTcpClient serverClient, T message);
         }
 
         public class EventDelegate<TEventType> : IEventDelegate where TEventType : T
         {
             public required Handler<TEventType> Implementation { init; get; }
 
-            public Task OnEvent(TcpClient sender, AsyncTcpClient serverClient, T message)
+            public Task OnEvent(AsyncTcpClient serverClient, T message)
             {
-                if (message is TEventType msg) return Implementation(sender, serverClient, msg);
+                if (message is TEventType msg) return Implementation(serverClient, msg);
                 return Task.CompletedTask;
             }
         }
@@ -59,7 +59,7 @@ namespace PrescripshunLib
             return nofRemoved != 0;
         }
 
-        public async Task Invoke(TcpClient sender, AsyncTcpClient serverClient, T message)
+        public async Task Invoke(AsyncTcpClient serverClient, T message)
         {
             Debug.Assert(message != null, nameof(message) + " != null");
             var messageType = message.GetType();
@@ -68,7 +68,7 @@ namespace PrescripshunLib
 
             Logger.Info("Invoking handle for {0}", messageType.Name);
             await Task.WhenAll(_handlers[messageType]
-                .Select(handler => handler.OnEvent(sender, serverClient, message))
+                .Select(handler => handler.OnEvent(serverClient, message))
                 .ToArray());
         }
     }

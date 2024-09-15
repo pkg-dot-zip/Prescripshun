@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Net.Sockets;
 using PrescripshunLib;
 using PrescripshunLib.Networking;
 using Unclassified.Net;
@@ -34,14 +33,14 @@ namespace PrescripshunServer
         public OnApplicationExitDelegate OnApplicationExit { get; set; }
 
 
-        public delegate Task OnConnectDelegate(TcpClient sender, AsyncTcpClient serverClient, bool isReconnected);
+        public delegate Task OnConnectDelegate(AsyncTcpClient serverClient, bool isReconnected);
 
         /// <summary>
         /// Event that gets invoked on the connection of a single client.
         /// </summary>
         public OnConnectDelegate OnConnect { get; set; }
 
-        public delegate Task OnReceiveStringDelegate(TcpClient sender, AsyncTcpClient serverClient, [StringSyntax(StringSyntaxAttribute.Json)] string jsonString);
+        public delegate Task OnReceiveStringDelegate(AsyncTcpClient serverClient, [StringSyntax(StringSyntaxAttribute.Json)] string jsonString);
 
         /// <summary>
         /// Event that gets invoked upon receiving a message from a client.

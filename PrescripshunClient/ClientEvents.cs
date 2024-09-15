@@ -1,4 +1,6 @@
-﻿using System.Net.Sockets;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Net.Sockets;
+using PrescripshunLib;
 using PrescripshunLib.Networking;
 using Unclassified.Net;
 
@@ -32,12 +34,12 @@ namespace PrescripshunClient
         public OnApplicationExitDelegate OnApplicationExit { get; set; }
 
 
-        public delegate Task OnReceiveDelegate(AsyncTcpClient client, string text);
+        public delegate Task OnReceiveStringDelegate(AsyncTcpClient serverClient, [StringSyntax(StringSyntaxAttribute.Json)] string jsonString);
+
         /// <summary>
         /// Event that gets invoked upon receiving a message from the server.
         /// </summary>
-        public OnReceiveDelegate OnReceive { get; set; }
-
+        public OnReceiveStringDelegate OnReceiveJsonString { get; set; }
 
         public delegate Task OnConnectionClosedDelegate(AsyncTcpClient client, bool closedByRemote);
         /// <summary>
@@ -45,6 +47,7 @@ namespace PrescripshunClient
         /// </summary>
         public OnConnectionClosedDelegate OnConnectionClosed { get; set; }
 
+        public GenericEvent<IMessage> OnReceiveMessage { get; } = new();
         #endregion
     }
 }

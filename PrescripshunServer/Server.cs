@@ -49,18 +49,18 @@ internal class Server : AsyncTcpClient
                     ServerTcpClient = tcpClient,
 
                     ConnectedCallback = async (serverClient, isReconnected) =>
-                        ServerEvents.Get.OnConnect.Invoke(tcpClient, serverClient, isReconnected),
+                        ServerEvents.Get.OnConnect.Invoke(serverClient, isReconnected),
 
                     ReceivedCallback = async (serverClient, count) =>
                     {
                         byte[] bytes = serverClient.ByteBuffer.Dequeue(count);
-                        string message = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
-                        Logger.Info("Server: received: " + message +
+                        string jsonString = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+                        Logger.Info("Server: received: " + jsonString +
                                     $" | FROM: {serverClient.ServerTcpClient.Client.RemoteEndPoint}");
 
-                        if (message == "bye") serverClient.Disconnect(); // Let the server close the connection.
+                        if (jsonString == "bye") serverClient.Disconnect(); // Let the server close the connection.
 
-                        ServerEvents.Get.OnReceiveJsonString.Invoke(tcpClient, serverClient, message);
+                        ServerEvents.Get.OnReceiveJsonString.Invoke(serverClient, jsonString);
                     },
 
                     ClosedCallback = (client, closedByRemote) => ServerEvents.Get.OnConnectionClosed.Invoke(client, closedByRemote),
@@ -92,11 +92,11 @@ internal class Server : AsyncTcpClient
             });
         };
 
-        ServerEvents.Get.OnConnect += async (sender, client, reconnected) =>
+        ServerEvents.Get.OnConnect += async (client, reconnected) =>
         {
             await Task.Delay(500);
             byte[] bytes =
-                Encoding.UTF8.GetBytes($"Hello, {sender.Client.RemoteEndPoint}, my name is Server. Talk to me.");
+                Encoding.UTF8.GetBytes($"Hello, {client.ServerTcpClient.Client.RemoteEndPoint}, my name is Server. Talk to me.");
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         };
 
@@ -115,22 +115,28 @@ internal class Server : AsyncTcpClient
             return Task.CompletedTask;
         };
 
-        ServerEvents.Get.OnReceiveMessage.AddHandler<Message.DebugPrint>(async (sender, client, message) =>
+        ServerEvents.Get.OnReceiveMessage.AddHandler<Message.DebugPrint>(async (client, message) =>
         {
-            var bytes = Encoding.UTF8.GetBytes($"You said in {typeof(Message.DebugPrint)}: " + message.Text);
+            var bytes = Encoding.UTF8.GetBytes(new Message.DebugPrint()
+            {
+                Text = $"You said in {typeof(Message.DebugPrint)}: " + message.Text
+            }.ToJsonString());
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         });
 
-        ServerEvents.Get.OnReceiveMessage.AddHandler<Message.MessageTest>(async (sender, client, message) =>
+        ServerEvents.Get.OnReceiveMessage.AddHandler<Message.MessageTest>(async (client, message) =>
         {
-            var bytes = Encoding.UTF8.GetBytes($"You said in {typeof(Message.MessageTest)}: {message.IntegerTest}, {message.DoubleTest}, {message.FloatTest}");
+            var bytes = Encoding.UTF8.GetBytes(new Message.DebugPrint()
+            {
+                Text = $"You said in {typeof(Message.MessageTest)}: {message.IntegerTest}, {message.DoubleTest}, {message.FloatTest}"
+            }.ToJsonString());
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         });
     }
 
-    private async Task ProcessReceivedString(TcpClient sender, AsyncTcpClient client, [StringSyntax(StringSyntaxAttribute.Json)] string jsonString)
+    private async Task ProcessReceivedString(AsyncTcpClient client, [StringSyntax(StringSyntaxAttribute.Json)] string jsonString)
     {
         var messageParam = PrescripshunLib.Networking.Message.GetMessageFromJsonString(jsonString);
-        await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, messageParam);
+        await ServerEvents.Get.OnReceiveMessage.Invoke(client, messageParam);
     }
 }

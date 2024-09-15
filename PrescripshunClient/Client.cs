@@ -1,5 +1,6 @@
 ﻿using PrescripshunLib.Logging;
 using PrescripshunLib.Networking;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Unclassified.Net;
 
@@ -74,8 +75,8 @@ internal class Client : AsyncTcpClient
             ReceivedCallback = (c, count) => // count = number of bytes received.
             {
                 byte[] bytes = c.ByteBuffer.Dequeue(count);
-                string message = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
-                ClientEvents.Get.OnReceive.Invoke(c, message);
+                string jsonString = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+                ClientEvents.Get.OnReceiveJsonString.Invoke(c, jsonString);
                 return Task.CompletedTask;
             },
 
@@ -123,7 +124,6 @@ internal class Client : AsyncTcpClient
         {
             Logger.Info($"Starting client at {DateTime.Now} on {Environment.MachineName}.");
         };
-        ClientEvents.Get.OnReceive += async (client, text) => Logger.Trace("Client: received: " + text);
 
         ClientEvents.Get.OnConnectionClosed += (client, remote) =>
         {
@@ -131,10 +131,24 @@ internal class Client : AsyncTcpClient
             return Task.CompletedTask;
         };
 
+        ClientEvents.Get.OnReceiveJsonString += ProcessReceivedString;
+
+        ClientEvents.Get.OnReceiveMessage.AddHandler<Message.DebugPrint>((client, message) =>
+        {
+            Logger.Info("DEBUGPRINT: {0}", message.Text);
+            return Task.CompletedTask;
+        });
+
         ClientEvents.Get.OnApplicationExit += args =>
         {
             NLog.LogManager.Shutdown();
             return Task.CompletedTask;
         };
+    }
+
+    private async Task ProcessReceivedString(AsyncTcpClient client, [StringSyntax(StringSyntaxAttribute.Json)] string jsonString)
+    {
+        var messageParam = PrescripshunLib.Networking.Message.GetMessageFromJsonString(jsonString);
+        await ClientEvents.Get.OnReceiveMessage.Invoke(client, messageParam);
     }
 }
