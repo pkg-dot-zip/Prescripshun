@@ -89,27 +89,6 @@ namespace PrescripshunLib.Networking
         public class DebugPrint : BaseMessage
         {
             public string? Text { get; set; }
-
-            public override bool InitializeFromJsonString(string jsonString, out IMessage message)
-            {
-                DebugPrint input = null;
-
-                try
-                {
-                    input = JsonConvert.DeserializeObject<DebugPrint>(jsonString) ??
-                            throw new InvalidOperationException();
-                }
-                catch
-                {
-                    message = this;
-                    return false;
-                }
-
-                Text = input.Text;
-
-                message = this;
-                return true;
-            }
         }
 
         public class MessageTest : BaseMessage
@@ -117,29 +96,6 @@ namespace PrescripshunLib.Networking
             public int? IntegerTest { get; set; }
             public double? DoubleTest { get; set; }
             public float? FloatTest { get; set; }
-
-            public override bool InitializeFromJsonString(string jsonString, out IMessage message)
-            {
-                MessageTest input = null;
-
-                try
-                {
-                    input = JsonConvert.DeserializeObject<MessageTest>(jsonString) ??
-                            throw new InvalidOperationException();
-                }
-                catch
-                {
-                    message = this;
-                    return false;
-                }
-
-                IntegerTest = input.IntegerTest;
-                DoubleTest = input.DoubleTest;
-                FloatTest = input.FloatTest;
-
-                message = this;
-                return true;
-            }
         }
     }
 }
