@@ -96,7 +96,10 @@ internal class Server : AsyncTcpClient
         {
             await Task.Delay(500);
             byte[] bytes =
-                Encoding.UTF8.GetBytes($"Hello, {client.ServerTcpClient.Client.RemoteEndPoint}, my name is Server. Talk to me.");
+                Encoding.UTF8.GetBytes(new Message.DebugPrint()
+                {
+                    Text = $"Hello, {client.ServerTcpClient.Client.RemoteEndPoint}, my name is Server. Talk to me."
+                }.ToJsonString());
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         };
 
