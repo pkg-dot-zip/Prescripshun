@@ -1,18 +1,23 @@
 ﻿using Newtonsoft.Json;
 using System.Reflection;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace PrescripshunLib.Networking
 {
     public static class Message
     {
+        private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
         public static IMessage GetMessageFromJsonString(string jsonString)
         {
             var messages = GetAll();
 
             foreach (var message in messages)
             {
-                if (message.InitializeFromJsonString(jsonString, out var message1)) return message1;
+                if (message.InitializeFromJsonString(jsonString, out var message1))
+                {
+                    Logger.Info($"Deserialized message type found in {nameof(GetMessageFromJsonString)}: {message1.GetType()}");
+                    return message1;
+                }
             }
 
             throw new ArgumentException("Invalid jsonString cannot be parsed into a message!");

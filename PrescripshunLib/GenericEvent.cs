@@ -1,4 +1,6 @@
-﻿using System.Net.Sockets;
+﻿using System.Diagnostics;
+using System.Net.Sockets;
+using NLog;
 using Unclassified.Net;
 
 namespace PrescripshunLib
@@ -14,75 +16,70 @@ namespace PrescripshunLib
     /// <typeparam name="T">Parameter <see langword="type"/> used in the <see langword="delegate"/>.</typeparam>
     public class GenericEvent<T>
     {
-        private readonly Dictionary<Type, Delegate> _handlers = new();
-        public delegate Task OnReceiveMessageDelegate<in TImplementationType>(TcpClient sender, AsyncTcpClient serverClient, TImplementationType message) where TImplementationType : T;
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+        public delegate Task Handler<in EventType>(TcpClient sender, AsyncTcpClient serverClient, EventType message) where EventType : T;
 
-        public void PrintHandlers()
+        public interface IEventDelegate
         {
-            foreach (var (key, value) in _handlers)
+            Task OnEvent(TcpClient sender, AsyncTcpClient serverClient, T message);
+        }
+
+        public class EventDelegate<EventType> : IEventDelegate where EventType : T
+        {
+            public required Handler<EventType> Implementation { init; get; }
+
+            public Task OnEvent(TcpClient sender, AsyncTcpClient serverClient, T message)
             {
-                Console.WriteLine($"Type: {key} with {value}");
+                if (message is EventType msg)
+                {
+                    return Implementation(sender, serverClient, msg);
+                }
+
+                return Task.CompletedTask;
             }
         }
 
-        /// <summary>
-        /// Adds a <see cref="handler"/>> for a specific message <see langword="type"/> <see cref="TImplementationType"/>.
-        /// </summary>
-        /// <typeparam name="TImplementationType"><see langword="type"/> of message</typeparam>
-        /// <param name="handler">Implementation for handling <see langword="type"/> <see cref="TImplementationType"/>.</param>
-        public void AddHandler<TImplementationType>(OnReceiveMessageDelegate<TImplementationType> handler) where TImplementationType : T
+        private readonly Dictionary<Type, List<IEventDelegate>> _handlers = [];
+
+        public void AddHandler<EventType>(Handler<EventType> handler) where EventType : T
         {
-            var messageType = typeof(TImplementationType);
-            if (!_handlers.TryAdd(messageType, handler))
+            var messageType = typeof(EventType);
+            Logger.Info("Adding handle for {0}", messageType.Name);
+
+            if (!_handlers.ContainsKey(messageType))
             {
-                _handlers[messageType] = Delegate.Combine(_handlers[messageType], handler);
+                _handlers.Add(messageType, []);
             }
+
+            _handlers[messageType].Add(new EventDelegate<EventType> { Implementation = handler });
         }
 
-
-        /// <summary>
-        /// Removes a <see cref="handler"/> for a specific message <see langword="type"/> <see cref="TImplementationType"/>. Returns <see langword="true"/> if successful.
-        /// </summary>
-        /// <typeparam name="TImplementationType">><see langword="type"/> of message.</typeparam>
-        /// <param name="handler">Implementation for handling <see langword="type"/> <see cref="TImplementationType"/>.</param>
-        /// <returns><see langword="true"/> if successful. <see langword="false"/> if <see cref="handler"/> could not be found.</returns>
-        public bool RemoveHandler<TImplementationType>(OnReceiveMessageDelegate<TImplementationType> handler) where TImplementationType : T
+        public bool RemoveHandler<EventType>(Handler<EventType> handler) where EventType : T
         {
-            var messageType = typeof(TImplementationType);
-            if (_handlers.ContainsKey(messageType))
-            {
-                try
-                {
-                    _handlers[messageType] = Delegate.Remove(_handlers[messageType], handler) ?? throw new InvalidOperationException();
-                }
-                catch
-                {
-                    return false;
-                }
-            }
+            var messageType = typeof(EventType);
+            Logger.Info("Removing handle for {0}", messageType.Name);
 
-            return true;
+            if (!_handlers.TryGetValue(messageType, out List<GenericEvent<T>.IEventDelegate>? value)) return false;
+
+            int nofRemoved = value.RemoveAll(messageHandler => {
+                return messageHandler is EventDelegate<EventType> typed && typed.Implementation == handler;
+            });
+
+            return nofRemoved != 0;
         }
 
-        /// <summary>
-        /// Method to invoke the event based on the message <see langword="type"/> <see cref="TImplementationType"/>.
-        /// </summary>
-        /// <typeparam name="TImplementationType"><see langword="type"/> of message</typeparam>
-        /// <param name="sender">TcpClient</param>
-        /// <param name="serverClient">AsyncTcpClient</param>
-        /// <param name="message">Message that will be passed as an argument to all subscribers of that <see langword="type"/> of <see cref="message"/>>.</param>
-        /// <returns></returns>
-        public async Task Invoke<TImplementationType>(TcpClient sender, AsyncTcpClient serverClient, TImplementationType message) where TImplementationType : T
+        public async Task Invoke(TcpClient sender, AsyncTcpClient serverClient, T message)
         {
-            Console.WriteLine($"Invoking for {message.GetType()}");
-            if (_handlers.TryGetValue(message.GetType(), out var messageHandler))
-            {
-                if (messageHandler is OnReceiveMessageDelegate<TImplementationType> handler)
-                {
-                    await handler.Invoke(sender, serverClient, message);
-                }
-            }
+            Debug.Assert(message != null, nameof(message) + " != null");
+            var messageType = message.GetType();
+            Logger.Info("Attempting Invoke handle for {0}", messageType.Name);
+
+            if (!_handlers.ContainsKey(messageType)) return;
+
+            await Task.WhenAll(_handlers[messageType]
+                .Select(handler => handler.OnEvent(sender, serverClient, message))
+                .ToArray());
         }
     }
 }

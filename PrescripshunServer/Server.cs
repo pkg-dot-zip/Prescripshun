@@ -132,22 +132,12 @@ internal class Server : AsyncTcpClient
             var bytes = Encoding.UTF8.GetBytes($"You said in {typeof(Message.MessageTest)}: {message.IntegerTest}, {message.DoubleTest}, {message.FloatTest}");
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         });
-
-        ServerEvents.Get.OnReceiveMessage.PrintHandlers();
     }
 
     private async Task ProcessReceivedString(TcpClient sender, AsyncTcpClient client, string jsonString)
     {
         var messageParam = PrescripshunLib.Networking.Message.GetMessageFromJsonString(jsonString);
         Logger.Trace($"Invoking for {messageParam.GetType()} at {nameof(ProcessReceivedString)}");
-
-
-        if (messageParam is Message.DebugPrint)
-        {
-            await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, messageParam as Message.DebugPrint);
-        } else if (messageParam is Message.MessageTest)
-        {
-            await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, messageParam as Message.MessageTest);
-        }
+        await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, messageParam);
     }
 }
