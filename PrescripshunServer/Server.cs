@@ -92,18 +92,6 @@ internal class Server : AsyncTcpClient
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         };
 
-        ServerEvents.Get.OnReceiveJsonString += (sender, client, jsonString) =>
-        {
-            // Logger.Trace($"Printing from OnReceive: \"{message}\" - {sender.Client.RemoteEndPoint}");
-            return Task.CompletedTask;
-        };
-        
-        ServerEvents.Get.OnReceiveJsonString += async (sender, client, jsonString) =>
-        {
-            // var bytes = Encoding.UTF8.GetBytes("You said: " + message);
-            // await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
-        };
-
         ServerEvents.Get.OnReceiveJsonString += ProcessReceivedString;
 
         ServerEvents.Get.OnConnectionClosed += (client, closedByRemote) =>
@@ -118,11 +106,8 @@ internal class Server : AsyncTcpClient
             return Task.CompletedTask;
         };
 
-
         ServerEvents.Get.OnReceiveMessage.AddHandler<Message.DebugPrint>(async (sender, client, message) =>
         {
-            Console.WriteLine($"Received {typeof(Message.DebugPrint)}: " + message.Text);
-            
             var bytes = Encoding.UTF8.GetBytes($"You said in {typeof(Message.DebugPrint)}: " + message.Text);
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         });
@@ -137,7 +122,6 @@ internal class Server : AsyncTcpClient
     private async Task ProcessReceivedString(TcpClient sender, AsyncTcpClient client, string jsonString)
     {
         var messageParam = PrescripshunLib.Networking.Message.GetMessageFromJsonString(jsonString);
-        Logger.Trace($"Invoking for {messageParam.GetType()} at {nameof(ProcessReceivedString)}");
         await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, messageParam);
     }
 }

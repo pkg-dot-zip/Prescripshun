@@ -63,10 +63,10 @@ namespace PrescripshunLib
         {
             Debug.Assert(message != null, nameof(message) + " != null");
             var messageType = message.GetType();
-            Logger.Info("Attempting Invoke handle for {0}", messageType.Name);
 
             if (!_handlers.ContainsKey(messageType)) return;
 
+            Logger.Info("Invoking handle for {0}", messageType.Name);
             await Task.WhenAll(_handlers[messageType]
                 .Select(handler => handler.OnEvent(sender, serverClient, message))
                 .ToArray());
