@@ -71,10 +71,10 @@ namespace PrescripshunLib.Networking
         }
 
         /// <summary>
-        /// Returns all implementations of <see cref="BaseMessage"/> using <see href="https://learn.microsoft.com/en-us/dotnet/fundamentals/reflection/reflection">reflection</see>.
+        /// Returns all implementations of <see cref="IMessage"/> using <see href="https://learn.microsoft.com/en-us/dotnet/fundamentals/reflection/reflection">reflection</see>.
         /// </summary>
-        /// <returns>Implementations of <see cref="BaseMessage"/>.</returns>
-        private static List<BaseMessage> GetAll()
+        /// <returns>Implementations of <see cref="IMessage"/>.</returns>
+        private static List<IMessage> GetAll()
         {
             var assembly = Assembly.GetExecutingAssembly();
             var types = assembly.GetTypes();
@@ -82,15 +82,15 @@ namespace PrescripshunLib.Networking
             // Find all types that are subclasses of BaseMessage
             var baseMessageTypes = types
                 .Where(t => t is { IsClass: true, IsAbstract: false, IsInterface: false } &&
-                            t.IsSubclassOf(typeof(BaseMessage)))
+                            t.IsSubclassOf(typeof(IMessage)))
                 .ToList();
 
-            return baseMessageTypes.Select(type => (BaseMessage)Activator.CreateInstance(type)).OfType<BaseMessage>()
+            return baseMessageTypes.Select(type => (IMessage)Activator.CreateInstance(type)).OfType<IMessage>()
                 .ToList();
         }
 
 
-        public class DebugPrint : BaseMessage
+        public class DebugPrint : IMessage
         {
             public string? Text { get; set; }
             public bool PrintPrefix { get; set; } = true;
@@ -102,7 +102,7 @@ namespace PrescripshunLib.Networking
             }
         }
 
-        public class MessageTest : BaseMessage
+        public class MessageTest : IMessage
         {
             public int? IntegerTest { get; set; }
             public double? DoubleTest { get; set; }
