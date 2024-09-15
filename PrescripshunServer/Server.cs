@@ -6,6 +6,7 @@ using NLog.MessageTemplates;
 using PrescripshunLib;
 using PrescripshunLib.Logging;
 using Unclassified.Net;
+using System.Diagnostics.CodeAnalysis;
 
 namespace PrescripshunServer;
 
@@ -119,7 +120,7 @@ internal class Server : AsyncTcpClient
         });
     }
 
-    private async Task ProcessReceivedString(TcpClient sender, AsyncTcpClient client, string jsonString)
+    private async Task ProcessReceivedString(TcpClient sender, AsyncTcpClient client, [StringSyntax(StringSyntaxAttribute.Json)] string jsonString)
     {
         var messageParam = PrescripshunLib.Networking.Message.GetMessageFromJsonString(jsonString);
         await ServerEvents.Get.OnReceiveMessage.Invoke(sender, client, messageParam);

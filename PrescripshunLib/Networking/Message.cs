@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Diagnostics.CodeAnalysis;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
 
@@ -17,7 +18,7 @@ namespace PrescripshunLib.Networking
         /// <param name="jsonString"></param>
         /// <returns>The appropriate instance of <see cref="IMessage"/> based on the <paramref name="jsonString"/>.</returns>
         /// <exception cref="ArgumentException"></exception>
-        public static IMessage GetMessageFromJsonString(string jsonString)
+        public static IMessage GetMessageFromJsonString([StringSyntax(StringSyntaxAttribute.Json)] string jsonString)
         {
             try
             {
@@ -39,9 +40,11 @@ namespace PrescripshunLib.Networking
 
                 // Deserialize the JSON string into the correct message type.
                 var deserializedMessage = (IMessage)JsonConvert.DeserializeObject(jsonString, messageClass);
-                if (deserializedMessage == null) throw new JsonException("Failed to deserialize JSON into the correct message type.");
+                if (deserializedMessage == null)
+                    throw new JsonException("Failed to deserialize JSON into the correct message type.");
 
-                Logger.Info($"Deserialized message of type {deserializedMessage.GetType().Name} in {nameof(GetMessageFromJsonString)}");
+                Logger.Info(
+                    $"Deserialized message of type {deserializedMessage.GetType().Name} in {nameof(GetMessageFromJsonString)}");
                 return deserializedMessage;
             }
             catch (JsonException ex)
@@ -82,7 +85,8 @@ namespace PrescripshunLib.Networking
                             t.IsSubclassOf(typeof(BaseMessage)))
                 .ToList();
 
-            return baseMessageTypes.Select(type => (BaseMessage)Activator.CreateInstance(type)).OfType<BaseMessage>().ToList();
+            return baseMessageTypes.Select(type => (BaseMessage)Activator.CreateInstance(type)).OfType<BaseMessage>()
+                .ToList();
         }
 
 
