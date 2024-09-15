@@ -75,7 +75,7 @@ internal class Client : AsyncTcpClient
             ReceivedCallback = (c, count) => // count = number of bytes received.
             {
                 byte[] bytes = c.ByteBuffer.Dequeue(count);
-                string jsonString = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+                string jsonString = bytes.Decrypt();
                 ClientEvents.Get.OnReceiveJsonString.Invoke(c, jsonString);
                 return Task.CompletedTask;
             },
@@ -114,7 +114,7 @@ internal class Client : AsyncTcpClient
 
 
         if (toSend is null) throw new NullReferenceException();
-        byte[] bytes = Encoding.UTF8.GetBytes(toSend.ToJsonString());
+        byte[] bytes = toSend.Encrypt();
         await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
     }
 

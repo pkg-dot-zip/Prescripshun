@@ -4,6 +4,7 @@ using System.Text;
 using PrescripshunLib.Logging;
 using Unclassified.Net;
 using System.Diagnostics.CodeAnalysis;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace PrescripshunServer;
 
@@ -54,7 +55,7 @@ internal class Server : AsyncTcpClient
                     ReceivedCallback = async (serverClient, count) =>
                     {
                         byte[] bytes = serverClient.ByteBuffer.Dequeue(count);
-                        string jsonString = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+                        string jsonString = bytes.Decrypt();
                         Logger.Info("Server: received: " + jsonString +
                                     $" | FROM: {serverClient.ServerTcpClient.Client.RemoteEndPoint}");
 
@@ -63,7 +64,8 @@ internal class Server : AsyncTcpClient
                         ServerEvents.Get.OnReceiveJsonString.Invoke(serverClient, jsonString);
                     },
 
-                    ClosedCallback = (client, closedByRemote) => ServerEvents.Get.OnConnectionClosed.Invoke(client, closedByRemote),
+                    ClosedCallback = (client, closedByRemote) =>
+                        ServerEvents.Get.OnConnectionClosed.Invoke(client, closedByRemote),
                 }.RunAsync()
         };
         server.Message += (s, a) => Logger.Debug("Server: " + a.Message);
@@ -96,10 +98,10 @@ internal class Server : AsyncTcpClient
         {
             await Task.Delay(500);
             byte[] bytes =
-                Encoding.UTF8.GetBytes(new Message.DebugPrint()
+                new Message.DebugPrint()
                 {
                     Text = $"Hello, {client.ServerTcpClient.Client.RemoteEndPoint}, my name is Server. Talk to me."
-                }.ToJsonString());
+                }.Encrypt();
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         };
 
@@ -120,24 +122,27 @@ internal class Server : AsyncTcpClient
 
         ServerEvents.Get.OnReceiveMessage.AddHandler<Message.DebugPrint>(async (client, message) =>
         {
-            var bytes = Encoding.UTF8.GetBytes(new Message.DebugPrint()
+            var bytes = new Message.DebugPrint()
             {
                 Text = $"You said in {typeof(Message.DebugPrint)}: " + message.Text
-            }.ToJsonString());
+            }.Encrypt();
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         });
 
         ServerEvents.Get.OnReceiveMessage.AddHandler<Message.MessageTest>(async (client, message) =>
         {
-            var bytes = Encoding.UTF8.GetBytes(new Message.DebugPrint()
+            var bytes = new Message.DebugPrint()
             {
-                Text = $"You said in {typeof(Message.MessageTest)}: {message.IntegerTest}, {message.DoubleTest}, {message.FloatTest}"
-            }.ToJsonString());
+                Text =
+                    $"You said in {typeof(Message.MessageTest)}: {message.IntegerTest}, {message.DoubleTest}, {message.FloatTest}"
+            }.Encrypt();
             await client.Send(new ArraySegment<byte>(bytes, 0, bytes.Length));
         });
     }
 
-    private async Task ProcessReceivedString(AsyncTcpClient client, [StringSyntax(StringSyntaxAttribute.Json)] string jsonString)
+    private async Task ProcessReceivedString(AsyncTcpClient client,
+        [StringSyntax(StringSyntaxAttribute.Json)]
+        string jsonString)
     {
         var messageParam = PrescripshunLib.Networking.Message.GetMessageFromJsonString(jsonString);
         await ServerEvents.Get.OnReceiveMessage.Invoke(client, messageParam);
