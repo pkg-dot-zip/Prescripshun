@@ -4,7 +4,7 @@ using PrescripshunLib.Models.User;
 
 namespace PrescripshunServer.Database
 {
-    internal interface IDatabase
+    internal interface IDatabaseHandler
     {
         public List<IUser> GetUsers();
         public List<UserDoctor> GetDoctors();

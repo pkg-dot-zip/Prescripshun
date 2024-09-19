@@ -4,25 +4,20 @@ using Unclassified.Net;
 using System.Diagnostics.CodeAnalysis;
 using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Util.Sound;
+using PrescripshunServer.Database;
 
 namespace PrescripshunServer;
 
 internal class Server : AsyncTcpClient
 {
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+    private static readonly DatabaseHandler DatabaseHandler = new();
+
 
     public bool IsRunning = true;
 
-    private static void DatabaseTest()
-    {
-        var database = new Database.Database();
-        database.Run();
-    }
-
     private static void Main(string[] args)
     {
-        DatabaseTest();
-
         LogHandler.Configure("server");
 
         // First we create an instance of the server and register all the events.
@@ -90,6 +85,12 @@ internal class Server : AsyncTcpClient
         };
 
         ServerEvents.Get.OnApplicationBoot += async args => await Beeper.PlayServerBootSoundAsync();
+
+        ServerEvents.Get.OnApplicationBoot += args =>
+        {
+            DatabaseHandler.Run();
+            return Task.CompletedTask;
+        };
 
         ServerEvents.Get.OnConnect += async (client, reconnected) =>
         {

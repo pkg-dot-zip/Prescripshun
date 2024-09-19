@@ -13,11 +13,6 @@ namespace PrescripshunServer.Database
         private const string Username = "root"; // 'root' by default.
         private readonly MySqlConnection _myConn = new($"Server={Server};Port={Port};Database={DbName};Uid={Username};SslMode=None"); // NOTE: Assumes there is no password.
 
-        private void Init(MySqlConnection con)
-        {
-            Logger.Info("Initializing database");
-            Connect();
-        }
         public void Connect()
         {
             try
@@ -31,6 +26,21 @@ namespace PrescripshunServer.Database
                 throw;
             }
         }
+
+        public async Task ConnectAsync()
+        {
+            try
+            {
+                await _myConn.OpenAsync();
+                Logger.Info("Connected to MySQL database successfully.");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Couldn't connect to database.");
+                throw;
+            }
+        }
+
         public bool Disconnect()
         {
             switch (_myConn.State)
@@ -47,13 +57,29 @@ namespace PrescripshunServer.Database
                     throw new InvalidOperationException();
             }
         }
+        public async Task<bool> DisconnectAsync()
+        {
+            switch (_myConn.State)
+            {
+                case ConnectionState.Open:
+                    await _myConn.CloseAsync();
+                    Logger.Info("Disconnected from the database.");
+                    return true;
+                case ConnectionState.Closed:
+                    Logger.Info("Database was already closed.");
+                    return false;
+                default:
+                    Logger.Error($"Couldn't close database connection. Current state: {_myConn.State}");
+                    throw new InvalidOperationException();
+            }
+        }
 
-        internal void ExecuteQuery(MySqlConnection con, string query)
+        internal void ExecuteQuery(string query)
         {
             Logger.Info($"Executing SQL Query: {query}");
             try
             {
-                using var myCommand = new MySqlCommand(query, con);
+                using var myCommand = new MySqlCommand(query, _myConn);
                 using var reader = myCommand.ExecuteReader();
 
                 // Read the data returned by the query.
@@ -73,12 +99,12 @@ namespace PrescripshunServer.Database
             }
         }
 
-        internal void ExecuteNonQuery(MySqlConnection con, string nonQuery)
+        internal void ExecuteNonQuery(string nonQuery)
         {
             Logger.Info($"Executing SQL NonQuery: {nonQuery}");
             try
             {
-                var myCommand = new MySqlCommand(nonQuery, con);
+                var myCommand = new MySqlCommand(nonQuery, _myConn);
                 myCommand.ExecuteNonQuery();
             }
             catch (Exception ex)
@@ -88,11 +114,19 @@ namespace PrescripshunServer.Database
             }
         }
 
-        internal void Run()
+        internal async Task ExecuteNonQueryAsync(string nonQuery)
         {
-            Init(_myConn);
-            ExecuteNonQuery(_myConn, "CREATE DATABASE MyDatabase");
-            Disconnect();
+            Logger.Info($"Executing SQL NonQuery: {nonQuery}");
+            try
+            {
+                var myCommand = new MySqlCommand(nonQuery, _myConn);
+                await myCommand.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "SQL NonQuery execution failed.");
+                throw;
+            }
         }
     }
 }
