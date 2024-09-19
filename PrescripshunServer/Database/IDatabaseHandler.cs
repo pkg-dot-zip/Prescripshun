@@ -6,6 +6,8 @@ namespace PrescripshunServer.Database
 {
     internal interface IDatabaseHandler
     {
+        public Task Run();
+
         public List<IUser> GetUsers();
         public List<UserDoctor> GetDoctors();
         public List<UserPatient> GetPatients();

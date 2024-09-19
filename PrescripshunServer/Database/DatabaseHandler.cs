@@ -8,7 +8,7 @@ namespace PrescripshunServer.Database
     {
         private readonly Database _database = new Database();
 
-        internal async Task Run()
+        public async Task Run()
         {
             await _database.ConnectAsync();
             await _database.ExecuteNonQueryAsync("CREATE DATABASE MyDatabase");
