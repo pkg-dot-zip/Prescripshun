@@ -3,6 +3,7 @@ using PrescripshunLib.Logging;
 using Unclassified.Net;
 using System.Diagnostics.CodeAnalysis;
 using PrescripshunLib.ExtensionMethods;
+using PrescripshunLib.Util.Sound;
 
 namespace PrescripshunServer;
 
@@ -80,17 +81,7 @@ internal class Server : AsyncTcpClient
             return Task.CompletedTask;
         };
 
-        ServerEvents.Get.OnApplicationBoot += async args =>
-        {
-            await Task.Run(() =>
-            {
-                // Console.Beep() only works on Windows.
-                if (!OperatingSystem.IsWindows()) return;
-                Console.Beep(262, 200); // Approx C4.
-                Console.Beep(330, 200); // Approx E4.
-                Console.Beep(392, 200); // Approx G4.
-            });
-        };
+        ServerEvents.Get.OnApplicationBoot += async args => await Beeper.PlayServerBootSoundAsync();
 
         ServerEvents.Get.OnConnect += async (client, reconnected) =>
         {
