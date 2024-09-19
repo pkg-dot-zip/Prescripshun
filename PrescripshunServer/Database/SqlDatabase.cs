@@ -3,7 +3,7 @@ using MySql.Data.MySqlClient;
 
 namespace PrescripshunServer.Database
 {
-    internal class Database
+    internal class SqlDatabase
     {
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 

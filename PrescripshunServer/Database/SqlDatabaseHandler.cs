@@ -4,15 +4,15 @@ using PrescripshunLib.Models.User;
 
 namespace PrescripshunServer.Database
 {
-    internal class DatabaseHandler : IDatabaseHandler
+    internal class SqlDatabaseHandler : IDatabaseHandler
     {
-        private readonly Database _database = new Database();
+        private readonly SqlDatabase _sqlDatabase = new SqlDatabase();
 
         public async Task Run()
         {
-            await _database.ConnectAsync();
-            await _database.ExecuteNonQueryAsync("CREATE DATABASE MyDatabase");
-            await _database.DisconnectAsync();
+            await _sqlDatabase.ConnectAsync();
+            await _sqlDatabase.ExecuteNonQueryAsync("CREATE DATABASE MyDatabase");
+            await _sqlDatabase.DisconnectAsync();
         }
 
         public List<IUser> GetUsers()

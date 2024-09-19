@@ -11,7 +11,7 @@ namespace PrescripshunServer;
 internal class Server : AsyncTcpClient
 {
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-    private static readonly IDatabaseHandler DatabaseHandler = new DatabaseHandler();
+    private static readonly IDatabaseHandler DatabaseHandler = new SqlDatabaseHandler();
 
 
     public bool IsRunning = true;
