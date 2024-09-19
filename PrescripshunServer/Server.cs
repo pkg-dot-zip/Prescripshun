@@ -13,8 +13,16 @@ internal class Server : AsyncTcpClient
 
     public bool IsRunning = true;
 
+    private static void DatabaseTest()
+    {
+        var database = new Database.Database();
+        database.Run();
+    }
+
     private static void Main(string[] args)
     {
+        DatabaseTest();
+
         LogHandler.Configure("server");
 
         // First we create an instance of the server and register all the events.
