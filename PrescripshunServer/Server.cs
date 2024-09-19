@@ -86,11 +86,7 @@ internal class Server : AsyncTcpClient
 
         ServerEvents.Get.OnApplicationBoot += async args => await Beeper.PlayServerBootSoundAsync();
 
-        ServerEvents.Get.OnApplicationBoot += args =>
-        {
-            DatabaseHandler.Run();
-            return Task.CompletedTask;
-        };
+        ServerEvents.Get.OnApplicationBoot += async args => await DatabaseHandler.Run();
 
         ServerEvents.Get.OnConnect += async (client, reconnected) =>
         {
