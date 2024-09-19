@@ -1,11 +1,14 @@
-﻿using System.Data;
+using System.Data;
 using MySql.Data.MySqlClient;
+using SqlKata;
+using SqlKata.Compilers;
 
 namespace PrescripshunServer.Database
 {
     internal class SqlDatabase
     {
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        private static readonly MySqlCompiler Compiler = new();
 
         private const string Server = "localhost";
         private const int Port = 3306;
@@ -74,7 +77,13 @@ namespace PrescripshunServer.Database
             }
         }
 
-        internal void ExecuteQuery(string query)
+        // TODO: Implement.
+        internal void ExecuteQuery(Query query, Action<MySqlDataReader> action)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal void ExecuteQuery(string query, Action<MySqlDataReader> action)
         {
             Logger.Info($"Executing SQL Query: {query}");
             try
@@ -82,15 +91,17 @@ namespace PrescripshunServer.Database
                 using var myCommand = new MySqlCommand(query, _myConn);
                 using var reader = myCommand.ExecuteReader();
 
-                // Read the data returned by the query.
-                while (reader.Read())
-                {
+                action.Invoke(reader);
+
+                // Read the data returned by the query. EXAMPLE.
+                // while (reader.Read())
+                // {
                     // Example: Getting values from columns by index or by column name
                     // var id = reader.GetInt32(0); // Column 0 (Id)
                     // var name = reader.GetString("Name"); // Column "Name"
                     // var age = reader.GetInt32("Age"); // Column "Age"
                     // Logger.Info($"Patient: {id}, {name}, {age}");
-                }
+                // }
             }
             catch (Exception ex)
             {
