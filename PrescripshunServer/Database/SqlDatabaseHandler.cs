@@ -41,7 +41,6 @@ namespace PrescripshunServer.Database
                                     userKey CHAR(36) NOT NULL,      -- GUID for the user, represented as a CHAR(36)
                                     username VARCHAR(255) NOT NULL, -- Username, non-null string
                                     password VARCHAR(255) NOT NULL, -- Password, non-null string
-                                    isDoctor BOOLEAN NOT NULL,      -- Indicates whether the user is a doctor (1 for doctor, 0 for patient)
                                     doctorKey CHAR(36),             -- Foreign key reference to a doctor (can be NULL for doctors)
                                     
                                     PRIMARY KEY (userKey),          -- Primary key constraint on userKey
@@ -169,9 +168,34 @@ namespace PrescripshunServer.Database
             throw new NotImplementedException();
         }
 
+        public async Task AddDoctor(UserDoctor doctor)
+        {
+            await _sqlDatabase.ExecuteNonQueryAsync($"""
+                                                    INSERT INTO users (userKey, username, password)
+                                                    VALUES ('{doctor.UserKey}', '{doctor.UserName}', '{doctor.Password}');
+                                                    """);
+
+            // Then we add all the patients to the patients table.
+            foreach (var patient in doctor.Patients)
+            {
+                await _sqlDatabase.ExecuteNonQueryAsync($"""
+                                                        INSERT INTO doctor_patient (doctorKey, patientKey)
+                                                        VALUES ('{doctor.UserKey}', '{patient}');
+                                                        """);
+            }
+        }
+
         public List<UserDoctor> GetDoctors()
         {
             throw new NotImplementedException();
+        }
+
+        public async Task AddPatient(UserPatient patient)
+        {
+            await _sqlDatabase.ExecuteNonQueryAsync($"""
+                                                    INSERT INTO users (userKey, username, password, doctorKey)
+                                                    VALUES ('{patient.UserKey}', '{patient.Password}', '{patient.Password}', '{patient.DoctоrGuid}');
+                                                    """);
         }
 
         public List<UserPatient> GetPatients()
@@ -194,9 +218,59 @@ namespace PrescripshunServer.Database
             throw new NotImplementedException();
         }
 
+        public async Task AddMedicalFile(IMedicalFile medicalFile)
+        {
+            // Notes.
+            foreach (var note in medicalFile.Notes)
+            {
+                await _sqlDatabase.ExecuteNonQueryAsync($"""
+                                                         INSERT INTO notes (userKey, title, description, datetime)
+                                                         VALUES ('{medicalFile.Patient}', '{note.Title}', '{note.Description}', '{note.DateTime}');
+                                                         """);
+            }
+
+            // Diagnoses.
+            foreach (var diagnosis in medicalFile.Diagnoses)
+            {
+                await _sqlDatabase.ExecuteNonQueryAsync($"""
+                                                         INSERT INTO diagnoses (userKey, title, description, datetime)
+                                                         VALUES ('{medicalFile.Patient}', '{diagnosis.Title}', '{diagnosis.Description}', '{diagnosis.DateTime}');
+                                                         """);
+            }
+
+            // Medication.
+            foreach (var medication in medicalFile.Medication)
+            {
+                await _sqlDatabase.ExecuteNonQueryAsync($"""
+                                                        INSERT INTO medication (userKey, title, description, startedUsingOn, stoppedUsingOn)
+                                                        VALUES ('{medicalFile.Patient}', '{medication.Title}', '{medication.Description}', '{medication.StartedUsingOn}', '{medication.StoppedUsingOn}');
+                                                        """);
+            }
+
+            // Appointments.
+            foreach (var appointment in medicalFile.Appointments)
+            {
+                await _sqlDatabase.ExecuteNonQueryAsync($"""
+                                                         INSERT INTO appointments (userKey, doctorKey, title, description, datetime)
+                                                         VALUES ('{medicalFile.Patient}', '{appointment.DoctorToMeet}', '{appointment.Title}', '{appointment.Description}', '{appointment.DateTime}');
+                                                         """);
+            }
+        }
+
         public IMedicalFile GetMedicalFile(Guid guid)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task AddChat(IChat chat)
+        {
+            foreach (var message in chat.Messages)
+            {
+                await _sqlDatabase.ExecuteNonQueryAsync($"""
+                                                        INSERT INTO chatmessages (sender, recipient, text, time)
+                                                        VALUES ('{message.Sender}', '{message.Recipient}', '{message.Text}', '{message.Time}');
+                                                        """);
+            }
         }
 
         public IChat GetChat(Guid user1, Guid user2)
