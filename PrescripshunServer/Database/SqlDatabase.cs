@@ -5,16 +5,16 @@ using SqlKata.Compilers;
 
 namespace PrescripshunServer.Database
 {
-    internal class SqlDatabase
+    internal class SqlDatabase(
+        string server = "localhost",
+        int port = 3306,
+        string dbName = "prescripshundb",
+        string username = "root")
     {
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private static readonly MySqlCompiler Compiler = new();
 
-        private const string Server = "localhost";
-        private const int Port = 3306;
-        private const string DbName = "prescripshundb";
-        private const string Username = "root"; // 'root' by default.
-        private readonly MySqlConnection _myConn = new($"Server={Server};Port={Port};Database={DbName};Uid={Username};SslMode=None"); // NOTE: Assumes there is no password.
+        private readonly MySqlConnection _myConn = new($"Server={server};Port={port};Database={dbName};Uid={username};SslMode=None"); // NOTE: Assumes there is no password.
 
         public void Connect()
         {
