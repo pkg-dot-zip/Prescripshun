@@ -7,6 +7,7 @@ using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Models.User;
 using PrescripshunLib.Models.User.Profile;
 using SqlKata;
+using SqlKata.Compilers;
 
 namespace PrescripshunServer.Database
 {
@@ -18,10 +19,14 @@ namespace PrescripshunServer.Database
         private async Task TestInit()
         {
             string tableName = "TESTTABLE";
-            await _sqlDatabase.ExecuteNonQueryAsync($"CREATE TABLE IF NOT EXISTS {tableName} (\r\n  ID INTEGER PRIMARY KEY,\r\n  Title VARCHAR(30),\r\n  Description VARCHAR(30)\r\n);");
-            await _sqlDatabase.ExecuteNonQueryAsync($"INSERT INTO {tableName}\r\nVALUES (483, 'mooie titel', 'mooie desc');");
-            await _sqlDatabase.ExecuteNonQueryAsync($"INSERT INTO {tableName}\r\nVALUES (821, 'mooie titel', 'andere desc');");
-            await _sqlDatabase.ExecuteNonQueryAsync($"INSERT INTO {tableName}\r\nVALUES (129, 'titel ding', 'desc ding');");
+            await _sqlDatabase.ExecuteNonQueryAsync(
+                $"CREATE TABLE IF NOT EXISTS {tableName} (\r\n  ID INTEGER PRIMARY KEY,\r\n  Title VARCHAR(30),\r\n  Description VARCHAR(30)\r\n);");
+            await _sqlDatabase.ExecuteNonQueryAsync(
+                $"INSERT INTO {tableName}\r\nVALUES (483, 'mooie titel', 'mooie desc');");
+            await _sqlDatabase.ExecuteNonQueryAsync(
+                $"INSERT INTO {tableName}\r\nVALUES (821, 'mooie titel', 'andere desc');");
+            await _sqlDatabase.ExecuteNonQueryAsync(
+                $"INSERT INTO {tableName}\r\nVALUES (129, 'titel ding', 'desc ding');");
 
             _sqlDatabase.ExecuteQuery($"SELECT * FROM `{tableName}` WHERE Title = 'mooie titel';\r\n", reader =>
             {
@@ -178,6 +183,7 @@ namespace PrescripshunServer.Database
                     {
                         BirthDate = faker.Date.Past(30, DateTime.Now.AddYears(-10)),
                         FullName = fullName,
+                        // TODO: Add url! faker has image placeholder methods!
                     }
                 });
             }
@@ -194,8 +200,9 @@ namespace PrescripshunServer.Database
                     DoctоrGuid = doctorsList[i % doctorsList.Count].UserKey,
                     Profile = new PatientProfile()
                     {
-                        BirthDate = faker.Date.Past(30, DateTime.Now.AddYears(-10)),
+                        BirthDate = faker.Date.Past(30, new DateTime(2023, 12, 31)),
                         FullName = fullName,
+                        // TODO: Add url! faker has image placeholder methods!
                     }
                 });
             }
@@ -205,6 +212,84 @@ namespace PrescripshunServer.Database
             foreach (var patient in patientsList) await AddPatient(patient);
             foreach (var patient in patientsList) await AddDoctorPatientRelation(patient);
 
+            Random random = new Random(0);
+            foreach (var patient in patientsList)
+            {
+                // Create fake appointments.
+                var appointmentsList = new List<Appointment>();
+                for (int i = 0; i < random.Next(1, 5); i++)
+                {
+                    var appointment = new Appointment()
+                    {
+                        Title = $"Beautiful appointment {i}", // TODO: Fake.
+                        Description = "Basic description", // TODO: Fake.
+                        DoctorToMeet = patient.DoctоrGuid,
+                        DateTime = faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
+                    };
+
+                    appointmentsList.Add(appointment);
+                }
+
+                // Create fake notes.
+                var notesList = new List<Note>();
+                for (int i = 0; i < random.Next(1, 5); i++)
+                {
+                    var note = new Note()
+                    {
+                        Title = $"Extraordinary note {i}", // TODO: Fake.
+                        Description = "Basic description", // TODO: Fake.
+                        DateTime = faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
+                    };
+
+                    notesList.Add(note);
+                }
+
+                // Create fake medication.
+                var medicationList = new List<Medication>();
+                for (int i = 0; i < random.Next(1, 5); i++)
+                {
+                    var medication = new Medication()
+                    {
+                        Title = $"Amazingly complicated medication name {i}", // TODO: Fake.
+                        Description = "Basic description", // TODO: Fake.
+                        StartedUsingOn = faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
+                    };
+
+                    // Sometimes people are still using the meds, so we do not always add them.
+                    if (random.NextBool())
+                    {
+                        medication.StoppedUsingOn =
+                            faker.Date.Between(medication.StartedUsingOn, new DateTime(2023, 12, 31));
+                    }
+
+                    medicationList.Add(medication);
+                }
+
+                // Create fake diagnoses.
+                var diagnosisList = new List<Diagnosis>();
+                for (int i = 0; i < random.Next(1, 5); i++)
+                {
+                    var diagnosis = new Diagnosis()
+                    {
+                        Title = $"Very long disease or disorder name {i}", // TODO: Fake.
+                        Description = "Basic description", // TODO: Fake.
+                        DateTime = faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
+                    };
+
+                    diagnosisList.Add(diagnosis);
+                }
+
+                patient.GetPatientProfile.MedicalFile = new MedicalFile()
+                {
+                    Patient = patient.UserKey,
+                    Appointments = appointmentsList,
+                    Notes = notesList,
+                    Medication = medicationList,
+                    Diagnoses = diagnosisList,
+                };
+
+                await AddMedicalFile(patient.GetPatientProfile.MedicalFile);
+            }
         }
 
         public async Task Run()
@@ -234,15 +319,15 @@ namespace PrescripshunServer.Database
         public async Task AddDoctor(UserDoctor doctor)
         {
             await _sqlDatabase.ExecuteNonQueryAsync($"""
-                                                    INSERT INTO users (userKey, username, password)
-                                                    VALUES ('{doctor.UserKey}', '{doctor.UserName}', '{doctor.Password}');
-                                                    """);
+                                                     INSERT INTO users (userKey, username, password)
+                                                     VALUES ('{doctor.UserKey}', '{doctor.UserName}', '{doctor.Password}');
+                                                     """);
 
             // Then we add the profile of the doctor. // TODO: STORE PROFILE PICTURE.
             await _sqlDatabase.ExecuteNonQueryAsync($"""
-                                                    INSERT INTO profiles (userKey, fullname, birthdate, profilepicture)
-                                                    VALUES ('{doctor.UserKey}', '{doctor.Profile.FullName}', '{doctor.Profile.BirthDate.GetSqlString()}', NULL);
-                                                    """);
+                                                     INSERT INTO profiles (userKey, fullname, birthdate, profilepicture)
+                                                     VALUES ('{doctor.UserKey}', '{doctor.Profile.FullName}', '{doctor.Profile.BirthDate.GetSqlString()}', NULL);
+                                                     """);
         }
 
         public List<UserDoctor> GetDoctors()
@@ -253,9 +338,9 @@ namespace PrescripshunServer.Database
         public async Task AddPatient(UserPatient patient)
         {
             await _sqlDatabase.ExecuteNonQueryAsync($"""
-                                                    INSERT INTO users (userKey, username, password, doctorKey)
-                                                    VALUES ('{patient.UserKey}', '{patient.UserName}', '{patient.Password}', '{patient.DoctоrGuid}');
-                                                    """);
+                                                     INSERT INTO users (userKey, username, password, doctorKey)
+                                                     VALUES ('{patient.UserKey}', '{patient.UserName}', '{patient.Password}', '{patient.DoctоrGuid}');
+                                                     """);
 
 
             // Then we add the profile of the doctor. // TODO: STORE PROFILE PICTURE.
@@ -292,7 +377,7 @@ namespace PrescripshunServer.Database
             {
                 await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                          INSERT INTO notes (userKey, title, description, datetime)
-                                                         VALUES ('{medicalFile.Patient}', '{note.Title}', '{note.Description}', '{note.DateTime}');
+                                                         VALUES ('{medicalFile.Patient}', '{note.Title}', '{note.Description}', '{note.DateTime.GetSqlString()}');
                                                          """);
             }
 
@@ -301,7 +386,7 @@ namespace PrescripshunServer.Database
             {
                 await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                          INSERT INTO diagnoses (userKey, title, description, datetime)
-                                                         VALUES ('{medicalFile.Patient}', '{diagnosis.Title}', '{diagnosis.Description}', '{diagnosis.DateTime}');
+                                                         VALUES ('{medicalFile.Patient}', '{diagnosis.Title}', '{diagnosis.Description}', '{diagnosis.DateTime.GetSqlString()}');
                                                          """);
             }
 
@@ -309,9 +394,9 @@ namespace PrescripshunServer.Database
             foreach (var medication in medicalFile.Medication)
             {
                 await _sqlDatabase.ExecuteNonQueryAsync($"""
-                                                        INSERT INTO medication (userKey, title, description, startedUsingOn, stoppedUsingOn)
-                                                        VALUES ('{medicalFile.Patient}', '{medication.Title}', '{medication.Description}', '{medication.StartedUsingOn}', '{medication.StoppedUsingOn}');
-                                                        """);
+                                                         INSERT INTO medication (userKey, title, description, startedUsingOn, stoppedUsingOn)
+                                                         VALUES ('{medicalFile.Patient}', '{medication.Title}', '{medication.Description}', '{medication.StartedUsingOn.GetSqlString()}', '{medication.StoppedUsingOn?.GetSqlString()}');
+                                                         """);
             }
 
             // Appointments.
@@ -319,7 +404,7 @@ namespace PrescripshunServer.Database
             {
                 await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                          INSERT INTO appointments (userKey, doctorKey, title, description, datetime)
-                                                         VALUES ('{medicalFile.Patient}', '{appointment.DoctorToMeet}', '{appointment.Title}', '{appointment.Description}', '{appointment.DateTime}');
+                                                         VALUES ('{medicalFile.Patient}', '{appointment.DoctorToMeet}', '{appointment.Title}', '{appointment.Description}', '{appointment.DateTime.GetSqlString()}');
                                                          """);
             }
         }
@@ -334,9 +419,9 @@ namespace PrescripshunServer.Database
             foreach (var message in chat.Messages)
             {
                 await _sqlDatabase.ExecuteNonQueryAsync($"""
-                                                        INSERT INTO chatmessages (sender, recipient, text, time)
-                                                        VALUES ('{message.Sender}', '{message.Recipient}', '{message.Text}', '{message.Time}');
-                                                        """);
+                                                         INSERT INTO chatmessages (sender, recipient, text, time)
+                                                         VALUES ('{message.Sender}', '{message.Recipient}', '{message.Text}', '{message.Time}');
+                                                         """);
             }
         }
 
