@@ -1,4 +1,6 @@
-﻿using PrescripshunLib.ExtensionMethods;
+﻿using System.Data;
+using MySql.Data.Types;
+using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Models.User;
@@ -159,10 +161,10 @@ namespace PrescripshunServer.Database.MySql
             var patient = patients.First();
 
             var profile = patient.GetPatientProfile;
-            Console.WriteLine(profile);
+            Logger.Info($"PROFILE RECEIVED: {profile}");
 
             var medicalFile = GetMedicalFile(patient.UserKey);
-            Console.WriteLine(medicalFile);
+            Logger.Info($"FILE RECEIVED: {medicalFile}");
 
             await _sqlDatabase.DisconnectAsync();
         }
@@ -212,7 +214,7 @@ namespace PrescripshunServer.Database.MySql
                     doctors.Add(new UserDoctor()
                     {
                         // TODO: Retrieve patient list?
-                        UserKey = new Guid(reader.GetString("userKey")),
+                        UserKey = reader.GetGuid("userKey"),
                         UserName = reader.GetString("username"),
                         Password = reader.GetString("password"),
                         Profile = new PatientProfile()
@@ -258,8 +260,8 @@ namespace PrescripshunServer.Database.MySql
                 {
                     patients.Add(new UserPatient()
                     {
-                        UserKey = new Guid(reader.GetString("userKey")),
-                        DoctоrGuid = new Guid(reader.GetString("doctorKey")),
+                        UserKey = reader.GetGuid("userKey"),
+                        DoctоrGuid = reader.GetGuid("doctorKey"),
                         UserName = reader.GetString("username"),
                         Password = reader.GetString("password"),
                         Profile = new PatientProfile()
@@ -305,7 +307,7 @@ namespace PrescripshunServer.Database.MySql
                     doctor = new UserDoctor()
                     {
                         // TODO: Retrieve patient list?
-                        UserKey = new Guid(reader.GetString("userKey")),
+                        UserKey = reader.GetGuid("userKey"),
                         UserName = reader.GetString("username"),
                         Password = reader.GetString("password"),
                         Profile = new PatientProfile()
@@ -338,8 +340,8 @@ namespace PrescripshunServer.Database.MySql
                 {
                     patient = new UserPatient()
                     {
-                        UserKey = new Guid(reader.GetString("userKey")),
-                        DoctоrGuid = new Guid(reader.GetString("doctorKey")),
+                        UserKey = reader.GetGuid("userKey"),
+                        DoctоrGuid = reader.GetGuid("doctorKey"),
                         UserName = reader.GetString("username"),
                         Password = reader.GetString("password"),
                         Profile = new PatientProfile()
@@ -377,11 +379,20 @@ namespace PrescripshunServer.Database.MySql
             }
 
             // Medication.
+            // TODO: Fix issue. Look in the logs -> you'll see that the stoppedUsingOn is never inserted into the table despite being initialized by FakeHandler.
             foreach (var medication in medicalFile.Medication)
             {
+                string stoppedUsingString = medication.StoppedUsingOn is null ? $"'{medication.StoppedUsingOn?.GetSqlString()}'" : "NULL";
+
+                // Temp error avoidance. TODO: REMOVE.
+                if (stoppedUsingString == "''")
+                {
+                    stoppedUsingString = "NULL";
+                }
+
                 await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                          INSERT INTO medication (userKey, title, description, startedUsingOn, stoppedUsingOn)
-                                                         VALUES ('{medicalFile.Patient}', '{medication.Title}', '{medication.Description}', '{medication.StartedUsingOn.GetSqlString()}', '{medication.StoppedUsingOn?.GetSqlString()}');
+                                                         VALUES ('{medicalFile.Patient}', '{medication.Title}', '{medication.Description}', '{medication.StartedUsingOn.GetSqlString()}', {stoppedUsingString});
                                                          """);
             }
 
@@ -432,7 +443,7 @@ namespace PrescripshunServer.Database.MySql
                         Title = reader.GetString("title"),
                         Description = reader.GetString("description"),
                         DateTime = reader.GetDateTime("datetime"),
-                        DoctorToMeet = new Guid(reader.GetString("doctorKey"))
+                        DoctorToMeet = reader.GetGuid("doctorKey")
                     });
                 }
             });
@@ -445,13 +456,25 @@ namespace PrescripshunServer.Database.MySql
             {
                 while (reader.Read())
                 {
-                    medicationList.Add(new Medication()
+                    try
                     {
-                        Title = reader.GetString("title"),
-                        Description = reader.GetString("description"),
-                        StartedUsingOn = reader.GetDateTime("startedUsingOn"),
-                        StoppedUsingOn = reader.GetDateTime("stoppedUsingOn"),
-                    });
+                        medicationList.Add(new Medication()
+                        {
+                            Title = reader.GetString("title"),
+                            Description = reader.GetString("description"),
+                            StartedUsingOn = reader.GetDateTime("startedUsingOn"),
+                        });
+
+                        if (!reader.IsDBNull("stoppedUsingOn")) // Can not parse NULL as a date time, so this is needed.
+                        {
+                            medicationList.Last().StoppedUsingOn = reader.GetDateTime("stoppedUsingOn");
+                        }
+                    }
+                    catch (MySqlConversionException ex)
+                    {
+                        // TODO: Fix.
+                        Logger.Error(ex, "Still have an issue with stoppedUsingOn. Ignoring for now.");
+                    }
                 }
             });
 
@@ -508,8 +531,8 @@ namespace PrescripshunServer.Database.MySql
                 {
                     messages.Add(new ChatMessage()
                     {
-                        Recipient = new Guid(reader.GetString("recipient")),
-                        Sender = new Guid(reader.GetString("sender")),
+                        Recipient = reader.GetGuid("recipient"),
+                        Sender = reader.GetGuid("sender"),
                         Text = reader.GetString("text"),
                         Time = reader.GetDateTime("time"),
                     });

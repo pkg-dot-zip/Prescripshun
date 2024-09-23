@@ -9,6 +9,8 @@ namespace PrescripshunLib.Util.Faker
 {
     public class FakeHandler(int seed = 0, string locale = "nl")
     {
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
         private readonly Bogus.Faker _faker = new(locale)
         {
             Random = new Randomizer(seed)
@@ -115,6 +117,7 @@ namespace PrescripshunLib.Util.Faker
                             _faker.Date.Between(medication.StartedUsingOn, new DateTime(2023, 12, 31));
                     }
 
+                    Logger.Trace($"Adding medication with stoppedUsingOn = {medication.StoppedUsingOn}");
                     medicationList.Add(medication);
                 }
 

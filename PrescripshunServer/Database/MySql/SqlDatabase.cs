@@ -92,16 +92,6 @@ namespace PrescripshunServer.Database.MySql
                 using var reader = myCommand.ExecuteReader();
 
                 action.Invoke(reader);
-
-                // Read the data returned by the query. EXAMPLE.
-                // while (reader.Read())
-                // {
-                // Example: Getting values from columns by index or by column name
-                // var id = reader.GetInt32(0); // Column 0 (Id)
-                // var name = reader.GetString("Name"); // Column "Name"
-                // var age = reader.GetInt32("Age"); // Column "Age"
-                // Logger.Info($"Patient: {id}, {name}, {age}");
-                // }
             }
             catch (Exception ex)
             {
