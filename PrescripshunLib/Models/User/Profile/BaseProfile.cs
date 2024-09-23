@@ -4,6 +4,6 @@
     {
         public string FullName { get; set; } = "John Doe";
         public DateTime BirthDate { get; set; } = DateTime.Now;
-        public ProfilePicture? ProfilePicture { get; set; }
+        public ProfilePicture? ProfilePicture { get; set; } // TODO: Make non nullable and use faker placeholder.
     }
 }

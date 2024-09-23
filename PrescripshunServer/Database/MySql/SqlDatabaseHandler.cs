@@ -1,5 +1,4 @@
-﻿using Bogus;
-using PrescripshunLib.ExtensionMethods;
+﻿using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Models.User;
@@ -12,34 +11,6 @@ namespace PrescripshunServer.Database.MySql
     {
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private readonly SqlDatabase _sqlDatabase = new SqlDatabase();
-
-        private async Task TestInit()
-        {
-            string tableName = "TESTTABLE";
-            await _sqlDatabase.ExecuteNonQueryAsync(
-                $"CREATE TABLE IF NOT EXISTS {tableName} (\r\n  ID INTEGER PRIMARY KEY,\r\n  Title VARCHAR(30),\r\n  Description VARCHAR(30)\r\n);");
-            await _sqlDatabase.ExecuteNonQueryAsync(
-                $"INSERT INTO {tableName}\r\nVALUES (483, 'mooie titel', 'mooie desc');");
-            await _sqlDatabase.ExecuteNonQueryAsync(
-                $"INSERT INTO {tableName}\r\nVALUES (821, 'mooie titel', 'andere desc');");
-            await _sqlDatabase.ExecuteNonQueryAsync(
-                $"INSERT INTO {tableName}\r\nVALUES (129, 'titel ding', 'desc ding');");
-
-            _sqlDatabase.ExecuteQuery($"SELECT * FROM `{tableName}` WHERE Title = 'mooie titel';\r\n", reader =>
-            {
-                while (reader.Read())
-                {
-                    var id = reader.GetInt32("ID");
-                    var title = reader.GetString("Title");
-                    var desc = reader.GetString("Description");
-
-                    Logger.Trace($"Retrieved test: {id} - {title} - {desc}");
-                }
-            });
-
-
-            await _sqlDatabase.ExecuteNonQueryAsync($"DROP TABLE {tableName};");
-        }
 
         private async Task InitTables()
         {
@@ -179,17 +150,29 @@ namespace PrescripshunServer.Database.MySql
         public async Task Run()
         {
             await _sqlDatabase.ConnectAsync();
-            // await _sqlDatabase.ExecuteNonQueryAsync("CREATE DATABASE MyDatabase()");
 
             await InitTables();
             await InitTestData();
+
+
+            var patients = GetPatients();
+            var patient = patients.First();
+
+            var profile = patient.GetPatientProfile;
+            Console.WriteLine(profile);
+
+            var medicalFile = GetMedicalFile(patient.UserKey);
+            Console.WriteLine(medicalFile);
 
             await _sqlDatabase.DisconnectAsync();
         }
 
         public List<IUser> GetUsers()
         {
-            throw new NotImplementedException();
+            var patients = GetPatients().ToList<IUser>();
+            var doctors = GetDoctors().ToList<IUser>();
+            patients.AddRange(doctors);
+            return patients;
         }
 
         private async Task AddDoctorPatientRelation(UserPatient patient)
@@ -216,7 +199,34 @@ namespace PrescripshunServer.Database.MySql
 
         public List<UserDoctor> GetDoctors()
         {
-            throw new NotImplementedException();
+            var doctors = new List<UserDoctor>();
+            _sqlDatabase.ExecuteQuery("""
+                                      SELECT u.*, p.fullname, p.birthdate, p.profilepicture
+                                      FROM users u
+                                      JOIN profiles p ON u.userKey = p.userKey
+                                      WHERE u.doctorKey IS NULL;
+                                      """, reader =>
+            {
+                while (reader.Read())
+                {
+                    doctors.Add(new UserDoctor()
+                    {
+                        // TODO: Retrieve patient list?
+                        UserKey = new Guid(reader.GetString("userKey")),
+                        UserName = reader.GetString("username"),
+                        Password = reader.GetString("password"),
+                        Profile = new PatientProfile()
+                        {
+                            BirthDate = reader.GetDateTime("birthdate"),
+                            FullName = reader.GetString("fullname"),
+                            // TODO: Retrieve profile picture.
+                            // TODO: DO NOT retrieve the medical file here
+                        }
+                    });
+                }
+            });
+
+            return doctors;
         }
 
         public async Task AddPatient(UserPatient patient)
@@ -236,22 +246,114 @@ namespace PrescripshunServer.Database.MySql
 
         public List<UserPatient> GetPatients()
         {
-            throw new NotImplementedException();
+            var patients = new List<UserPatient>();
+            _sqlDatabase.ExecuteQuery("""
+                                      SELECT u.*, p.fullname, p.birthdate, p.profilepicture
+                                      FROM users u
+                                      JOIN profiles p ON u.userKey = p.userKey
+                                      WHERE u.doctorKey IS NOT NULL;
+                                      """, reader =>
+            {
+                while (reader.Read())
+                {
+                    patients.Add(new UserPatient()
+                    {
+                        UserKey = new Guid(reader.GetString("userKey")),
+                        DoctоrGuid = new Guid(reader.GetString("doctorKey")),
+                        UserName = reader.GetString("username"),
+                        Password = reader.GetString("password"),
+                        Profile = new PatientProfile()
+                        {
+                            BirthDate = reader.GetDateTime("birthdate"),
+                            FullName = reader.GetString("fullname"),
+                            // TODO: Retrieve profile picture.
+                            // TODO: DO NOT retrieve the medical file here
+                        }
+                    });
+                }
+            });
+
+            return patients;
         }
 
         public IUser GetUser(Guid guid)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return GetPatient(guid);
+            }
+            catch
+            {
+                return GetDoctor(guid);
+            }
         }
 
         public UserDoctor GetDoctor(Guid guid)
         {
-            throw new NotImplementedException();
+            UserDoctor? doctor = null;
+
+            _sqlDatabase.ExecuteQuery($"""
+                                       SELECT u.*, p.fullname, p.birthdate, p.profilepicture
+                                       FROM users u
+                                       JOIN profiles p ON u.userKey = p.userKey
+                                       WHERE u.doctorKey IS NULL
+                                       AND u.userKey = '{guid}';
+                                       """, reader =>
+            {
+                while (reader.Read())
+                {
+                    doctor = new UserDoctor()
+                    {
+                        // TODO: Retrieve patient list?
+                        UserKey = new Guid(reader.GetString("userKey")),
+                        UserName = reader.GetString("username"),
+                        Password = reader.GetString("password"),
+                        Profile = new PatientProfile()
+                        {
+                            BirthDate = reader.GetDateTime("birthdate"),
+                            FullName = reader.GetString("fullname"),
+                            // TODO: Retrieve profile picture.
+                            // TODO: DO NOT retrieve the medical file here
+                        }
+                    };
+                }
+            });
+
+            return doctor ?? throw new InvalidOperationException();
         }
 
         public UserPatient GetPatient(Guid guid)
         {
-            throw new NotImplementedException();
+            UserPatient? patient = null;
+
+            _sqlDatabase.ExecuteQuery($"""
+                                      SELECT u.*, p.fullname, p.birthdate, p.profilepicture
+                                      FROM users u
+                                      JOIN profiles p ON u.userKey = p.userKey
+                                      WHERE u.doctorKey IS NOT NULL
+                                      AND u.userKey = '{guid}';
+                                      """, reader =>
+            {
+                while (reader.Read())
+                {
+                    patient = new UserPatient()
+                    {
+                        UserKey = new Guid(reader.GetString("userKey")),
+                        DoctоrGuid = new Guid(reader.GetString("doctorKey")),
+                        UserName = reader.GetString("username"),
+                        Password = reader.GetString("password"),
+                        Profile = new PatientProfile()
+                        {
+                            BirthDate = reader.GetDateTime("birthdate"),
+                            FullName = reader.GetString("fullname"),
+                            // TODO: Retrieve profile picture.
+                            // TODO: DO NOT retrieve the medical file here
+                        }
+                    };
+                }
+            });
+
+            return patient ?? throw new InvalidOperationException();
         }
 
         public async Task AddMedicalFile(IMedicalFile medicalFile)
@@ -295,7 +397,89 @@ namespace PrescripshunServer.Database.MySql
 
         public IMedicalFile GetMedicalFile(Guid guid)
         {
-            throw new NotImplementedException();
+            var notesList = new List<Note>();
+            var appointmentList = new List<Appointment>();
+            var medicationList = new List<Medication>();
+            var diagnosisList = new List<Diagnosis>();
+
+            _sqlDatabase.ExecuteQuery($"""
+                                      SELECT *
+                                      FROM notes
+                                      WHERE userKey = '{guid}';
+                                      """, reader =>
+            {
+                while (reader.Read())
+                {
+                    notesList.Add(new Note()
+                    {
+                        Title = reader.GetString("title"),
+                        Description = reader.GetString("description"),
+                        DateTime = reader.GetDateTime("datetime")
+                    });
+                }
+            });
+
+            _sqlDatabase.ExecuteQuery($"""
+                                       SELECT *
+                                       FROM appointments
+                                       WHERE userKey = '{guid}';
+                                       """, reader =>
+            {
+                while (reader.Read())
+                {
+                    appointmentList.Add(new Appointment()
+                    {
+                        Title = reader.GetString("title"),
+                        Description = reader.GetString("description"),
+                        DateTime = reader.GetDateTime("datetime"),
+                        DoctorToMeet = new Guid(reader.GetString("doctorKey"))
+                    });
+                }
+            });
+
+            _sqlDatabase.ExecuteQuery($"""
+                                       SELECT *
+                                       FROM medication
+                                       WHERE userKey = '{guid}';
+                                       """, reader =>
+            {
+                while (reader.Read())
+                {
+                    medicationList.Add(new Medication()
+                    {
+                        Title = reader.GetString("title"),
+                        Description = reader.GetString("description"),
+                        StartedUsingOn = reader.GetDateTime("startedUsingOn"),
+                        StoppedUsingOn = reader.GetDateTime("stoppedUsingOn"),
+                    });
+                }
+            });
+
+            _sqlDatabase.ExecuteQuery($"""
+                                       SELECT *
+                                       FROM diagnoses
+                                       WHERE userKey = '{guid}';
+                                       """, reader =>
+            {
+                while (reader.Read())
+                {
+                    diagnosisList.Add(new Diagnosis()
+                    {
+                        Title = reader.GetString("title"),
+                        Description = reader.GetString("description"),
+                        DateTime = reader.GetDateTime("datetime")
+                    });
+                }
+            });
+
+            return new MedicalFile()
+            {
+                Patient = guid,
+                Appointments = appointmentList,
+                Diagnoses = diagnosisList,
+                Medication = medicationList,
+                Notes = notesList,
+            };
         }
 
         public async Task AddChat(IChat chat)
@@ -311,7 +495,33 @@ namespace PrescripshunServer.Database.MySql
 
         public IChat GetChat(Guid user1, Guid user2)
         {
-            throw new NotImplementedException();
+            var messages = new List<IChatMessage>();
+
+            _sqlDatabase.ExecuteQuery($"""
+                                      SELECT *
+                                      FROM chatmessages
+                                      WHERE (sender = '{user1}' AND recipient = '{user2}')
+                                         OR (sender = '{user2}' AND recipient = '{user1}');
+                                      """, reader =>
+            {
+                while (reader.Read())
+                {
+                    messages.Add(new ChatMessage()
+                    {
+                        Recipient = new Guid(reader.GetString("recipient")),
+                        Sender = new Guid(reader.GetString("sender")),
+                        Text = reader.GetString("text"),
+                        Time = reader.GetDateTime("time"),
+                    });
+                }
+            });
+
+            return new Chat()
+            {
+                User1 = user1,
+                User2 = user2,
+                Messages = messages,
+            };
         }
     }
 }
