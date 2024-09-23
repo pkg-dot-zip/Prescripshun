@@ -1,4 +1,5 @@
-﻿using Bogus;
+﻿using System.ComponentModel;
+using Bogus;
 using Org.BouncyCastle.Asn1.Cmp;
 using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Models.Chat;
@@ -199,8 +200,11 @@ namespace PrescripshunServer.Database
                 });
             }
 
+            // PLEASE NOTE: ORDER MATTERS HERE!!! DON'T PLAY AROUND WITH THIS!
             foreach (var doctor in doctorsList) await AddDoctor(doctor);
             foreach (var patient in patientsList) await AddPatient(patient);
+            foreach (var patient in patientsList) await AddDoctorPatientRelation(patient);
+
         }
 
         public async Task Run()
@@ -219,21 +223,20 @@ namespace PrescripshunServer.Database
             throw new NotImplementedException();
         }
 
+        private async Task AddDoctorPatientRelation(UserPatient patient)
+        {
+            await _sqlDatabase.ExecuteNonQueryAsync($"""
+                                                     INSERT INTO doctor_patient (doctorKey, patientKey)
+                                                     VALUES ('{patient.DoctоrGuid}', '{patient.UserKey}');
+                                                     """);
+        }
+
         public async Task AddDoctor(UserDoctor doctor)
         {
             await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                     INSERT INTO users (userKey, username, password)
                                                     VALUES ('{doctor.UserKey}', '{doctor.UserName}', '{doctor.Password}');
                                                     """);
-
-            // Then we add all the patients to the patients table.
-            foreach (var patient in doctor.Patients)
-            {
-                await _sqlDatabase.ExecuteNonQueryAsync($"""
-                                                        INSERT INTO doctor_patient (doctorKey, patientKey)
-                                                        VALUES ('{doctor.UserKey}', '{patient}');
-                                                        """);
-            }
 
             // Then we add the profile of the doctor. // TODO: STORE PROFILE PICTURE.
             await _sqlDatabase.ExecuteNonQueryAsync($"""
