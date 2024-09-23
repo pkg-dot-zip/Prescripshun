@@ -1,6 +1,9 @@
-﻿using PrescripshunLib.Models.Chat;
+﻿using Bogus;
+using Org.BouncyCastle.Asn1.Cmp;
+using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Models.User;
+using PrescripshunLib.Models.User.Profile;
 using SqlKata;
 
 namespace PrescripshunServer.Database
@@ -153,12 +156,61 @@ namespace PrescripshunServer.Database
             await _sqlDatabase.ExecuteNonQueryAsync(appointments);
         }
 
+        private async Task InitTestData()
+        {
+            var faker = new Faker("nl")
+            {
+                Random = new Randomizer(0)
+            };
+
+            var refdate = new DateTime(2000, 12, 31);
+
+            var doctorsList = new List<UserDoctor>();
+            for (var i = 0; i < 3; i++)
+            {
+                var fullName = faker.Name.FullName();
+                doctorsList.Add(new UserDoctor()
+                {
+                    UserKey = Guid.NewGuid(),
+                    UserName = faker.Internet.UserName(fullName.Split(' ', 2)[0], fullName.Split(' ', 2)[1]),
+                    Password = faker.Internet.Password(memorable: true),
+                    Profile = new DoctorProfile()
+                    {
+                        BirthDate = faker.Date.Past(20, refdate),
+                        FullName = fullName,
+                    }
+                });
+            }
+
+            var patientsList = new List<UserPatient>();
+            for (var i = 0; i < doctorsList.Count * 10; i++)
+            {
+                var fullName = faker.Name.FullName();
+                patientsList.Add(new UserPatient()
+                {
+                    UserKey = Guid.NewGuid(),
+                    UserName = faker.Internet.UserName(fullName.Split(' ', 2)[0], fullName.Split(' ', 2)[1]),
+                    Password = faker.Internet.Password(memorable: true),
+                    DoctоrGuid = doctorsList[i % doctorsList.Count].UserKey,
+                    Profile = new PatientProfile()
+                    {
+                        BirthDate = faker.Date.Past(20, refdate),
+                        FullName = fullName,
+                    }
+                });
+            }
+
+            foreach (var doctor in doctorsList) await AddDoctor(doctor);
+            foreach (var patient in patientsList) await AddPatient(patient);
+        }
+
         public async Task Run()
         {
             await _sqlDatabase.ConnectAsync();
             // await _sqlDatabase.ExecuteNonQueryAsync("CREATE DATABASE MyDatabase()");
 
             await InitTables();
+            await InitTestData();
 
             await _sqlDatabase.DisconnectAsync();
         }
@@ -183,6 +235,12 @@ namespace PrescripshunServer.Database
                                                         VALUES ('{doctor.UserKey}', '{patient}');
                                                         """);
             }
+
+            // Then we add the profile of the doctor. // TODO: STORE PROFILE PICTURE.
+            await _sqlDatabase.ExecuteNonQueryAsync($"""
+                                                    INSERT INTO profiles (userKey, fullname, birthdate, profilepicture)
+                                                    VALUES ('{doctor.UserKey}', '{doctor.Profile.FullName}', '{doctor.Profile.BirthDate}', NULL);
+                                                    """);
         }
 
         public List<UserDoctor> GetDoctors()
@@ -194,8 +252,15 @@ namespace PrescripshunServer.Database
         {
             await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                     INSERT INTO users (userKey, username, password, doctorKey)
-                                                    VALUES ('{patient.UserKey}', '{patient.Password}', '{patient.Password}', '{patient.DoctоrGuid}');
+                                                    VALUES ('{patient.UserKey}', '{patient.UserName}', '{patient.Password}', '{patient.DoctоrGuid}');
                                                     """);
+
+
+            // Then we add the profile of the doctor. // TODO: STORE PROFILE PICTURE.
+            await _sqlDatabase.ExecuteNonQueryAsync($"""
+                                                     INSERT INTO profiles (userKey, fullname, birthdate, profilepicture)
+                                                     VALUES ('{patient.UserKey}', '{patient.Profile.FullName}', '{patient.Profile.BirthDate}', NULL);
+                                                     """);
         }
 
         public List<UserPatient> GetPatients()
