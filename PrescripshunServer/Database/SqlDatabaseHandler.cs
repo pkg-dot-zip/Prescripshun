@@ -1,5 +1,6 @@
 ﻿using Bogus;
 using Org.BouncyCastle.Asn1.Cmp;
+using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Models.User;
@@ -163,8 +164,6 @@ namespace PrescripshunServer.Database
                 Random = new Randomizer(0)
             };
 
-            var refdate = new DateTime(2000, 12, 31);
-
             var doctorsList = new List<UserDoctor>();
             for (var i = 0; i < 3; i++)
             {
@@ -176,7 +175,7 @@ namespace PrescripshunServer.Database
                     Password = faker.Internet.Password(memorable: true),
                     Profile = new DoctorProfile()
                     {
-                        BirthDate = faker.Date.Past(20, refdate),
+                        BirthDate = faker.Date.Past(30, DateTime.Now.AddYears(-10)),
                         FullName = fullName,
                     }
                 });
@@ -194,7 +193,7 @@ namespace PrescripshunServer.Database
                     DoctоrGuid = doctorsList[i % doctorsList.Count].UserKey,
                     Profile = new PatientProfile()
                     {
-                        BirthDate = faker.Date.Past(20, refdate),
+                        BirthDate = faker.Date.Past(30, DateTime.Now.AddYears(-10)),
                         FullName = fullName,
                     }
                 });
@@ -239,7 +238,7 @@ namespace PrescripshunServer.Database
             // Then we add the profile of the doctor. // TODO: STORE PROFILE PICTURE.
             await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                     INSERT INTO profiles (userKey, fullname, birthdate, profilepicture)
-                                                    VALUES ('{doctor.UserKey}', '{doctor.Profile.FullName}', '{doctor.Profile.BirthDate}', NULL);
+                                                    VALUES ('{doctor.UserKey}', '{doctor.Profile.FullName}', '{doctor.Profile.BirthDate.GetSqlString()}', NULL);
                                                     """);
         }
 
@@ -259,7 +258,7 @@ namespace PrescripshunServer.Database
             // Then we add the profile of the doctor. // TODO: STORE PROFILE PICTURE.
             await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                      INSERT INTO profiles (userKey, fullname, birthdate, profilepicture)
-                                                     VALUES ('{patient.UserKey}', '{patient.Profile.FullName}', '{patient.Profile.BirthDate}', NULL);
+                                                     VALUES ('{patient.UserKey}', '{patient.Profile.FullName}', '{patient.Profile.BirthDate.GetSqlString()}', NULL);
                                                      """);
         }
 
