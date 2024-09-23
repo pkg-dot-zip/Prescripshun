@@ -2,6 +2,6 @@
 {
     public static class RandomExtensions
     {
-        public static bool NextBool(this Random random, double chance = 0.5) => random.NextDouble() >= chance;
+        public static bool NextBool(this Random random, double invertedChance = 0.5) => random.NextDouble() >= invertedChance;
     }
 }

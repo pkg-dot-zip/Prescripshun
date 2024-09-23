@@ -290,6 +290,49 @@ namespace PrescripshunServer.Database
 
                 await AddMedicalFile(patient.GetPatientProfile.MedicalFile);
             }
+
+            // Create fake chat messages between doctors and patients.
+            var chatMessagesList = new List<Chat>();
+            foreach (var patient in patientsList)
+            {
+                // Patients seem to be not very talkative. :P
+                if (random.NextBool(0.1)) continue;
+
+                var chatDate = faker.Date.Between(DateTime.Now.AddYears(-1), DateTime.Now);
+                var chat = new Chat()
+                {
+                    User1 = patient.DoctоrGuid,
+                    User2 = patient.UserKey,
+                    Messages =
+                    [
+                        new ChatMessage()
+                        {
+                            Sender = patient.DoctоrGuid,
+                            Recipient = patient.UserKey,
+                            Text = $"Hey {patient.Profile.FullName}, kom jij even langs?",
+                            Time = chatDate
+                        },
+                        new ChatMessage()
+                        {
+                            Recipient = patient.DoctоrGuid,
+                            Sender = patient.UserKey,
+                            Text = "Maar natuurlijk dokter! :)",
+                            Time = chatDate.AddMinutes(30)
+                        },
+                        new ChatMessage()
+                        {
+                            Recipient = patient.DoctоrGuid,
+                            Sender = patient.UserKey,
+                            Text = $"Tot zo, {patient.Profile.FullName.Split(" ")[0]}!",
+                            Time = chatDate.AddMinutes(37)
+                        },
+                    ]
+                };
+
+                chatMessagesList.Add(chat);
+            }
+
+            foreach (var chat in chatMessagesList) await AddChat(chat);
         }
 
         public async Task Run()
@@ -420,7 +463,7 @@ namespace PrescripshunServer.Database
             {
                 await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                          INSERT INTO chatmessages (sender, recipient, text, time)
-                                                         VALUES ('{message.Sender}', '{message.Recipient}', '{message.Text}', '{message.Time}');
+                                                         VALUES ('{message.Sender}', '{message.Recipient}', '{message.Text}', '{message.Time.GetSqlString()}');
                                                          """);
             }
         }
