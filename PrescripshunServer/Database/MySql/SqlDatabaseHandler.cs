@@ -4,6 +4,7 @@ using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Models.User;
 using PrescripshunLib.Models.User.Profile;
+using PrescripshunLib.Util.Faker;
 
 namespace PrescripshunServer.Database.MySql
 {
@@ -161,173 +162,17 @@ namespace PrescripshunServer.Database.MySql
 
         private async Task InitTestData()
         {
-            var faker = new Faker("nl")
-            {
-                Random = new Randomizer(0)
-            };
-
-            var doctorsList = new List<UserDoctor>();
-            for (var i = 0; i < 3; i++)
-            {
-                var fullName = faker.Name.FullName();
-                doctorsList.Add(new UserDoctor()
-                {
-                    UserKey = Guid.NewGuid(),
-                    UserName = faker.Internet.UserName(fullName.Split(' ', 2)[0], fullName.Split(' ', 2)[1]),
-                    Password = faker.Internet.Password(memorable: true),
-                    Profile = new DoctorProfile()
-                    {
-                        BirthDate = faker.Date.Past(30, DateTime.Now.AddYears(-10)),
-                        FullName = fullName,
-                        // TODO: Add url! faker has image placeholder methods!
-                    }
-                });
-            }
-
-            var patientsList = new List<UserPatient>();
-            for (var i = 0; i < doctorsList.Count * 10; i++)
-            {
-                var fullName = faker.Name.FullName();
-                patientsList.Add(new UserPatient()
-                {
-                    UserKey = Guid.NewGuid(),
-                    UserName = faker.Internet.UserName(fullName.Split(' ', 2)[0], fullName.Split(' ', 2)[1]),
-                    Password = faker.Internet.Password(memorable: true),
-                    DoctоrGuid = doctorsList[i % doctorsList.Count].UserKey,
-                    Profile = new PatientProfile()
-                    {
-                        BirthDate = faker.Date.Past(30, new DateTime(2023, 12, 31)),
-                        FullName = fullName,
-                        // TODO: Add url! faker has image placeholder methods!
-                    }
-                });
-            }
+            var fakeHandler = new FakeHandler();
+            var doctorsList = fakeHandler.GetDoctors();
+            var patientsList = fakeHandler.GetPatients(ref doctorsList);
+            var medicalFiles = fakeHandler.GetMedicalFiles(ref patientsList);
+            var chatMessagesList = fakeHandler.GetChats(ref patientsList);
 
             // PLEASE NOTE: ORDER MATTERS HERE!!! DON'T PLAY AROUND WITH THIS!
             foreach (var doctor in doctorsList) await AddDoctor(doctor);
             foreach (var patient in patientsList) await AddPatient(patient);
             foreach (var patient in patientsList) await AddDoctorPatientRelation(patient);
-
-            Random random = new Random(0);
-            foreach (var patient in patientsList)
-            {
-                // Create fake appointments.
-                var appointmentsList = new List<Appointment>();
-                for (int i = 0; i < random.Next(1, 5); i++)
-                {
-                    var appointment = new Appointment()
-                    {
-                        Title = $"Beautiful appointment {i}", // TODO: Fake.
-                        Description = "Basic description", // TODO: Fake.
-                        DoctorToMeet = patient.DoctоrGuid,
-                        DateTime = faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
-                    };
-
-                    appointmentsList.Add(appointment);
-                }
-
-                // Create fake notes.
-                var notesList = new List<Note>();
-                for (int i = 0; i < random.Next(1, 5); i++)
-                {
-                    var note = new Note()
-                    {
-                        Title = $"Extraordinary note {i}", // TODO: Fake.
-                        Description = "Basic description", // TODO: Fake.
-                        DateTime = faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
-                    };
-
-                    notesList.Add(note);
-                }
-
-                // Create fake medication.
-                var medicationList = new List<Medication>();
-                for (int i = 0; i < random.Next(1, 5); i++)
-                {
-                    var medication = new Medication()
-                    {
-                        Title = $"Amazingly complicated medication name {i}", // TODO: Fake.
-                        Description = "Basic description", // TODO: Fake.
-                        StartedUsingOn = faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
-                    };
-
-                    // Sometimes people are still using the meds, so we do not always add them.
-                    if (random.NextBool())
-                    {
-                        medication.StoppedUsingOn =
-                            faker.Date.Between(medication.StartedUsingOn, new DateTime(2023, 12, 31));
-                    }
-
-                    medicationList.Add(medication);
-                }
-
-                // Create fake diagnoses.
-                var diagnosisList = new List<Diagnosis>();
-                for (int i = 0; i < random.Next(1, 5); i++)
-                {
-                    var diagnosis = new Diagnosis()
-                    {
-                        Title = $"Very long disease or disorder name {i}", // TODO: Fake.
-                        Description = "Basic description", // TODO: Fake.
-                        DateTime = faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
-                    };
-
-                    diagnosisList.Add(diagnosis);
-                }
-
-                patient.GetPatientProfile.MedicalFile = new MedicalFile()
-                {
-                    Patient = patient.UserKey,
-                    Appointments = appointmentsList,
-                    Notes = notesList,
-                    Medication = medicationList,
-                    Diagnoses = diagnosisList,
-                };
-
-                await AddMedicalFile(patient.GetPatientProfile.MedicalFile);
-            }
-
-            // Create fake chat messages between doctors and patients.
-            var chatMessagesList = new List<Chat>();
-            foreach (var patient in patientsList)
-            {
-                // Patients seem to be not very talkative. :P
-                if (random.NextBool(0.1)) continue;
-
-                var chatDate = faker.Date.Between(DateTime.Now.AddYears(-1), DateTime.Now);
-                var chat = new Chat()
-                {
-                    User1 = patient.DoctоrGuid,
-                    User2 = patient.UserKey,
-                    Messages =
-                    [
-                        new ChatMessage()
-                        {
-                            Sender = patient.DoctоrGuid,
-                            Recipient = patient.UserKey,
-                            Text = $"Hey {patient.Profile.FullName}, kom jij even langs?",
-                            Time = chatDate
-                        },
-                        new ChatMessage()
-                        {
-                            Recipient = patient.DoctоrGuid,
-                            Sender = patient.UserKey,
-                            Text = "Maar natuurlijk dokter! :)",
-                            Time = chatDate.AddMinutes(30)
-                        },
-                        new ChatMessage()
-                        {
-                            Recipient = patient.DoctоrGuid,
-                            Sender = patient.UserKey,
-                            Text = $"Tot zo, {patient.Profile.FullName.Split(" ")[0]}!",
-                            Time = chatDate.AddMinutes(37)
-                        },
-                    ]
-                };
-
-                chatMessagesList.Add(chat);
-            }
-
+            foreach (var medicalFile in medicalFiles) await AddMedicalFile(medicalFile);
             foreach (var chat in chatMessagesList) await AddChat(chat);
         }
 
