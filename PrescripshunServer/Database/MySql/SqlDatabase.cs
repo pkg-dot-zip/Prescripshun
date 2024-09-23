@@ -3,7 +3,7 @@ using MySql.Data.MySqlClient;
 using SqlKata;
 using SqlKata.Compilers;
 
-namespace PrescripshunServer.Database
+namespace PrescripshunServer.Database.MySql
 {
     internal class SqlDatabase(
         string server = "localhost",
@@ -96,11 +96,11 @@ namespace PrescripshunServer.Database
                 // Read the data returned by the query. EXAMPLE.
                 // while (reader.Read())
                 // {
-                    // Example: Getting values from columns by index or by column name
-                    // var id = reader.GetInt32(0); // Column 0 (Id)
-                    // var name = reader.GetString("Name"); // Column "Name"
-                    // var age = reader.GetInt32("Age"); // Column "Age"
-                    // Logger.Info($"Patient: {id}, {name}, {age}");
+                // Example: Getting values from columns by index or by column name
+                // var id = reader.GetInt32(0); // Column 0 (Id)
+                // var name = reader.GetString("Name"); // Column "Name"
+                // var age = reader.GetInt32("Age"); // Column "Age"
+                // Logger.Info($"Patient: {id}, {name}, {age}");
                 // }
             }
             catch (Exception ex)

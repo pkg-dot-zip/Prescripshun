@@ -1,15 +1,11 @@
-﻿using System.ComponentModel;
-using Bogus;
-using Org.BouncyCastle.Asn1.Cmp;
+﻿using Bogus;
 using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Models.User;
 using PrescripshunLib.Models.User.Profile;
-using SqlKata;
-using SqlKata.Compilers;
 
-namespace PrescripshunServer.Database
+namespace PrescripshunServer.Database.MySql
 {
     internal class SqlDatabaseHandler : IDatabaseHandler
     {

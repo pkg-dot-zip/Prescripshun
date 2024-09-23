@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Util.Sound;
 using PrescripshunServer.Database;
+using PrescripshunServer.Database.MySql;
 
 namespace PrescripshunServer;
 
