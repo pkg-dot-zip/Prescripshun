@@ -5,6 +5,13 @@ using SqlKata.Compilers;
 
 namespace PrescripshunServer.Database.MySql
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="server"></param>
+    /// <param name="port"></param>
+    /// <param name="dbName">Name of database to connect to. NOTE: This database has to exist before launching the server as we do not create it!</param>
+    /// <param name="username"></param>
     internal class SqlDatabase(
         string server = "localhost",
         int port = 3306,
@@ -83,7 +90,7 @@ namespace PrescripshunServer.Database.MySql
             throw new NotImplementedException();
         }
 
-        internal void ExecuteQuery(string query, Action<MySqlDataReader> action)
+        public void ExecuteQuery(string query, Action<MySqlDataReader> action)
         {
             Logger.Info($"Executing SQL Query: {query}");
             try
@@ -100,7 +107,7 @@ namespace PrescripshunServer.Database.MySql
             }
         }
 
-        internal void ExecuteNonQuery(string nonQuery)
+        public void ExecuteNonQuery(string nonQuery)
         {
             Logger.Info($"Executing SQL NonQuery: {nonQuery}");
             try
@@ -115,7 +122,7 @@ namespace PrescripshunServer.Database.MySql
             }
         }
 
-        internal async Task ExecuteNonQueryAsync(string nonQuery)
+        public async Task ExecuteNonQueryAsync(string nonQuery)
         {
             Logger.Info($"Executing SQL NonQuery: {nonQuery}");
             try
@@ -126,6 +133,40 @@ namespace PrescripshunServer.Database.MySql
             catch (Exception ex)
             {
                 Logger.Error(ex, "SQL NonQuery execution failed.");
+                throw;
+            }
+        }
+
+        public bool TableExists(string tableName)
+        {
+            string query = $"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = '{tableName}';";
+            Logger.Info("Checking if table exists: {0}", tableName);
+
+            try
+            {
+                using var myCommand = new MySqlCommand(query, _myConn);
+                return Convert.ToInt32(myCommand.ExecuteScalar()) > 0;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Failed to check if table exists.");
+                throw;
+            }
+        }
+
+        public bool TableHasData(string tableName)
+        {
+            string query = $"SELECT COUNT(*) FROM {tableName};";
+            Logger.Info("Checking if table has data: {0}", tableName);
+
+            try
+            {
+                using var myCommand = new MySqlCommand(query, _myConn);
+                return Convert.ToInt32(myCommand.ExecuteScalar()) > 0;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Failed to check if table has data.");
                 throw;
             }
         }

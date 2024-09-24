@@ -16,6 +16,16 @@ namespace PrescripshunServer.Database.MySql
 
         private async Task InitTables()
         {
+            // In this method we only check if the 'users' table exists, if not, we run this.
+            // This means that if you, for some reason, decide to delete a random table that is not users, that table is gone and will not be created by this method.
+            Logger.Info("Creating tables.");
+
+            if (_sqlDatabase.TableExists("users"))
+            {
+                Logger.Info("Table already created. Returning.");
+                return;
+            }
+
             string usersTable = """
                                 CREATE TABLE users (
                                     userKey CHAR(36) NOT NULL,      -- GUID for the user, represented as a CHAR(36)
@@ -135,6 +145,16 @@ namespace PrescripshunServer.Database.MySql
 
         private async Task InitTestData()
         {
+            // In this method we only check if the 'users' table contains data, if not, we run this.
+            // This means that if you, for some reason, decide to drop a random table that is not users, that data is gone and will not be refilled by this method.
+            Logger.Info("Filling tables with records.");
+
+            if (_sqlDatabase.TableHasData("users"))
+            {
+                Logger.Info("Table already filled with data. Returning.");
+                return;
+            }
+
             var fakeHandler = new FakeHandler();
             var doctorsList = fakeHandler.GetDoctors();
             var patientsList = fakeHandler.GetPatients(ref doctorsList);
@@ -155,7 +175,6 @@ namespace PrescripshunServer.Database.MySql
 
             await InitTables();
             await InitTestData();
-
 
             var patients = GetPatients();
             var patient = patients.First();
