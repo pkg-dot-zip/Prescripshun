@@ -64,7 +64,6 @@ namespace PrescripshunLib.Util.Faker
             return patientsList;
         }
 
-        // NOTE: Not only create medical files but also assigns them to the patients!!!
         public List<IMedicalFile> GetMedicalFiles(ref List<UserPatient> patientsList)
         {
             var medicalFileList = new List<IMedicalFile>();
@@ -144,7 +143,7 @@ namespace PrescripshunLib.Util.Faker
                     Diagnoses = diagnosisList,
                 };
                 medicalFileList.Add(medicalFile);
-                patient.GetPatientProfile.MedicalFile = medicalFileList.Last();
+               
             }
 
             return medicalFileList;

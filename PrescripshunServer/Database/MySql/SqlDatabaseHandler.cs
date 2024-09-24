@@ -242,7 +242,6 @@ namespace PrescripshunServer.Database.MySql
                             BirthDate = reader.GetDateTime("birthdate"),
                             FullName = reader.GetString("fullname"),
                             ProfilePicture = new ProfilePicture(reader.GetString("profilepicture")),
-                            // TODO: DO NOT retrieve the medical file here
                         }
                     });
                 }
@@ -289,7 +288,6 @@ namespace PrescripshunServer.Database.MySql
                             BirthDate = reader.GetDateTime("birthdate"),
                             FullName = reader.GetString("fullname"),
                             ProfilePicture = new ProfilePicture(reader.GetString("profilepicture")),
-                            // TODO: DO NOT retrieve the medical file here
                         }
                     });
                 }
@@ -335,7 +333,6 @@ namespace PrescripshunServer.Database.MySql
                             BirthDate = reader.GetDateTime("birthdate"),
                             FullName = reader.GetString("fullname"),
                             ProfilePicture = new ProfilePicture(reader.GetString("profilepicture")),
-                            // TODO: DO NOT retrieve the medical file here
                         }
                     };
                 }
@@ -369,7 +366,6 @@ namespace PrescripshunServer.Database.MySql
                             BirthDate = reader.GetDateTime("birthdate"),
                             FullName = reader.GetString("fullname"),
                             ProfilePicture = new ProfilePicture(reader.GetString("profilepicture")),
-                            // TODO: DO NOT retrieve the medical file here
                         }
                     };
                 }
