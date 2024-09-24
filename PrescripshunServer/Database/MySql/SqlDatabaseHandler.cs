@@ -1,6 +1,4 @@
 ﻿using System.Data;
-using System.Numerics;
-using MySql.Data.Types;
 using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Models.MedicalFile;
