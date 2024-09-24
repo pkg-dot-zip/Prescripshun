@@ -1,7 +1,5 @@
 using System.Data;
 using MySql.Data.MySqlClient;
-using SqlKata;
-using SqlKata.Compilers;
 
 namespace PrescripshunServer.Database.MySql
 {
@@ -25,7 +23,6 @@ namespace PrescripshunServer.Database.MySql
         string username = "root")
     {
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-        private static readonly MySqlCompiler Compiler = new();
 
         private readonly MySqlConnection _myConn = new($"Server={server};Port={port};Database={dbName};Uid={username};SslMode=None"); // NOTE: Assumes there is no password.
 
@@ -116,12 +113,6 @@ namespace PrescripshunServer.Database.MySql
                     Logger.Error($"Couldn't close database connection. Current state: {_myConn.State}");
                     throw new InvalidOperationException();
             }
-        }
-
-        // TODO: Implement.
-        internal void ExecuteQuery(Query query, Action<MySqlDataReader> action)
-        {
-            throw new NotImplementedException();
         }
 
         /// <summary>
