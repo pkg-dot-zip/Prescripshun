@@ -346,12 +346,12 @@ namespace PrescripshunServer.Database.MySql
             UserPatient? patient = null;
 
             _sqlDatabase.ExecuteQuery($"""
-                                      SELECT u.*, p.fullname, p.birthdate, p.profilepicture
-                                      FROM users u
-                                      JOIN profiles p ON u.userKey = p.userKey
-                                      WHERE u.doctorKey IS NOT NULL
-                                      AND u.userKey = '{guid}';
-                                      """, reader =>
+                                       SELECT u.*, p.fullname, p.birthdate, p.profilepicture
+                                       FROM users u
+                                       JOIN profiles p ON u.userKey = p.userKey
+                                       WHERE u.doctorKey IS NOT NULL
+                                       AND u.userKey = '{guid}';
+                                       """, reader =>
             {
                 while (reader.Read())
                 {
@@ -397,7 +397,9 @@ namespace PrescripshunServer.Database.MySql
             // Medication.
             foreach (var medication in medicalFile.Medication)
             {
-                string stoppedUsingString = medication.StoppedUsingOn is null ? "NULL" : $"'{medication.StoppedUsingOn?.GetSqlString()}'";
+                string stoppedUsingString = medication.StoppedUsingOn is null
+                    ? "NULL"
+                    : $"'{medication.StoppedUsingOn?.GetSqlString()}'";
 
                 await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                          INSERT INTO medication (userKey, title, description, startedUsingOn, stoppedUsingOn)
@@ -423,10 +425,10 @@ namespace PrescripshunServer.Database.MySql
             var diagnosisList = new List<Diagnosis>();
 
             _sqlDatabase.ExecuteQuery($"""
-                                      SELECT *
-                                      FROM notes
-                                      WHERE userKey = '{guid}';
-                                      """, reader =>
+                                       SELECT *
+                                       FROM notes
+                                       WHERE userKey = '{guid}';
+                                       """, reader =>
             {
                 while (reader.Read())
                 {
@@ -465,24 +467,16 @@ namespace PrescripshunServer.Database.MySql
             {
                 while (reader.Read())
                 {
-                    try
+                    medicationList.Add(new Medication()
                     {
-                        medicationList.Add(new Medication()
-                        {
-                            Title = reader.GetString("title"),
-                            Description = reader.GetString("description"),
-                            StartedUsingOn = reader.GetDateTime("startedUsingOn"),
-                        });
+                        Title = reader.GetString("title"),
+                        Description = reader.GetString("description"),
+                        StartedUsingOn = reader.GetDateTime("startedUsingOn"),
+                    });
 
-                        if (!reader.IsDBNull("stoppedUsingOn")) // Can not parse NULL as a date time, so this is needed.
-                        {
-                            medicationList.Last().StoppedUsingOn = reader.GetDateTime("stoppedUsingOn");
-                        }
-                    }
-                    catch (MySqlConversionException ex)
+                    if (!reader.IsDBNull("stoppedUsingOn")) // Can not parse NULL as a date time, so this is needed.
                     {
-                        // TODO: Remove since this is fixed!
-                        Logger.Error(ex, "Still have an issue with stoppedUsingOn. Ignoring for now.");
+                        medicationList.Last().StoppedUsingOn = reader.GetDateTime("stoppedUsingOn");
                     }
                 }
             });
@@ -530,11 +524,11 @@ namespace PrescripshunServer.Database.MySql
             var messages = new List<IChatMessage>();
 
             _sqlDatabase.ExecuteQuery($"""
-                                      SELECT *
-                                      FROM chatmessages
-                                      WHERE (sender = '{user1}' AND recipient = '{user2}')
-                                         OR (sender = '{user2}' AND recipient = '{user1}');
-                                      """, reader =>
+                                       SELECT *
+                                       FROM chatmessages
+                                       WHERE (sender = '{user1}' AND recipient = '{user2}')
+                                          OR (sender = '{user2}' AND recipient = '{user1}');
+                                       """, reader =>
             {
                 while (reader.Read())
                 {
