@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Numerics;
 using MySql.Data.Types;
 using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Models.Chat;
@@ -211,10 +212,10 @@ namespace PrescripshunServer.Database.MySql
                                                      VALUES ('{doctor.UserKey}', '{doctor.UserName}', '{doctor.Password}');
                                                      """);
 
-            // Then we add the profile of the doctor. // TODO: STORE PROFILE PICTURE.
+            // Then we add the profile of the doctor.
             await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                      INSERT INTO profiles (userKey, fullname, birthdate, profilepicture)
-                                                     VALUES ('{doctor.UserKey}', '{doctor.Profile.FullName}', '{doctor.Profile.BirthDate.GetSqlString()}', NULL);
+                                                     VALUES ('{doctor.UserKey}', '{doctor.Profile.FullName}', '{doctor.Profile.BirthDate.GetSqlString()}', '{doctor.Profile.ProfilePicture.Url}');
                                                      """);
         }
 
@@ -240,7 +241,7 @@ namespace PrescripshunServer.Database.MySql
                         {
                             BirthDate = reader.GetDateTime("birthdate"),
                             FullName = reader.GetString("fullname"),
-                            // TODO: Retrieve profile picture.
+                            ProfilePicture = new ProfilePicture(reader.GetString("profilepicture")),
                             // TODO: DO NOT retrieve the medical file here
                         }
                     });
@@ -258,10 +259,10 @@ namespace PrescripshunServer.Database.MySql
                                                      """);
 
 
-            // Then we add the profile of the doctor. // TODO: STORE PROFILE PICTURE.
+            // Then we add the profile of the doctor.
             await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                      INSERT INTO profiles (userKey, fullname, birthdate, profilepicture)
-                                                     VALUES ('{patient.UserKey}', '{patient.Profile.FullName}', '{patient.Profile.BirthDate.GetSqlString()}', NULL);
+                                                     VALUES ('{patient.UserKey}', '{patient.Profile.FullName}', '{patient.Profile.BirthDate.GetSqlString()}', '{patient.Profile.ProfilePicture.Url}');
                                                      """);
         }
 
@@ -287,7 +288,7 @@ namespace PrescripshunServer.Database.MySql
                         {
                             BirthDate = reader.GetDateTime("birthdate"),
                             FullName = reader.GetString("fullname"),
-                            // TODO: Retrieve profile picture.
+                            ProfilePicture = new ProfilePicture(reader.GetString("profilepicture")),
                             // TODO: DO NOT retrieve the medical file here
                         }
                     });
@@ -333,7 +334,7 @@ namespace PrescripshunServer.Database.MySql
                         {
                             BirthDate = reader.GetDateTime("birthdate"),
                             FullName = reader.GetString("fullname"),
-                            // TODO: Retrieve profile picture.
+                            ProfilePicture = new ProfilePicture(reader.GetString("profilepicture")),
                             // TODO: DO NOT retrieve the medical file here
                         }
                     };
@@ -367,7 +368,7 @@ namespace PrescripshunServer.Database.MySql
                         {
                             BirthDate = reader.GetDateTime("birthdate"),
                             FullName = reader.GetString("fullname"),
-                            // TODO: Retrieve profile picture.
+                            ProfilePicture = new ProfilePicture(reader.GetString("profilepicture")),
                             // TODO: DO NOT retrieve the medical file here
                         }
                     };
@@ -484,7 +485,7 @@ namespace PrescripshunServer.Database.MySql
                     }
                     catch (MySqlConversionException ex)
                     {
-                        // TODO: Fix.
+                        // TODO: Remove since this is fixed!
                         Logger.Error(ex, "Still have an issue with stoppedUsingOn. Ignoring for now.");
                     }
                 }

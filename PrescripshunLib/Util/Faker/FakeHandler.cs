@@ -33,7 +33,7 @@ namespace PrescripshunLib.Util.Faker
                     {
                         BirthDate = _faker.Date.Past(30, DateTime.Now.AddYears(-10)),
                         FullName = fullName,
-                        // TODO: Add url! faker has image placeholder methods!
+                        ProfilePicture = new ProfilePicture(_faker.Image.PlaceholderUrl(360, 360)),
                     }
                 });
             }
@@ -57,7 +57,7 @@ namespace PrescripshunLib.Util.Faker
                     {
                         BirthDate = _faker.Date.Past(30, new DateTime(2023, 12, 31)),
                         FullName = fullName,
-                        // TODO: Add url! faker has image placeholder methods!
+                        ProfilePicture = new ProfilePicture(_faker.Image.PlaceholderUrl(360, 360)),
                     }
                 });
             }
