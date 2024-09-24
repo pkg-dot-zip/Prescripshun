@@ -379,16 +379,9 @@ namespace PrescripshunServer.Database.MySql
             }
 
             // Medication.
-            // TODO: Fix issue. Look in the logs -> you'll see that the stoppedUsingOn is never inserted into the table despite being initialized by FakeHandler.
             foreach (var medication in medicalFile.Medication)
             {
-                string stoppedUsingString = medication.StoppedUsingOn is null ? $"'{medication.StoppedUsingOn?.GetSqlString()}'" : "NULL";
-
-                // Temp error avoidance. TODO: REMOVE.
-                if (stoppedUsingString == "''")
-                {
-                    stoppedUsingString = "NULL";
-                }
+                string stoppedUsingString = medication.StoppedUsingOn is null ? "NULL" : $"'{medication.StoppedUsingOn?.GetSqlString()}'";
 
                 await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                          INSERT INTO medication (userKey, title, description, startedUsingOn, stoppedUsingOn)
