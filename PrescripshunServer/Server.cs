@@ -4,12 +4,16 @@ using Unclassified.Net;
 using System.Diagnostics.CodeAnalysis;
 using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Util.Sound;
+using PrescripshunServer.Database;
+using PrescripshunServer.Database.MySql;
 
 namespace PrescripshunServer;
 
 internal class Server : AsyncTcpClient
 {
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+    private static readonly IDatabaseHandler DatabaseHandler = new SqlDatabaseHandler();
+
 
     public bool IsRunning = true;
 
@@ -82,6 +86,8 @@ internal class Server : AsyncTcpClient
         };
 
         ServerEvents.Get.OnApplicationBoot += async args => await Beeper.PlayServerBootSoundAsync();
+
+        ServerEvents.Get.OnApplicationBoot += async args => await DatabaseHandler.Run();
 
         ServerEvents.Get.OnConnect += async (client, reconnected) =>
         {

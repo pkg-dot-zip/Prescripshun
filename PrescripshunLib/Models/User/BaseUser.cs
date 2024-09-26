@@ -7,6 +7,6 @@ namespace PrescripshunLib.Models.User
         public Guid UserKey { get; set; }
         public required string UserName { get; set; }
         public required string Password { get; set; }
-        public required IProfile Profile { get; set; }
+        public IProfile Profile { get; set; }
     }
 }
