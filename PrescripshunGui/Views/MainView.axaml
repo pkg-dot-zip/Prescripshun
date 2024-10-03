@@ -14,14 +14,14 @@
 
 	<Grid RowDefinitions="Auto,Auto,Auto,Auto" HorizontalAlignment="Center" VerticalAlignment="Center">
         <TextBlock Text="Preschipshun" Grid.Row="0"/>
-        <TextBox Grid.Row="1"/>
+        <TextBox Text="{Binding Username}" Grid.Row="1"/>
         <StackPanel Orientation="Horizontal" Grid.Row="2">
-            <TextBox PasswordChar="*"/>
+            <TextBox Text="{Binding Password}" PasswordChar="*"/>
             <TextBlock Text="👁"></TextBlock>
         </StackPanel>
-        <Button Grid.Row="3">
-            <TextBlock Text="Login"/>
-        </Button>
+        <Button Click="ClickHandler" Name="LoginButton" Grid.Row="3">
+			Login
+</Button>
 	</Grid>
 
   
