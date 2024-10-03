@@ -16,7 +16,7 @@
         <TextBlock Text="Preschipshun" Grid.Row="0"/>
         <TextBox Grid.Row="1"/>
         <StackPanel Orientation="Horizontal" Grid.Row="2">
-            <TextBox/>
+            <TextBox PasswordChar="*"/>
             <TextBlock Text="👁"></TextBlock>
         </StackPanel>
         <Button Grid.Row="3">
