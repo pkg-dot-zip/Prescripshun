@@ -2,9 +2,10 @@
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-
+using PrescripshunGui.Util;
 using PrescripshunGui.ViewModels;
 using PrescripshunGui.Views;
+using PrescripshunLib.Logging;
 
 namespace PrescripshunGui;
 
@@ -17,6 +18,8 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        Init();
+
         // Line below is needed to remove Avalonia data validation.
         // Without this line you will get duplicate validations from both Avalonia and CT
         BindingPlugins.DataValidators.RemoveAt(0);
@@ -37,5 +40,11 @@ public partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private void Init()
+    {
+        LogHandler.Configure("gui");
+        NetworkHandler.Init();
     }
 }

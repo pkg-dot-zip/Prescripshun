@@ -1,5 +1,9 @@
-﻿using Avalonia.Controls;
+﻿using System.Threading.Tasks;
+using Avalonia.Controls;
 using Avalonia.Interactivity;
+using PrescripshunLib.ExtensionMethods;
+using PrescripshunLib.Networking;
+using NetworkHandler = PrescripshunGui.Util.NetworkHandler;
 
 namespace PrescripshunGui.Views;
 
@@ -10,8 +14,12 @@ public partial class MainView : UserControl
         InitializeComponent();
     }
 
-    public void ClickHandler(object sender, RoutedEventArgs args)
+    public async void ClickHandler(object sender, RoutedEventArgs args)
     {
         LoginButton.IsVisible = false;
+        await NetworkHandler.Send(new Message.DebugPrint()
+        {
+            Text = "Can send stuff from the GUI!",
+        });
     }
 }
