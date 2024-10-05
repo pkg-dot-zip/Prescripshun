@@ -8,6 +8,14 @@ namespace PrescripshunClient
 {
     public class ClientEvents
     {
+        private static ClientEvents? instance = null;
+
+        private ClientEvents()
+        {
+        }
+
+        public static ClientEvents Get => instance ??= new ClientEvents();
+
         public delegate Task OnApplicationBootDelegate(string[] args);
 
         /// <summary>

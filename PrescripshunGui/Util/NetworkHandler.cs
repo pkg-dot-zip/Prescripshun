@@ -9,11 +9,8 @@ namespace PrescripshunGui.Util
     {
         public static Client Client { get; } = new Client();
 
-        public static void Init()
-        {
-            Client.RunClientForGui();
-        }
-        
+        public static void Init() => Client.RunClientForGui();
+
         public static async Task Send(IMessage message) => await Client.TcpClient.Send(message);
     }
 }

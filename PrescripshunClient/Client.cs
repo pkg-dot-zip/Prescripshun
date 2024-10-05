@@ -10,7 +10,6 @@ namespace PrescripshunClient;
 public class Client : AsyncTcpClient
 {
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-    public static ClientEvents Events { get; private set; } = new ClientEvents();
 
     public AsyncTcpClient TcpClient { get; private set; }
 
@@ -18,15 +17,15 @@ public class Client : AsyncTcpClient
     {
         LogHandler.Configure("client");
 
-        // First we create an instance of the client and register all the events.
+        // First we create an instance of the client and register all the ClientEvents.Get.
         var client = new Client();
         client.RegisterEvents();
 
         // Then we run the logic.
-        Events.OnApplicationBoot.Invoke(args);
+        ClientEvents.Get.OnApplicationBoot.Invoke(args);
         client.RunClient().GetAwaiter().GetResult();
 
-        Events.OnApplicationExit.Invoke(args);
+        ClientEvents.Get.OnApplicationExit.Invoke(args);
     }
 
     private async Task RunClient()
@@ -80,11 +79,11 @@ public class Client : AsyncTcpClient
             {
                 byte[] bytes = c.ByteBuffer.Dequeue(count);
                 string jsonString = bytes.Decrypt();
-                Events.OnReceiveJsonString.Invoke(c, jsonString);
+                ClientEvents.Get.OnReceiveJsonString.Invoke(c, jsonString);
                 return Task.CompletedTask;
             },
 
-            ClosedCallback = (client, closedByRemote) => Events.OnConnectionClosed.Invoke(client, closedByRemote),
+            ClosedCallback = (client, closedByRemote) => ClientEvents.Get.OnConnectionClosed.Invoke(client, closedByRemote),
         };
         TcpClient.Message += (s, a) => Logger.Debug("Client: " + a.Message);
         var clientTask = TcpClient.RunAsync();
@@ -110,11 +109,11 @@ public class Client : AsyncTcpClient
             {
                 byte[] bytes = c.ByteBuffer.Dequeue(count);
                 string jsonString = bytes.Decrypt();
-                Events.OnReceiveJsonString.Invoke(c, jsonString);
+                ClientEvents.Get.OnReceiveJsonString.Invoke(c, jsonString);
                 return Task.CompletedTask;
             },
 
-            ClosedCallback = (client, closedByRemote) => Events.OnConnectionClosed.Invoke(client, closedByRemote),
+            ClosedCallback = (client, closedByRemote) => ClientEvents.Get.OnConnectionClosed.Invoke(client, closedByRemote),
         };
         TcpClient.Message += (s, a) => Logger.Debug("Client: " + a.Message);
         var clientTask = TcpClient.RunAsync();
@@ -152,26 +151,26 @@ public class Client : AsyncTcpClient
 
     private void RegisterEvents()
     {
-        Events.OnApplicationBoot += async args =>
+        ClientEvents.Get.OnApplicationBoot += async args =>
         {
             Logger.Info($"Starting client at {DateTime.Now} on {Environment.MachineName}.");
         };
 
-        Events.OnConnectionClosed += (client, remote) =>
+        ClientEvents.Get.OnConnectionClosed += (client, remote) =>
         {
             Logger.Info($"Connection closed by remote: {remote}");
             return Task.CompletedTask;
         };
 
-        Events.OnReceiveJsonString += ProcessReceivedString;
+        ClientEvents.Get.OnReceiveJsonString += ProcessReceivedString;
 
-        Events.OnReceiveMessage.AddHandler<Message.DebugPrint>((client, message) =>
+        ClientEvents.Get.OnReceiveMessage.AddHandler<Message.DebugPrint>((client, message) =>
         {
             Logger.Info("{0}", message.GetPrintString());
             return Task.CompletedTask;
         });
 
-        Events.OnApplicationExit += args =>
+        ClientEvents.Get.OnApplicationExit += args =>
         {
             NLog.LogManager.Shutdown();
             return Task.CompletedTask;
@@ -181,6 +180,6 @@ public class Client : AsyncTcpClient
     private async Task ProcessReceivedString(AsyncTcpClient client, [StringSyntax(StringSyntaxAttribute.Json)] string jsonString)
     {
         var messageParam = PrescripshunLib.Networking.Message.GetMessageFromJsonString(jsonString);
-        await Events.OnReceiveMessage.Invoke(client, messageParam);
+        await ClientEvents.Get.OnReceiveMessage.Invoke(client, messageParam);
     }
 }
