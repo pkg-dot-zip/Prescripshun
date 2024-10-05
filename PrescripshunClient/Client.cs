@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using PrescripshunLib.ExtensionMethods;
 using Unclassified.Net;
+using PrescripshunLib.Networking.Messages;
 
 namespace PrescripshunClient;
 
@@ -138,7 +139,7 @@ public class Client : AsyncTcpClient
         else
         {
             Logger.Info($"Found {typeof(Message.DebugPrint)} to send!");
-            toSend = new PrescripshunLib.Networking.Message.DebugPrint()
+            toSend = new Message.DebugPrint()
             {
                 Text = enteredMessage
             };
@@ -149,8 +150,9 @@ public class Client : AsyncTcpClient
         await TcpClient.Send(toSend);
     }
 
-    private void RegisterEvents()
+    public void RegisterEvents()
     {
+        Logger.Info("Registering events in {0}", nameof(Client));
         ClientEvents.Get.OnApplicationBoot += async args =>
         {
             Logger.Info($"Starting client at {DateTime.Now} on {Environment.MachineName}.");
@@ -179,7 +181,7 @@ public class Client : AsyncTcpClient
 
     private async Task ProcessReceivedString(AsyncTcpClient client, [StringSyntax(StringSyntaxAttribute.Json)] string jsonString)
     {
-        var messageParam = PrescripshunLib.Networking.Message.GetMessageFromJsonString(jsonString);
+        var messageParam = PrescripshunLib.Networking.Messages.Message.GetMessageFromJsonString(jsonString);
         await ClientEvents.Get.OnReceiveMessage.Invoke(client, messageParam);
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using PrescripshunLib;
-using PrescripshunLib.Networking;
+using PrescripshunLib.Networking.Messages;
 using Unclassified.Net;
 
 namespace PrescripshunServer

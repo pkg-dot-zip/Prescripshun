@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
 
-namespace PrescripshunLib.Networking
+namespace PrescripshunLib.Networking.Messages
 {
     /// <summary>
     /// Responsible for handling the messages for network traffic.

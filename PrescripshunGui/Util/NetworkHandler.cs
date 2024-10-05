@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using PrescripshunClient;
 using PrescripshunLib.ExtensionMethods;
-using PrescripshunLib.Networking;
+using PrescripshunLib.Networking.Messages;
 
 namespace PrescripshunGui.Util
 {

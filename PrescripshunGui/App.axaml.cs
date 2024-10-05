@@ -45,6 +45,7 @@ public partial class App : Application
     private void Init()
     {
         LogHandler.Configure("gui");
+        GuiEvents.RegisterEvents();
         NetworkHandler.Init();
     }
 }

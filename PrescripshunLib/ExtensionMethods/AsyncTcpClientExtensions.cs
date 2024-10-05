@@ -1,4 +1,5 @@
 ﻿using PrescripshunLib.Networking;
+using PrescripshunLib.Networking.Messages;
 using Unclassified.Net;
 
 namespace PrescripshunLib.ExtensionMethods

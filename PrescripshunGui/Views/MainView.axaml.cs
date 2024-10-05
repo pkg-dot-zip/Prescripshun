@@ -2,7 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using PrescripshunLib.ExtensionMethods;
-using PrescripshunLib.Networking;
+using PrescripshunLib.Networking.Messages;
 using NetworkHandler = PrescripshunGui.Util.NetworkHandler;
 
 namespace PrescripshunGui.Views;
@@ -20,6 +20,12 @@ public partial class MainView : UserControl
         await NetworkHandler.Send(new Message.DebugPrint()
         {
             Text = "Can send stuff from the GUI!",
+        });
+
+        await NetworkHandler.Send(new LoginRequest()
+        {
+            Username = "Test",
+            Password = "Wajoow",
         });
     }
 }

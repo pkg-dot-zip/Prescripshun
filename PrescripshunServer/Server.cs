@@ -6,6 +6,7 @@ using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Util.Sound;
 using PrescripshunServer.Database;
 using PrescripshunServer.Database.MySql;
+using PrescripshunLib.Networking.Messages;
 
 namespace PrescripshunServer;
 
@@ -110,6 +111,7 @@ internal class Server : AsyncTcpClient
         ServerEvents.Get.OnApplicationExit += args =>
         {
             Logger.Info("Shutting down server.");
+            DatabaseHandler.Stop();
             NLog.LogManager.Shutdown();
             return Task.CompletedTask;
         };
@@ -136,13 +138,28 @@ internal class Server : AsyncTcpClient
                     $"You said in {typeof(Message.MessageTest)}: {message.IntegerTest}, {message.DoubleTest}, {message.FloatTest}"
             });
         });
+
+        ServerEvents.Get.OnReceiveMessage.AddHandler<LoginRequest>(ProcessLoginRequest);
+    }
+
+    private async Task ProcessLoginRequest(AsyncTcpClient client, LoginRequest message)
+    {
+        var response = new LoginResponse();
+
+        Logger.Info(DatabaseHandler.TryLogin(message.Username, message.Password, out var userKey, out var reason)
+            ? $"Successful login attempt for {message.Username}"
+            : $"Failed login attempt for {message.Username}");
+
+        response.Id = userKey;
+        response.Reason = reason;
+        await client.Send(response);
     }
 
     private async Task ProcessReceivedString(AsyncTcpClient client,
         [StringSyntax(StringSyntaxAttribute.Json)]
         string jsonString)
     {
-        var messageParam = PrescripshunLib.Networking.Message.GetMessageFromJsonString(jsonString);
+        var messageParam = PrescripshunLib.Networking.Messages.Message.GetMessageFromJsonString(jsonString);
         await ServerEvents.Get.OnReceiveMessage.Invoke(client, messageParam);
     }
 }

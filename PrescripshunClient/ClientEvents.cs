@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Net.Sockets;
 using PrescripshunLib;
-using PrescripshunLib.Networking;
+using PrescripshunLib.Networking.Messages;
 using Unclassified.Net;
 
 namespace PrescripshunClient
