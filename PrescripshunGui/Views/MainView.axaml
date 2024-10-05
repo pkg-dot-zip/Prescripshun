@@ -19,7 +19,7 @@
             <TextBox Text="{Binding Password}" PasswordChar="*"/>
             <TextBlock Text="👁"></TextBlock>
         </StackPanel>
-        <Button Click="ClickHandler" Name="LoginButton" Grid.Row="3">
+        <Button Command="{Binding LoginCommand}" Name="LoginButton" Grid.Row="3">
 			Login
 </Button>
 	</Grid>

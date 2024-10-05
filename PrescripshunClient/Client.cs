@@ -12,6 +12,7 @@ public class Client : AsyncTcpClient
 {
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
+    public Guid UserKey { get; set; } = Guid.Empty;
     public AsyncTcpClient TcpClient { get; private set; }
 
     private static void Main(string[] args)

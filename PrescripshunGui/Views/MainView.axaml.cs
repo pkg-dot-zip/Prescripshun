@@ -13,19 +13,4 @@ public partial class MainView : UserControl
     {
         InitializeComponent();
     }
-
-    public async void ClickHandler(object sender, RoutedEventArgs args)
-    {
-        LoginButton.IsVisible = false;
-        await NetworkHandler.Send(new Message.DebugPrint()
-        {
-            Text = "Can send stuff from the GUI!",
-        });
-
-        await NetworkHandler.Send(new LoginRequest()
-        {
-            Username = "Test",
-            Password = "Wajoow",
-        });
-    }
 }

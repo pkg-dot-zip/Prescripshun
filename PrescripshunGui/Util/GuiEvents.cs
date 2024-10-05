@@ -7,18 +7,19 @@ namespace PrescripshunGui.Util
     internal static class GuiEvents
     {
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-        public static ClientEvents Get() => ClientEvents.Get;
+        public static ClientEvents GetNetworkEvents() => ClientEvents.Get;
 
         public static void RegisterEvents()
         {
             NetworkHandler.Client.RegisterEvents();
             Logger.Info("Registering events in {0}", nameof(GuiEvents));
 
-            Get().OnReceiveMessage.AddHandler<LoginResponse>((client, message) =>
+            GetNetworkEvents().OnReceiveMessage.AddHandler<LoginResponse>((client, message) =>
             {
                 if (message.IsValid())
                 {
                     Logger.Info("Logged in as {0}", message.Id);
+                    NetworkHandler.Client.UserKey = message.Id; // Sets user-key.
                     return Task.CompletedTask;
                 }
 
@@ -26,8 +27,9 @@ namespace PrescripshunGui.Util
                 return Task.CompletedTask;
             });
 
-            Get().OnReceiveMessage.AddHandler<LoginResponse>(async (client, message) =>
+            GetNetworkEvents().OnReceiveMessage.AddHandler<LoginResponse>(async (client, message) =>
             {
+                if (message.IsValid()) await MessageBoxHandler.SimplePopUp("TEST SUCCESSFUL!", "CAN LOGIN!"); // TODO: Remove.
                 if (!message.IsValid()) await MessageBoxHandler.SimplePopUp("Login Failed!", message.Reason);
             });
         }
