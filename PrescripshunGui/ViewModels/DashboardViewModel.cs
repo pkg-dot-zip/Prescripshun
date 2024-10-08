@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using CommunityToolkit.Mvvm.Input;
 using PrescripshunGui.Util;
-using PrescripshunGui.Util.ExtensionMethods;
+using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Models.User;
 using PrescripshunLib.Util.Faker;
 
