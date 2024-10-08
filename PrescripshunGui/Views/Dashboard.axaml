@@ -5,6 +5,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="PrescripshunGui.Views.Dashboard"
              xmlns:vm="clr-namespace:PrescripshunGui.ViewModels"
+             xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
              x:DataType="vm:DashboardViewModel">
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
@@ -23,6 +24,11 @@
                                     BorderBrush="Gray" BorderThickness="1"
                                     Padding="5">
                                 <StackPanel Orientation="Horizontal">
+                                    <Panel>
+                                        <Rectangle Height="64" Width="64" Fill="LightGray"></Rectangle>
+                                        <Image Margin="20" Stretch="UniformToFill" Width="48" Height="48"
+                                               asyncImageLoader:ImageLoader.Source="https://github.com/AvaloniaUtils/AsyncImageLoader.Avalonia/raw/master/AsyncImageLoader.Avalonia.Demo/Assets/cat0.jpg" />
+                                    </Panel>
                                     <TextBlock Text="{Binding UserName}" />
                                     <TextBlock Margin="5 0" FontWeight="Bold"
                                                Text="{Binding Profile.FullName}" />
