@@ -183,7 +183,11 @@ namespace PrescripshunServer.Database.MySql
 
             var medicalFile = GetMedicalFile(patient.UserKey);
             Logger.Info($"FILE RECEIVED: {medicalFile}");
+        }
 
+        public async Task Stop()
+        {
+            Logger.Info("Stopping database.");
             await _sqlDatabase.DisconnectAsync();
         }
 
@@ -546,6 +550,26 @@ namespace PrescripshunServer.Database.MySql
                 User2 = user2,
                 Messages = messages,
             };
+        }
+
+        public bool TryLogin(string username, string password, out Guid userKey, out string reason)
+        {
+            Guid id = Guid.Empty;
+
+            _sqlDatabase.ExecuteQuery($"SELECT * FROM `users` WHERE `username` = '{username}';", reader =>
+            {
+                while (reader.Read())
+                {
+                    if (reader.GetString("password") != password) continue;
+
+                    id = reader.GetGuid("userKey");
+                    break;
+                }
+            });
+
+            userKey = id;
+            reason = "Invalid password & username combination"; // TODO: Specify more reasons.
+            return id != Guid.Empty;
         }
     }
 }

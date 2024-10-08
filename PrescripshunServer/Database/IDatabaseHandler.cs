@@ -7,6 +7,7 @@ namespace PrescripshunServer.Database
     internal interface IDatabaseHandler
     {
         public Task Run();
+        public Task Stop();
 
         public List<IUser> GetUsers();
         public Task AddDoctor(UserDoctor doctor);
@@ -20,5 +21,7 @@ namespace PrescripshunServer.Database
         public IMedicalFile GetMedicalFile(Guid guid);
         public Task AddChat(IChat chat);
         public IChat GetChat(Guid user1, Guid user2);
+
+        public bool TryLogin(string username, string password, out Guid userKey, out string reason);
     }
 }

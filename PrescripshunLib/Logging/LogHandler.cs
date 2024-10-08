@@ -18,7 +18,7 @@ namespace PrescripshunLib.Logging
             LogManager.Setup().LoadConfiguration(builder =>
             {
                 builder.ForLogger().FilterMinLevel(LogLevel.Trace).WriteToConsole(layout: ConsoleLayout);
-                builder.ForLogger().FilterMinLevel(LogLevel.Debug)
+                builder.ForLogger().FilterMinLevel(LogLevel.Trace)
                     .WriteToFile(fileName: fileName, layout: LogFileLayout);
             });
         }

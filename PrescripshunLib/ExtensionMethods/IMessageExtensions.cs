@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using PrescripshunLib.Networking;
+using PrescripshunLib.Networking.Messages;
 
 namespace PrescripshunLib.ExtensionMethods
 {

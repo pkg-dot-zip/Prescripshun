@@ -4,18 +4,22 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using PrescripshunLib.ExtensionMethods;
 using Unclassified.Net;
+using PrescripshunLib.Networking.Messages;
 
 namespace PrescripshunClient;
 
-internal class Client : AsyncTcpClient
+public class Client : AsyncTcpClient
 {
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
+    public Guid UserKey { get; set; } = Guid.Empty;
+    public AsyncTcpClient TcpClient { get; private set; }
 
     private static void Main(string[] args)
     {
         LogHandler.Configure("client");
 
-        // First we create an instance of the client and register all the events.
+        // First we create an instance of the client and register all the ClientEvents.Get.
         var client = new Client();
         client.RegisterEvents();
 
@@ -28,7 +32,7 @@ internal class Client : AsyncTcpClient
 
     private async Task RunClient()
     {
-        var client = new AsyncTcpClient
+        TcpClient = new AsyncTcpClient
         {
             IPAddress = NetworkHandler.LocalIpAddress,
             Port = NetworkHandler.Port,
@@ -62,7 +66,7 @@ internal class Client : AsyncTcpClient
                         break;
                     }
 
-                    if (enteredMessage is not null) await HandleConsoleInput(c, enteredMessage);
+                    if (enteredMessage is not null) await HandleConsoleInput(enteredMessage);
 
                     // Wait for server response or closed connection.
                     await c.ByteBuffer.WaitAsync();
@@ -83,13 +87,42 @@ internal class Client : AsyncTcpClient
 
             ClosedCallback = (client, closedByRemote) => ClientEvents.Get.OnConnectionClosed.Invoke(client, closedByRemote),
         };
-        client.Message += (s, a) => Logger.Debug("Client: " + a.Message);
-        var clientTask = client.RunAsync();
+        TcpClient.Message += (s, a) => Logger.Debug("Client: " + a.Message);
+        var clientTask = TcpClient.RunAsync();
 
         await clientTask;
     }
 
-    private async Task HandleConsoleInput(AsyncTcpClient client, string enteredMessage)
+    public async Task RunClientForGui()
+    {
+        TcpClient = new AsyncTcpClient
+        {
+            IPAddress = NetworkHandler.LocalIpAddress,
+            Port = NetworkHandler.Port,
+            //AutoReconnect = true,
+
+            // ON CONNECT:
+            ConnectedCallback = async (c, isReconnected) =>
+            {
+            },
+
+            // ON RECEIVE:
+            ReceivedCallback = (c, count) => // count = number of bytes received.
+            {
+                byte[] bytes = c.ByteBuffer.Dequeue(count);
+                string jsonString = bytes.Decrypt();
+                ClientEvents.Get.OnReceiveJsonString.Invoke(c, jsonString);
+                return Task.CompletedTask;
+            },
+
+            ClosedCallback = (client, closedByRemote) => ClientEvents.Get.OnConnectionClosed.Invoke(client, closedByRemote),
+        };
+        TcpClient.Message += (s, a) => Logger.Debug("Client: " + a.Message);
+        var clientTask = TcpClient.RunAsync();
+        await clientTask;
+    }
+
+    private async Task HandleConsoleInput(string enteredMessage)
     {
         IMessage toSend = null;
 
@@ -107,7 +140,7 @@ internal class Client : AsyncTcpClient
         else
         {
             Logger.Info($"Found {typeof(Message.DebugPrint)} to send!");
-            toSend = new PrescripshunLib.Networking.Message.DebugPrint()
+            toSend = new Message.DebugPrint()
             {
                 Text = enteredMessage
             };
@@ -115,11 +148,12 @@ internal class Client : AsyncTcpClient
 
 
         if (toSend is null) throw new NullReferenceException();
-        await client.Send(toSend);
+        await TcpClient.Send(toSend);
     }
 
-    private void RegisterEvents()
+    public void RegisterEvents()
     {
+        Logger.Info("Registering events in {0}", nameof(Client));
         ClientEvents.Get.OnApplicationBoot += async args =>
         {
             Logger.Info($"Starting client at {DateTime.Now} on {Environment.MachineName}.");
@@ -148,7 +182,7 @@ internal class Client : AsyncTcpClient
 
     private async Task ProcessReceivedString(AsyncTcpClient client, [StringSyntax(StringSyntaxAttribute.Json)] string jsonString)
     {
-        var messageParam = PrescripshunLib.Networking.Message.GetMessageFromJsonString(jsonString);
+        var messageParam = PrescripshunLib.Networking.Messages.Message.GetMessageFromJsonString(jsonString);
         await ClientEvents.Get.OnReceiveMessage.Invoke(client, messageParam);
     }
 }
