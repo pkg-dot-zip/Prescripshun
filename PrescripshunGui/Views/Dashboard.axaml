@@ -15,7 +15,10 @@
     <Grid ColumnDefinitions="*, 4, *">
         <Grid Grid.Column="0" Background="Blue">
             <StackPanel Margin="20">
-                <TextBlock Margin="0 5">List of crockery:</TextBlock>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock>🔍</TextBlock>
+                    <TextBox Watermark="Search..."></TextBox>
+				</StackPanel>
                 <ItemsControl ItemsSource="{Binding Items}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -29,9 +32,10 @@
                                         <Image Margin="20" Stretch="UniformToFill" Width="48" Height="48"
                                                asyncImageLoader:ImageLoader.Source="https://github.com/AvaloniaUtils/AsyncImageLoader.Avalonia/raw/master/AsyncImageLoader.Avalonia.Demo/Assets/cat0.jpg" />
                                     </Panel>
-                                    <TextBlock Text="{Binding UserName}" />
                                     <TextBlock Margin="5 0" FontWeight="Bold"
                                                Text="{Binding Profile.FullName}" />
+                                    <Button>📂</Button>
+                                    <Button>💬</Button>
                                 </StackPanel>
                             </Border>
                         </DataTemplate>
