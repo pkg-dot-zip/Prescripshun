@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using PrescripshunClient;
+using PrescripshunGui.ViewModels;
 using PrescripshunGui.Views;
 using PrescripshunLib.Networking.Messages;
 
@@ -47,7 +48,10 @@ namespace PrescripshunGui.Util
                         var currentWindow =
                             (Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
                             ?.MainWindow;
-                        if (currentWindow is not null) currentWindow.Content = new Dashboard();
+                        if (currentWindow is not null) currentWindow.Content = new Dashboard()
+                        {
+                            DataContext = new DashboardViewModel()
+                        };
                     });
                 }
             });
