@@ -13,6 +13,19 @@ public static class Message
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
     /// <summary>
+    /// Converts the <paramref name="message"/> into an instance of <see cref="String"/>.
+    /// </summary>
+    /// <param name="message"></param>
+    /// <returns></returns>
+    public static string ToJsonString(this IMessage message)
+    {
+        var jsonString = JsonConvert.SerializeObject(message);
+        var jsonObject = JObject.Parse(jsonString);        // Parse the serialized string into a JObject so we can modify it.
+        jsonObject.Add("type", message.GetType().Name); // Add the "type" field with the name of the class.
+        return jsonObject.ToString(Formatting.None);
+    }
+
+    /// <summary>
     /// Converts the <paramref name="jsonString"/> into an instance of <see cref="IMessage"/>.
     /// </summary>
     /// <param name="jsonString"></param>

@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Networking.Messages;
 
 namespace PrescripshunLib.Networking;
