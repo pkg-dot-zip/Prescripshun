@@ -1,75 +1,73 @@
 ﻿using System.Diagnostics;
-using System.Net.Sockets;
 using NLog;
 using Unclassified.Net;
 
-namespace PrescripshunLib
+namespace PrescripshunLib;
+
+// NOTE: FIXING THIS HAS A VERY LOW PRIORITY SINCE THIS IS NOT TECHNICALLY NEEDED FOR THIS PROJECT, ONLY IF WE WANT TO REUSE THIS IN FUTURE PROJECTS.
+// TODO: Fix. The hardcoded delegate kinda defeats the purpose of this class being generic since the params other than of type T are hardcoded.
+// TODO: After fixing the above problem, fix the docs so it fits the generic state of this class.
+
+/// <summary>
+/// Container for a generic event.
+/// </summary>
+/// <typeparam name="T">Parameter <see langword="type"/> used in the <see langword="delegate"/>.</typeparam>
+public class GenericEvent<T>
 {
-    // NOTE: FIXING THIS HAS A VERY LOW PRIORITY SINCE THIS IS NOT TECHNICALLY NEEDED FOR THIS PROJECT, ONLY IF WE WANT TO REUSE THIS IN FUTURE PROJECTS.
-    // TODO: Fix. The hardcoded delegate kinda defeats the purpose of this class being generic since the params other than of type T are hardcoded.
-    // TODO: After fixing the above problem, fix the docs so it fits the generic state of this class.
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-    /// <summary>
-    /// Container for a generic event.
-    /// </summary>
-    /// <typeparam name="T">Parameter <see langword="type"/> used in the <see langword="delegate"/>.</typeparam>
-    public class GenericEvent<T>
+    public delegate Task Handler<in TEventType>(AsyncTcpClient serverClient, TEventType message)
+        where TEventType : T;
+
+    public interface IEventDelegate
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        Task OnEvent(AsyncTcpClient serverClient, T message);
+    }
 
-        public delegate Task Handler<in TEventType>(AsyncTcpClient serverClient, TEventType message)
-            where TEventType : T;
+    public class EventDelegate<TEventType> : IEventDelegate where TEventType : T
+    {
+        public required Handler<TEventType> Implementation { init; get; }
 
-        public interface IEventDelegate
+        public Task OnEvent(AsyncTcpClient serverClient, T message)
         {
-            Task OnEvent(AsyncTcpClient serverClient, T message);
+            if (message is TEventType msg) return Implementation(serverClient, msg);
+            return Task.CompletedTask;
         }
+    }
 
-        public class EventDelegate<TEventType> : IEventDelegate where TEventType : T
-        {
-            public required Handler<TEventType> Implementation { init; get; }
+    private readonly Dictionary<Type, List<IEventDelegate>> _handlers = [];
 
-            public Task OnEvent(AsyncTcpClient serverClient, T message)
-            {
-                if (message is TEventType msg) return Implementation(serverClient, msg);
-                return Task.CompletedTask;
-            }
-        }
+    public void AddHandler<TEventType>(Handler<TEventType> handler) where TEventType : T
+    {
+        var messageType = typeof(TEventType);
+        Logger.Info("Adding handle for {0}", messageType.Name);
+        if (!_handlers.ContainsKey(messageType)) _handlers.Add(messageType, []);
+        _handlers[messageType].Add(new EventDelegate<TEventType> { Implementation = handler });
+    }
 
-        private readonly Dictionary<Type, List<IEventDelegate>> _handlers = [];
+    public bool RemoveHandler<TEventType>(Handler<TEventType> handler) where TEventType : T
+    {
+        var messageType = typeof(TEventType);
+        Logger.Info("Removing handle for {0}", messageType.Name);
 
-        public void AddHandler<TEventType>(Handler<TEventType> handler) where TEventType : T
-        {
-            var messageType = typeof(TEventType);
-            Logger.Info("Adding handle for {0}", messageType.Name);
-            if (!_handlers.ContainsKey(messageType)) _handlers.Add(messageType, []);
-            _handlers[messageType].Add(new EventDelegate<TEventType> { Implementation = handler });
-        }
+        if (!_handlers.TryGetValue(messageType, out var value)) return false;
 
-        public bool RemoveHandler<TEventType>(Handler<TEventType> handler) where TEventType : T
-        {
-            var messageType = typeof(TEventType);
-            Logger.Info("Removing handle for {0}", messageType.Name);
+        int nofRemoved = value.RemoveAll(messageHandler =>
+            messageHandler is EventDelegate<TEventType> typed && typed.Implementation == handler);
 
-            if (!_handlers.TryGetValue(messageType, out var value)) return false;
+        return nofRemoved != 0;
+    }
 
-            int nofRemoved = value.RemoveAll(messageHandler =>
-                messageHandler is EventDelegate<TEventType> typed && typed.Implementation == handler);
+    public async Task Invoke(AsyncTcpClient serverClient, T message)
+    {
+        Debug.Assert(message != null, nameof(message) + " != null");
+        var messageType = message.GetType();
 
-            return nofRemoved != 0;
-        }
+        if (!_handlers.ContainsKey(messageType)) return;
 
-        public async Task Invoke(AsyncTcpClient serverClient, T message)
-        {
-            Debug.Assert(message != null, nameof(message) + " != null");
-            var messageType = message.GetType();
-
-            if (!_handlers.ContainsKey(messageType)) return;
-
-            Logger.Info("Invoking handle for {0}", messageType.Name);
-            await Task.WhenAll(_handlers[messageType]
-                .Select(handler => handler.OnEvent(serverClient, message))
-                .ToArray());
-        }
+        Logger.Info("Invoking handle for {0}", messageType.Name);
+        await Task.WhenAll(_handlers[messageType]
+            .Select(handler => handler.OnEvent(serverClient, message))
+            .ToArray());
     }
 }

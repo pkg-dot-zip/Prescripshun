@@ -1,39 +1,36 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Networking.Messages;
 
-namespace PrescripshunLib.Networking
+namespace PrescripshunLib.Networking;
+
+public static class Encryptor
 {
+    private static readonly Encoding Encoding = Encoding.UTF8;
 
-    public static class Encryptor
+    public static byte[] Encrypt(this IMessage message) => Encrypt(message.ToJsonString());
+
+    public static byte[] Encrypt([StringSyntax(StringSyntaxAttribute.Json)] string jsonString)
     {
-        private static readonly Encoding Encoding = Encoding.UTF8;
+        // First we encode.
+        byte[] encodedString = Encoding.GetBytes(jsonString);
 
-        public static byte[] Encrypt(this IMessage message) => Encrypt(message.ToJsonString());
+        // Then we encrypt.
+        // TODO: Implement encryption.
 
-        public static byte[] Encrypt([StringSyntax(StringSyntaxAttribute.Json)] string jsonString)
-        {
-            // First we encode.
-            byte[] encodedString = Encoding.GetBytes(jsonString);
+        return encodedString;
+    }
 
-            // Then we encrypt.
-            // TODO: Implement encryption.
+    public static string Decrypt(this byte[] bytes) => Decrypt(bytes, bytes.Length);
 
-            return encodedString;
-        }
+    public static string Decrypt(this byte[] bytes, int count, int index = 0)
+    {
+        // First we decode.
+        string decodedString = Encoding.GetString(bytes, index, count);
 
-        public static string Decrypt(this byte[] bytes) => Decrypt(bytes, bytes.Length);
+        // Then we decrypt.
+        // TODO: Implement decryption.
 
-        public static string Decrypt(this byte[] bytes, int count, int index = 0)
-        {
-            // First we decode.
-            string decodedString = Encoding.GetString(bytes, index, count);
-
-            // Then we decrypt.
-            // TODO: Implement decryption.
-
-            return decodedString;
-        }
+        return decodedString;
     }
 }

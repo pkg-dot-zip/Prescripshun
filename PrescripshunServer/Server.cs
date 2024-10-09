@@ -45,8 +45,8 @@ internal class Server : AsyncTcpClient
     {
         var server = new AsyncTcpListener
         {
-            IPAddress = NetworkHandler.AnyIpAddress,
-            Port = NetworkHandler.Port,
+            IPAddress = NetworkConfig.AnyIpAddress,
+            Port = NetworkConfig.Port,
 
             ClientConnectedCallback = tcpClient => // tcpClient = acceptedConnection.
                 new AsyncTcpClient

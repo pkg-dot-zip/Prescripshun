@@ -1,10 +1,9 @@
-﻿namespace PrescripshunLib.Models.Chat
+﻿namespace PrescripshunLib.Models.Chat;
+
+public interface IChatMessage
 {
-    public interface IChatMessage
-    {
-        public Guid Sender { get; }
-        public Guid Recipient { get; }
-        public string Text { get; }
-        public DateTime Time { get; }
-    }
+    public Guid Sender { get; }
+    public Guid Recipient { get; }
+    public string Text { get; }
+    public DateTime Time { get; }
 }

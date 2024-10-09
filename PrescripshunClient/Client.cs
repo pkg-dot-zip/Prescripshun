@@ -1,7 +1,6 @@
 ﻿using PrescripshunLib.Logging;
 using PrescripshunLib.Networking;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using PrescripshunLib.ExtensionMethods;
 using Unclassified.Net;
 using PrescripshunLib.Networking.Messages;
@@ -34,8 +33,8 @@ public class Client : AsyncTcpClient
     {
         TcpClient = new AsyncTcpClient
         {
-            IPAddress = NetworkHandler.LocalIpAddress,
-            Port = NetworkHandler.Port,
+            IPAddress = NetworkConfig.LocalIpAddress,
+            Port = NetworkConfig.Port,
             //AutoReconnect = true,
 
             // ON CONNECT:
@@ -97,8 +96,8 @@ public class Client : AsyncTcpClient
     {
         TcpClient = new AsyncTcpClient
         {
-            IPAddress = NetworkHandler.LocalIpAddress,
-            Port = NetworkHandler.Port,
+            IPAddress = NetworkConfig.LocalIpAddress,
+            Port = NetworkConfig.Port,
             //AutoReconnect = true,
 
             // ON CONNECT:

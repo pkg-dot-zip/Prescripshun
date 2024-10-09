@@ -9,16 +9,14 @@ namespace PrescripshunGui.ViewModels;
 
 public class DashboardViewModel : ViewModelBase
 {
-    private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-
     public Guid UserKey => NetworkHandler.Client.UserKey;
 
-    private ObservableCollection<IUser> _items = new ObservableCollection<IUser>();
+    private ObservableCollection<IUser> _items = [];
 
     public ObservableCollection<IUser> Items
     {
-        get { return _items; }
-        set { SetProperty(ref _items, value); }
+        get => _items;
+        set => SetProperty(ref _items, value);
     }
 
     public DashboardViewModel()

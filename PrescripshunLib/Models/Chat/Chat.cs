@@ -1,9 +1,8 @@
-﻿namespace PrescripshunLib.Models.Chat
+﻿namespace PrescripshunLib.Models.Chat;
+
+public class Chat : IChat
 {
-    public class Chat : IChat
-    {
-        public Guid User1 { get; set; }
-        public Guid User2 { get; set; }
-        public List<IChatMessage> Messages { get; set; } = new();
-    }
+    public Guid User1 { get; set; }
+    public Guid User2 { get; set; }
+    public List<IChatMessage> Messages { get; set; } = new();
 }
