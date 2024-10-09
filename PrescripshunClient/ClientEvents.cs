@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Net.Sockets;
 using PrescripshunLib;
 using PrescripshunLib.Networking.Messages;
 using Unclassified.Net;
@@ -8,13 +7,13 @@ namespace PrescripshunClient
 {
     public class ClientEvents
     {
-        private static ClientEvents? instance = null;
+        private static ClientEvents? _instance = null;
 
         private ClientEvents()
         {
         }
 
-        public static ClientEvents Get => instance ??= new ClientEvents();
+        public static ClientEvents Get => _instance ??= new ClientEvents();
 
         public delegate Task OnApplicationBootDelegate(string[] args);
 

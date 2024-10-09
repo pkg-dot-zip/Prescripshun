@@ -1,7 +1,6 @@
 ﻿using PrescripshunLib.Logging;
 using PrescripshunLib.Networking;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using PrescripshunLib.ExtensionMethods;
 using Unclassified.Net;
 using PrescripshunLib.Networking.Messages;
