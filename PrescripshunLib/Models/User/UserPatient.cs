@@ -1,11 +1,10 @@
 ﻿using PrescripshunLib.Models.User.Profile;
 
-namespace PrescripshunLib.Models.User
-{
-    public class UserPatient : BaseUser
-    {
-        public Guid DoctоrGuid { get; set; }
+namespace PrescripshunLib.Models.User;
 
-        public PatientProfile GetPatientProfile => Profile as PatientProfile ?? throw new InvalidOperationException();
-    }
+public class UserPatient : BaseUser
+{
+    public Guid DoctоrGuid { get; set; }
+
+    public PatientProfile GetPatientProfile => Profile as PatientProfile ?? throw new InvalidOperationException();
 }

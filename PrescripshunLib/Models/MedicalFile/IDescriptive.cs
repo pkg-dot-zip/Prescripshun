@@ -1,8 +1,7 @@
-﻿namespace PrescripshunLib.Models.MedicalFile
+﻿namespace PrescripshunLib.Models.MedicalFile;
+
+public interface IDescriptive
 {
-    public interface IDescriptive
-    {
-        public string Title { get; }
-        public string Description { get; }
-    }
+    public string Title { get; }
+    public string Description { get; }
 }

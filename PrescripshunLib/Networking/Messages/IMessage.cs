@@ -1,4 +1,3 @@
-﻿namespace PrescripshunLib.Networking.Messages
-{
-    public interface IMessage;
-}
+﻿namespace PrescripshunLib.Networking.Messages;
+
+public interface IMessage;

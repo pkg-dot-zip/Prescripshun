@@ -1,7 +1,6 @@
-﻿namespace PrescripshunLib.Models.User.Profile
+﻿namespace PrescripshunLib.Models.User.Profile;
+
+public class ProfilePicture(string url)
 {
-    public class ProfilePicture(string url)
-    {
-        public string Url = url;
-    }
+    public string Url = url;
 }
