@@ -7,54 +7,53 @@ using PrescripshunGui.ViewModels;
 using PrescripshunGui.Views;
 using PrescripshunLib.Networking.Messages;
 
-namespace PrescripshunGui.Util
+namespace PrescripshunGui.Util;
+
+internal static class GuiEvents
 {
-    internal static class GuiEvents
+    private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+    public static ClientEvents GetNetworkEvents() => ClientEvents.Get;
+
+    public static void RegisterEvents()
     {
-        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-        public static ClientEvents GetNetworkEvents() => ClientEvents.Get;
+        NetworkHandler.Client.RegisterEvents();
+        Logger.Info("Registering events in {0}", nameof(GuiEvents));
 
-        public static void RegisterEvents()
+        GetNetworkEvents().OnReceiveMessage.AddHandler<LoginResponse>((client, message) =>
         {
-            NetworkHandler.Client.RegisterEvents();
-            Logger.Info("Registering events in {0}", nameof(GuiEvents));
-
-            GetNetworkEvents().OnReceiveMessage.AddHandler<LoginResponse>((client, message) =>
+            if (message.IsValid())
             {
-                if (message.IsValid())
-                {
-                    Logger.Info("Logged in as {0}", message.Id);
-                    NetworkHandler.Client.UserKey = message.Id; // Sets user-key.
-                    return Task.CompletedTask;
-                }
-
-                Logger.Info("Login attempt FAILED!");
+                Logger.Info("Logged in as {0}", message.Id);
+                NetworkHandler.Client.UserKey = message.Id; // Sets user-key.
                 return Task.CompletedTask;
-            });
+            }
 
-            GetNetworkEvents().OnReceiveMessage.AddHandler<LoginResponse>(async (client, message) =>
-            {
-                if (message.IsValid()) await MessageBoxHandler.SimplePopUp("TEST SUCCESSFUL!", "CAN LOGIN!"); // TODO: Remove.
-                if (!message.IsValid()) await MessageBoxHandler.SimplePopUp("Login Failed!", message.Reason);
-            });
+            Logger.Info("Login attempt FAILED!");
+            return Task.CompletedTask;
+        });
 
-            // Close the login window and open the dashboard. 
-            GetNetworkEvents().OnReceiveMessage.AddHandler<LoginResponse>(async (client, message) =>
+        GetNetworkEvents().OnReceiveMessage.AddHandler<LoginResponse>(async (client, message) =>
+        {
+            if (message.IsValid()) await MessageBoxHandler.SimplePopUp("TEST SUCCESSFUL!", "CAN LOGIN!"); // TODO: Remove.
+            if (!message.IsValid()) await MessageBoxHandler.SimplePopUp("Login Failed!", message.Reason);
+        });
+
+        // Close the login window and open the dashboard. 
+        GetNetworkEvents().OnReceiveMessage.AddHandler<LoginResponse>(async (client, message) =>
+        {
+            if (message.IsValid())
             {
-                if (message.IsValid())
+                await Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    var currentWindow =
+                        (Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+                        ?.MainWindow;
+                    if (currentWindow is not null) currentWindow.Content = new Dashboard()
                     {
-                        var currentWindow =
-                            (Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
-                            ?.MainWindow;
-                        if (currentWindow is not null) currentWindow.Content = new Dashboard()
-                        {
-                            DataContext = new DashboardViewModel()
-                        };
-                    });
-                }
-            });
-        }
+                        DataContext = new DashboardViewModel()
+                    };
+                });
+            }
+        });
     }
 }
