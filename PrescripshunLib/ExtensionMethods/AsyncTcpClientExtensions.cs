@@ -6,6 +6,14 @@ namespace PrescripshunLib.ExtensionMethods;
 
 public static class AsyncTcpClientExtensions
 {
+    /// <summary>
+    /// Asynchronously calls <see cref="Encryptor.Encrypt(IMessage)"/> on this <paramref name="message"/> to convert it to a <c>byte[]</c>, then immediately sends it by
+    /// calling <see cref="AsyncTcpClient.Send"/>.
+    /// </summary>
+    /// <param name="client">Client to send with.</param>
+    /// <param name="message">Message to send.</param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
     public static async Task Send(this AsyncTcpClient client, IMessage message)
     {
         var bytes = message.Encrypt();

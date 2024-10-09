@@ -16,6 +16,9 @@ public static class Beeper
         return true;
     }
 
+    /// <summary>
+    /// Beeps C4 -> E4 -> G4. Meant to be used for when the Server starts.
+    /// </summary>
     public static void PlayServerBootSound()
     {
         Beep(262); // Approx C4.
@@ -23,5 +26,8 @@ public static class Beeper
         Beep(392); // Approx G4.
     }
 
+    /// <summary>
+    /// Beeps C4 -> E4 -> G4 asynchronously. Meant to be used for when the Server starts.
+    /// </summary>
     public static async Task PlayServerBootSoundAsync() => await Task.Run(PlayServerBootSound);
 }
