@@ -2,7 +2,10 @@
 
 namespace PrescripshunLib.Networking;
 
-public static class NetworkHandler
+/// <summary>
+/// Contains all configurable values for the networking system. Think of things like port numbers.
+/// </summary>
+public static class NetworkConfig
 {
     public const int Port = 27000;
     public const bool UseIPv6 = true; // IPv4 not supported by current system.
