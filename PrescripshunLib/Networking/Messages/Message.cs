@@ -83,26 +83,6 @@ public static class Message
         return messageTypes.FirstOrDefault(t => t.Name.Equals(messageType, StringComparison.OrdinalIgnoreCase));
     }
 
-    /// <summary>
-    /// Returns all implementations of <see cref="IMessage"/> using <see href="https://learn.microsoft.com/en-us/dotnet/fundamentals/reflection/reflection">reflection</see>.
-    /// </summary>
-    /// <returns>Implementations of <see cref="IMessage"/>.</returns>
-    private static List<IMessage> GetAll()
-    {
-        var assembly = Assembly.GetExecutingAssembly();
-        var types = assembly.GetTypes();
-
-        // Find all types that are subclasses of BaseMessage
-        var baseMessageTypes = types
-            .Where(t => t is { IsClass: true, IsAbstract: false, IsInterface: false } &&
-                        t.IsSubclassOf(typeof(IMessage)))
-            .ToList();
-
-        return baseMessageTypes.Select(type => (IMessage)Activator.CreateInstance(type)).OfType<IMessage>()
-            .ToList();
-    }
-
-
     public class DebugPrint : IMessage
     {
         public string? Text { get; set; }
