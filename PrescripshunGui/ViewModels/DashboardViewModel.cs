@@ -16,7 +16,7 @@ public class DashboardViewModel : ViewModelBase
     private ObservableCollection<IUser> _items = [];
 
 
-    public ObservableCollection<IUser> Items
+    public ObservableCollection<IUser> ChattableUsers
     {
         get => _items;
         set => SetProperty(ref _items, value);
@@ -24,8 +24,5 @@ public class DashboardViewModel : ViewModelBase
 
     public DashboardViewModel()
     {
-        //Add all Chattable Users from the List of Users that the server sent to the client
-        Items = new ObservableCollection<IUser>();
-        Items.AddAll(NetworkHandler.Client.ChattableUsers);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Linq;
 using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Models.MedicalFile;
@@ -191,14 +192,21 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         await _sqlDatabase.DisconnectAsync();
     }
 
-    public List<Guid> GetChattableUsers(Guid forUser)
+    // TODO: Reimplement. This is functional, but not ideal.
+    public List<IUser> GetChattableUsers(Guid forUser)
+    {
+        var toReturn = GetUsers(); // Retrieves all users.
+        var guids = GetChattableUsersGuids(forUser); // Retrieves guids of users we SHOULD return.
+        toReturn.RemoveAll(user => !guids.Contains(user.UserKey)); // Removes all users that do not have that guid.
+        return toReturn;
+    }
+
+    public List<Guid> GetChattableUsersGuids(Guid forUser)
     {
         if (GetUser(forUser) is UserPatient patient) return [patient.DoctоrGuid];
 
         var toReturn = new List<Guid>();
-        _sqlDatabase.ExecuteQuery("""
-
-                                  """, reader =>
+        _sqlDatabase.ExecuteQuery($"SELECT patientKey FROM `doctor_patient` WHERE doctorKey = '{forUser}'", reader =>
         {
             while (reader.Read())
             {
@@ -348,7 +356,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                     UserKey = reader.GetGuid("userKey"),
                     UserName = reader.GetString("username"),
                     Password = reader.GetString("password"),
-                    Profile = new PatientProfile()
+                    Profile = new DoctorProfile()
                     {
                         BirthDate = reader.GetDateTime("birthdate"),
                         FullName = reader.GetString("fullname"),

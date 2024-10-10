@@ -8,6 +8,7 @@ using Prescripshun.Database;
 using Prescripshun.Database.MySql;
 using PrescripshunLib.Networking.Messages;
 using Google.Protobuf;
+using PrescripshunLib.Models.User;
 
 namespace Prescripshun;
 
@@ -146,10 +147,14 @@ internal class Server : AsyncTcpClient
         ServerEvents.Get.OnReceiveMessage.AddHandler<ChattableUsersRequest>(async (client, message) =>
         {
             var ChattablesList = DatabaseHandler.GetChattableUsers(message.UserKey);
+            var doctorUsers = ChattablesList.OfType<UserDoctor>().ToList();
+            var patientUsers = ChattablesList.OfType<UserPatient>().ToList();
+
             // The server will send this message in response to a ChattableUsersRequest.
             var response = new ChattableUsersResponse()
             {
-                Users = ChattablesList
+                Patients = patientUsers,
+                Doctors = doctorUsers,
             };
             await client.Send(response);
         });

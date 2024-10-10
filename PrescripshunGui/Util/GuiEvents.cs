@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -7,6 +8,7 @@ using PrescripshunClient;
 using PrescripshunGui.ViewModels;
 using PrescripshunGui.Views;
 using PrescripshunLib.ExtensionMethods;
+using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Networking.Messages;
 using PrescripshunLib.Util.Sound;
 using SoundHandler = PrescripshunGui.Util.Sound.SoundHandler;
@@ -106,20 +108,58 @@ internal class GuiEvents
                     {
                         DataContext = new DashboardViewModel()
                     };
+
+                    // Here we add users to the list.
+                    client.Send(new ChattableUsersRequest()
+                    {
+                        UserKey = NetworkHandler.Client.UserKey,
+                    });
                 });
             }
         });
 
+        GetNetworkEvents().OnReceiveMessage.AddHandler<ChattableUsersResponse>((client, message) =>
+        {
+            foreach (var user in message.GetChattableUsers())
+            {
+                Logger.Info("Chattable User Found: {0} - {1}", user.UserName, "user.Profile.FullName IS ALTIJD NULL");
+            }
+
+            return Task.CompletedTask;
+        });
+
         GetNetworkEvents().OnReceiveMessage.AddHandler<ChattableUsersResponse>(async (client, message) =>
         {
-            //Handle the ChattableUsersList
-            var currentWindow =
-                   (Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
-                   ?.MainWindow;
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                Logger.Info("YES WE DO GET IT THANK YOU");
 
-            var guids = message.Users;
-            
-            (currentWindow.DataContext as DashboardViewModel).Items.AddAll();
+
+                //Handle the ChattableUsersList
+                var currentWindow =
+                    (Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+                    ?.MainWindow;
+
+                var users = message.GetChattableUsers();
+
+                if (currentWindow is null)
+                {
+                    Logger.Info("{0} was null", nameof(currentWindow));
+                    return Task.CompletedTask;
+                }
+
+                if (currentWindow.DataContext is DashboardViewModel)
+                {
+                    Logger.Info("NOT {0}", nameof(DashboardViewModel));
+                    return Task.CompletedTask;
+                }
+
+
+                (currentWindow.DataContext as DashboardViewModel)?.ChattableUsers.AddAll(users);
+
+                Logger.Info("Added new users to DashBoardViewModel");
+                return Task.CompletedTask;
+            });
         });
 
     }
