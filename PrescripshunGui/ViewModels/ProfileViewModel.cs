@@ -2,7 +2,12 @@
 
 namespace PrescripshunGui.ViewModels;
 
-public class ProfileViewModel(IProfile profile) : ViewModelBase
+public class ProfileViewModel : ViewModelBase
 {
-    public IProfile Profile { get; } = profile;
+    public IProfile Profile { get; }
+
+    public ProfileViewModel(IProfile profile)
+    {
+        Profile = profile;
+    }
 }

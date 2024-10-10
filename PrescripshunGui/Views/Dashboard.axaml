@@ -6,42 +6,49 @@
              x:Class="PrescripshunGui.Views.Dashboard"
              xmlns:vm="clr-namespace:PrescripshunGui.ViewModels"
              xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
+             xmlns:views="clr-namespace:PrescripshunGui.Views"
              x:DataType="vm:DashboardViewModel">
-    <Design.DataContext>
-        <vm:DashboardViewModel />
-    </Design.DataContext>
-    <Grid ColumnDefinitions="*, 4, *">
-        <Grid Grid.Column="0" Background="Blue">
-            <StackPanel Margin="20">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock>🔍</TextBlock>
-                    <TextBox Watermark="Search..."></TextBox>
-                </StackPanel>
-                <ItemsControl ItemsSource="{Binding Items}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Margin="0,10,0,0"
+	<Design.DataContext>
+		<vm:DashboardViewModel />
+	</Design.DataContext>
+	<Grid ColumnDefinitions="*, 4, *">
+		<Grid Grid.Column="0" Background="Blue">
+			<StackPanel Margin="20">
+				<StackPanel Orientation="Horizontal">
+					<TextBlock>🔍</TextBlock>
+					<TextBox Watermark="Search..."></TextBox>
+				</StackPanel>
+				<ItemsControl ItemsSource="{Binding Items}">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate>
+							<Border Margin="0,10,0,0"
                                     CornerRadius="5"
                                     BorderBrush="Gray" BorderThickness="1"
                                     Padding="5">
-                                <StackPanel Orientation="Horizontal">
-                                    <Panel>
-                                        <Rectangle Height="64" Width="64" Fill="LightGray"></Rectangle>
-                                        <Image Margin="20" Stretch="UniformToFill" Width="48" Height="48"
+								<StackPanel Orientation="Horizontal">
+									<Panel>
+										<Rectangle Height="64" Width="64" Fill="LightGray"></Rectangle>
+										<Image Margin="20" Stretch="UniformToFill" Width="48" Height="48"
                                                asyncImageLoader:ImageLoader.Source="https://github.com/AvaloniaUtils/AsyncImageLoader.Avalonia/raw/master/AsyncImageLoader.Avalonia.Demo/Assets/cat0.jpg" />
-                                    </Panel>
-                                    <TextBlock Margin="5 0" FontWeight="Bold"
+									</Panel>
+									<TextBlock Margin="5 0" FontWeight="Bold"
                                                Text="{Binding Profile.FullName}" />
-                                    <Button Click="OpenProfileView" Tag="{Binding}">📂</Button>
-                                    <Button>💬</Button>
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </StackPanel>
-        </Grid>
-        <GridSplitter Grid.Column="1" Background="Black" ResizeDirection="Columns" />
-        <Rectangle Grid.Column="2" Fill="Red" />
-    </Grid>
+									<Button Click="OpenProfileView" Tag="{Binding}">📂</Button>
+									<Button>💬</Button>
+								</StackPanel>
+							</Border>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</StackPanel>
+		</Grid>
+		<GridSplitter Grid.Column="1" Background="White" ResizeDirection="Columns" />
+		<ContentControl Grid.Column="2" Content="{Binding SelectedProfileViewModel}">
+			<ContentControl.ContentTemplate>
+				<DataTemplate>
+					<views:ProfileView/>
+				</DataTemplate>
+			</ContentControl.ContentTemplate>
+		</ContentControl>
+	</Grid>
 </UserControl>
