@@ -16,9 +16,6 @@ public class SoundHandler
 
     #endregion
 
-    private WaveOutEvent? _outputDevice = null;
-    private AudioFileReader? _audioFile = null;
-
     public async Task PlaySoundFromUrlAsync(string url)
     {
         await Task.Run(() => PlaySoundFromUrl(url));
@@ -36,34 +33,5 @@ public class SoundHandler
                 Thread.Sleep(1000);
             }
         }
-    }
-
-    public void PlaySoundFromFile(string soundFilePath)
-    {
-        if (_outputDevice is null)
-        {
-            _outputDevice = new WaveOutEvent();
-            _outputDevice.PlaybackStopped += OnPlaybackStopped;
-        }
-        if (_audioFile is null)
-        {
-            _audioFile = new AudioFileReader($"{soundFilePath}");
-            _outputDevice.Init(_audioFile);
-        }
-        _outputDevice.Play();
-    }
-
-    // TODO: Implement.
-    public async Task PlaySoundFromFileAsync(string soundFilePath)
-    {
-        await Task.Run(() => PlaySoundFromFile(soundFilePath));
-    }
-
-    private void OnPlaybackStopped(object? sender, StoppedEventArgs args)
-    {
-        _outputDevice?.Dispose();
-        _outputDevice = null;
-        _audioFile?.Dispose();
-        _audioFile = null;
     }
 }
