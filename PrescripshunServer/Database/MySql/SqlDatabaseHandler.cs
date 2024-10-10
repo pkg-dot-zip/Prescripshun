@@ -196,14 +196,9 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         if (GetUser(forUser) is UserPatient patient) return [patient.DoctоrGuid];
 
         var toReturn = new List<Guid>();
-        _sqlDatabase.ExecuteQuery("""
-
-                                  """, reader =>
+        _sqlDatabase.ExecuteQuery($"SELECT patientKey FROM `doctor_patient` WHERE doctorKey = '{forUser}'", reader =>
         {
-            while (reader.Read())
-            {
-                toReturn.Add(reader.GetGuid("patientKey"));
-            }
+            while (reader.Read()) toReturn.Add(reader.GetGuid("patientKey"));
         });
 
         return toReturn;
