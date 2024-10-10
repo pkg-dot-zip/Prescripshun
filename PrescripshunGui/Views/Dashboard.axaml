@@ -8,8 +8,6 @@
              xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
              x:DataType="vm:DashboardViewModel">
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:DashboardViewModel />
     </Design.DataContext>
     <Grid ColumnDefinitions="*, 4, *">
@@ -18,7 +16,7 @@
                 <StackPanel Orientation="Horizontal">
                     <TextBlock>🔍</TextBlock>
                     <TextBox Watermark="Search..."></TextBox>
-				</StackPanel>
+                </StackPanel>
                 <ItemsControl ItemsSource="{Binding Items}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -34,7 +32,7 @@
                                     </Panel>
                                     <TextBlock Margin="5 0" FontWeight="Bold"
                                                Text="{Binding Profile.FullName}" />
-                                    <Button>📂</Button>
+                                    <Button Click="OpenProfileView" Tag="{Binding}">📂</Button>
                                     <Button>💬</Button>
                                 </StackPanel>
                             </Border>
