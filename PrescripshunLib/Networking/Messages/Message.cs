@@ -83,7 +83,7 @@ public static class Message
         return messageTypes.FirstOrDefault(t => t.Name.Equals(messageType, StringComparison.OrdinalIgnoreCase));
     }
 
-    public class DebugPrint : IMessage
+    public class DebugPrint : IMessage, IEquatable<DebugPrint>
     {
         public string? Text { get; set; }
         public bool PrintPrefix { get; set; } = true;
@@ -93,12 +93,52 @@ public static class Message
             if (PrintPrefix) return $"DebugPrint: {Text}";
             else return Text ?? string.Empty;
         }
+
+        public bool Equals(DebugPrint? other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Text == other.Text && PrintPrefix == other.PrintPrefix;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals((DebugPrint) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Text, PrintPrefix);
+        }
     }
 
-    public class MessageTest : IMessage
+    public class MessageTest : IMessage, IEquatable<MessageTest>
     {
         public int? IntegerTest { get; set; }
         public double? DoubleTest { get; set; }
         public float? FloatTest { get; set; }
+
+        public bool Equals(MessageTest? other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return IntegerTest == other.IntegerTest && Nullable.Equals(DoubleTest, other.DoubleTest) && Nullable.Equals(FloatTest, other.FloatTest);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals((MessageTest) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(IntegerTest, DoubleTest, FloatTest);
+        }
     }
 }
