@@ -6,7 +6,7 @@ using PrescripshunLib.Models.User;
 using PrescripshunLib.Models.User.Profile;
 using PrescripshunLib.Util.Faker;
 
-namespace PrescripshunServer.Database.MySql;
+namespace Prescripshun.Database.MySql;
 
 internal class SqlDatabaseHandler : IDatabaseHandler
 {
@@ -196,9 +196,14 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         if (GetUser(forUser) is UserPatient patient) return [patient.DoctоrGuid];
 
         var toReturn = new List<Guid>();
-        _sqlDatabase.ExecuteQuery($"SELECT patientKey FROM `doctor_patient` WHERE doctorKey = '{forUser}'", reader =>
+        _sqlDatabase.ExecuteQuery("""
+
+                                  """, reader =>
         {
-            while (reader.Read()) toReturn.Add(reader.GetGuid("patientKey"));
+            while (reader.Read())
+            {
+                toReturn.Add(reader.GetGuid("patientKey"));
+            }
         });
 
         return toReturn;

@@ -2,7 +2,7 @@
 using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Models.User;
 
-namespace PrescripshunServer.Database;
+namespace Prescripshun.Database;
 
 internal interface IDatabaseHandler
 {

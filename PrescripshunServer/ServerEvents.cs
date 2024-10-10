@@ -3,7 +3,7 @@ using PrescripshunLib;
 using PrescripshunLib.Networking.Messages;
 using Unclassified.Net;
 
-namespace PrescripshunServer;
+namespace Prescripshun;
 
 internal class ServerEvents
 {

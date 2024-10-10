@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using PrescripshunLib.ExtensionMethods;
 using Unclassified.Net;
 using PrescripshunLib.Networking.Messages;
+using PrescripshunLib.Models.User;
 
 namespace PrescripshunClient;
 

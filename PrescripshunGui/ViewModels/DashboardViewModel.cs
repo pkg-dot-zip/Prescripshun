@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using Bogus;
+using Bogus.DataSets;
 using PrescripshunGui.Util;
 using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Models.User;
@@ -13,6 +15,7 @@ public class DashboardViewModel : ViewModelBase
 
     private ObservableCollection<IUser> _items = [];
 
+
     public ObservableCollection<IUser> Items
     {
         get => _items;
@@ -21,6 +24,8 @@ public class DashboardViewModel : ViewModelBase
 
     public DashboardViewModel()
     {
-        Items.AddAll(new FakeHandler().GetDoctors());
+        //Add all Chattable Users from the List of Users that the server sent to the client
+        Items = new ObservableCollection<IUser>();
+        Items.AddAll(NetworkHandler.Client.ChattableUsers);
     }
 }

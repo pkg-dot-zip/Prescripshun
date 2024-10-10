@@ -4,11 +4,11 @@ using Unclassified.Net;
 using System.Diagnostics.CodeAnalysis;
 using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Util.Sound;
-using PrescripshunServer.Database;
-using PrescripshunServer.Database.MySql;
+using Prescripshun.Database;
+using Prescripshun.Database.MySql;
 using PrescripshunLib.Networking.Messages;
 
-namespace PrescripshunServer;
+namespace Prescripshun;
 
 internal class Server : AsyncTcpClient
 {
@@ -107,6 +107,7 @@ internal class Server : AsyncTcpClient
             Logger.Info($"Connection closed by remote: {closedByRemote}");
             return Task.CompletedTask;
         };
+        
 
         ServerEvents.Get.OnApplicationExit += args =>
         {
@@ -140,6 +141,17 @@ internal class Server : AsyncTcpClient
         });
 
         ServerEvents.Get.OnReceiveMessage.AddHandler<LoginRequest>(ProcessLoginRequest);
+
+        ServerEvents.Get.OnReceiveMessage.AddHandler<ChattableUsersRequest>(async (client, message) =>
+        {
+            var ChattablesList = DatabaseHandler.GetChattableUsers(message.UserKey);
+            // The server will send this message in response to a ChattableUsersRequest.
+            var response = new ChattableUsersResponse()
+            {
+                Users = ChattablesList
+            };
+            await client.Send(response);
+        });
     }
 
     private async Task ProcessLoginRequest(AsyncTcpClient client, LoginRequest message)

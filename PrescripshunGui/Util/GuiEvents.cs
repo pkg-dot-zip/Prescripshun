@@ -5,6 +5,7 @@ using Avalonia.Threading;
 using PrescripshunClient;
 using PrescripshunGui.ViewModels;
 using PrescripshunGui.Views;
+using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Networking.Messages;
 
 namespace PrescripshunGui.Util;
@@ -55,5 +56,18 @@ internal static class GuiEvents
                 });
             }
         });
+
+        GetNetworkEvents().OnReceiveMessage.AddHandler<ChattableUsersResponse>(async (client, message) =>
+        {
+            //Handle the ChattableUsersList
+            var currentWindow =
+                   (Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+                   ?.MainWindow;
+
+            var guids = message.Users;
+            
+            (currentWindow.DataContext as DashboardViewModel).Items.AddAll();
+        });
+
     }
 }
