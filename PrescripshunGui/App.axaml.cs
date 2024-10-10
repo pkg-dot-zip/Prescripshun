@@ -26,6 +26,8 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            desktop.Startup += (_, _) => GuiEvents.Get.OnApplicationBoot.Invoke([]);
+            desktop.Exit += (_, _) => GuiEvents.Get.OnApplicationExit.Invoke([]);
             desktop.MainWindow = new MainWindow
             {
                 DataContext = new MainViewModel()
@@ -45,7 +47,7 @@ public partial class App : Application
     private void Init()
     {
         LogHandler.Configure("gui");
-        GuiEvents.RegisterEvents();
+        GuiEvents.Get.RegisterEvents();
         NetworkHandler.Init();
     }
 }

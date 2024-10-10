@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
@@ -9,15 +10,53 @@ using PrescripshunLib.Networking.Messages;
 
 namespace PrescripshunGui.Util;
 
-internal static class GuiEvents
+internal class GuiEvents
 {
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
     public static ClientEvents GetNetworkEvents() => ClientEvents.Get;
 
-    public static void RegisterEvents()
+    private static GuiEvents? _instance = null;
+
+    private GuiEvents()
+    {
+    }
+
+    public static GuiEvents Get => _instance ??= new GuiEvents();
+
+
+    #region Events
+    public delegate Task OnApplicationBootDelegate(string[] args);
+
+    /// <summary>
+    /// Event that gets invoked on initiation of the client, before any network code is executed.
+    /// </summary>
+    public OnApplicationBootDelegate OnApplicationBoot { get; set; } = (args) => Task.CompletedTask;
+
+
+    public delegate Task OnApplicationExitDelegate(string[] args);
+
+    /// <summary>
+    /// Event that gets invoked on exit of the client, after the connection is closed.
+    /// </summary>
+    public OnApplicationExitDelegate OnApplicationExit { get; set; } = (args) => Task.CompletedTask;
+    #endregion
+
+    public void RegisterEvents()
     {
         NetworkHandler.Client.RegisterEvents();
         Logger.Info("Registering events in {0}", nameof(GuiEvents));
+
+        OnApplicationExit += args =>
+        {
+            NLog.LogManager.Shutdown();
+            return Task.CompletedTask;
+        };
+
+        OnApplicationBoot += args =>
+        {
+            Logger.Info($"Starting client at {DateTime.Now} on {Environment.MachineName}.");
+            return Task.CompletedTask;
+        };
 
         GetNetworkEvents().OnReceiveMessage.AddHandler<LoginResponse>((client, message) =>
         {
