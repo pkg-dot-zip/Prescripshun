@@ -146,9 +146,9 @@ internal class Server : AsyncTcpClient
 
         ServerEvents.Get.OnReceiveMessage.AddHandler<ChattableUsersRequest>(async (client, message) =>
         {
-            var ChattablesList = DatabaseHandler.GetChattableUsers(message.UserKey);
-            var doctorUsers = ChattablesList.OfType<UserDoctor>().ToList();
-            var patientUsers = ChattablesList.OfType<UserPatient>().ToList();
+            var chattablesList = DatabaseHandler.GetChattableUsers(message.UserKey);
+            var doctorUsers = chattablesList.OfType<UserDoctor>().ToList();
+            var patientUsers = chattablesList.OfType<UserPatient>().ToList();
 
             // The server will send this message in response to a ChattableUsersRequest.
             var response = new ChattableUsersResponse()

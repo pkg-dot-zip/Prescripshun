@@ -122,7 +122,14 @@ internal class GuiEvents
         {
             foreach (var user in message.GetChattableUsers())
             {
-                Logger.Info("Chattable User Found: {0} - {1}", user.UserName, "user.Profile.FullName IS ALTIJD NULL");
+                if (user.Profile is null)
+                {
+                    Logger.Info("Chattable User Found WITH NO PROFILE: {0}", user.UserName);
+                }
+                else
+                {
+                    Logger.Info("Chattable User Found: {0} - {1}", user.UserName, user.Profile.FullName);
+                }
             }
 
             return Task.CompletedTask;
@@ -132,9 +139,6 @@ internal class GuiEvents
         {
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                Logger.Info("YES WE DO GET IT THANK YOU");
-
-
                 //Handle the ChattableUsersList
                 var currentWindow =
                     (Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)

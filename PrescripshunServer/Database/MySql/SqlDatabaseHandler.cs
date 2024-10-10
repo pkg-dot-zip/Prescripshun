@@ -265,7 +265,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                     UserKey = reader.GetGuid("userKey"),
                     UserName = reader.GetString("username"),
                     Password = reader.GetString("password"),
-                    Profile = new PatientProfile()
+                    Profile = new DoctorProfile()
                     {
                         BirthDate = reader.GetDateTime("birthdate"),
                         FullName = reader.GetString("fullname"),
