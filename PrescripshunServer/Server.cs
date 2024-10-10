@@ -7,6 +7,7 @@ using PrescripshunLib.Util.Sound;
 using Prescripshun.Database;
 using Prescripshun.Database.MySql;
 using PrescripshunLib.Networking.Messages;
+using Google.Protobuf;
 
 namespace Prescripshun;
 
