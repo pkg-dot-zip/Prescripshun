@@ -191,6 +191,24 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         await _sqlDatabase.DisconnectAsync();
     }
 
+    public List<Guid> GetChattableUsers(Guid forUser)
+    {
+        if (GetUser(forUser) is UserPatient patient) return [patient.DoctоrGuid];
+
+        var toReturn = new List<Guid>();
+        _sqlDatabase.ExecuteQuery("""
+
+                                  """, reader =>
+        {
+            while (reader.Read())
+            {
+                toReturn.Add(reader.GetGuid("patientKey"));
+            }
+        });
+
+        return toReturn;
+    }
+
     public List<IUser> GetUsers()
     {
         var patients = GetPatients().ToList<IUser>();

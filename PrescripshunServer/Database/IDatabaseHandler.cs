@@ -9,6 +9,7 @@ internal interface IDatabaseHandler
     public Task Run();
     public Task Stop();
 
+    public List<Guid> GetChattableUsers(Guid forUser);
     public List<IUser> GetUsers();
     public Task AddDoctor(UserDoctor doctor);
     public List<UserDoctor> GetDoctors();
