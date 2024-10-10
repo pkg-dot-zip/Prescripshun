@@ -8,6 +8,7 @@ using PrescripshunGui.ViewModels;
 using PrescripshunGui.Views;
 using PrescripshunLib.Networking.Messages;
 using PrescripshunLib.Util.Sound;
+using SoundHandler = PrescripshunGui.Util.Sound.SoundHandler;
 
 namespace PrescripshunGui.Util;
 
@@ -40,6 +41,13 @@ internal class GuiEvents
     /// Event that gets invoked on exit of the client, after the connection is closed.
     /// </summary>
     public OnApplicationExitDelegate OnApplicationExit { get; set; } = (args) => Task.CompletedTask;
+
+
+    public delegate Task OnSoundDelegate(string url);
+
+    public OnSoundDelegate OnSoundPlay { get; set; } = url => Task.CompletedTask;
+    public OnSoundDelegate OnSoundEnd { get; set; } = url => Task.CompletedTask;
+
     #endregion
 
     public void RegisterEvents()
@@ -49,7 +57,7 @@ internal class GuiEvents
 
         OnApplicationBoot += async args =>
         {
-            await SoundHandler.Get.PlaySoundFromUrlAsync("https://opengameart.org/sites/default/files/montageAudio-20120206%40223055.mp3");
+            await SoundHandler.Get.PlaySoundFromUrlAsync("https://opengameart.org/sites/default/files/audio_preview/MS_Realization.ogg.mp3");
         };
 
         OnApplicationExit += args =>
