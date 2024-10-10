@@ -9,6 +9,5 @@ public abstract class BaseUser : IUser
     public required string UserName { get; set; }
     public required string Password { get; set; }
 
-    [JsonIgnore]
-    public IProfile Profile { get; set; }
+    public IProfile Profile => this is UserDoctor ? (this as UserDoctor).DoctorProfile : (this as UserPatient).PatientProfile;
 }

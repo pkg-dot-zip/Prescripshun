@@ -29,7 +29,7 @@ public class FakeHandler(int seed = 0, string locale = "nl")
                 UserKey = Guid.NewGuid(),
                 UserName = _faker.Internet.UserName(fullName.Split(' ', 2)[0], fullName.Split(' ', 2)[1]),
                 Password = _faker.Internet.Password(memorable: true),
-                Profile = new DoctorProfile()
+                DoctorProfile = new DoctorProfile()
                 {
                     BirthDate = _faker.Date.Past(30, DateTime.Now.AddYears(-10)),
                     FullName = fullName,
@@ -53,7 +53,7 @@ public class FakeHandler(int seed = 0, string locale = "nl")
                 UserName = _faker.Internet.UserName(fullName.Split(' ', 2)[0], fullName.Split(' ', 2)[1]),
                 Password = _faker.Internet.Password(memorable: true),
                 DoctоrGuid = doctorsList[i % doctorsList.Count].UserKey,
-                Profile = new PatientProfile()
+                PatientProfile = new PatientProfile()
                 {
                     BirthDate = _faker.Date.Past(30, new DateTime(2023, 12, 31)),
                     FullName = fullName,

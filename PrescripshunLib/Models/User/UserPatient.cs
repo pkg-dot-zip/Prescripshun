@@ -7,10 +7,5 @@ public class UserPatient : BaseUser
 {
     public Guid DoctоrGuid { get; set; }
 
-    public PatientProfile GetPatientProfile => Profile as PatientProfile ?? new PatientProfile()
-    {
-        BirthDate = DateTime.Now,
-        FullName = "Parse Error",
-        ProfilePicture = new ProfilePicture(""),
-    };
+    public PatientProfile PatientProfile { get; set; }
 }

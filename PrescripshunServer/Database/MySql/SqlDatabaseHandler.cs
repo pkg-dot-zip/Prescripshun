@@ -179,7 +179,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         var patients = GetPatients();
         var patient = patients.First();
 
-        var profile = patient.GetPatientProfile;
+        var profile = patient.PatientProfile;
         Logger.Info($"PROFILE RECEIVED: {profile}");
 
         var medicalFile = GetMedicalFile(patient.UserKey);
@@ -265,7 +265,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                     UserKey = reader.GetGuid("userKey"),
                     UserName = reader.GetString("username"),
                     Password = reader.GetString("password"),
-                    Profile = new DoctorProfile()
+                    DoctorProfile = new DoctorProfile()
                     {
                         BirthDate = reader.GetDateTime("birthdate"),
                         FullName = reader.GetString("fullname"),
@@ -311,7 +311,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                     DoctоrGuid = reader.GetGuid("doctorKey"),
                     UserName = reader.GetString("username"),
                     Password = reader.GetString("password"),
-                    Profile = new PatientProfile()
+                    PatientProfile = new PatientProfile()
                     {
                         BirthDate = reader.GetDateTime("birthdate"),
                         FullName = reader.GetString("fullname"),
@@ -356,7 +356,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                     UserKey = reader.GetGuid("userKey"),
                     UserName = reader.GetString("username"),
                     Password = reader.GetString("password"),
-                    Profile = new DoctorProfile()
+                    DoctorProfile = new DoctorProfile()
                     {
                         BirthDate = reader.GetDateTime("birthdate"),
                         FullName = reader.GetString("fullname"),
@@ -389,7 +389,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                     DoctоrGuid = reader.GetGuid("doctorKey"),
                     UserName = reader.GetString("username"),
                     Password = reader.GetString("password"),
-                    Profile = new PatientProfile()
+                    PatientProfile = new PatientProfile()
                     {
                         BirthDate = reader.GetDateTime("birthdate"),
                         FullName = reader.GetString("fullname"),
