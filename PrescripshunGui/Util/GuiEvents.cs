@@ -7,6 +7,7 @@ using PrescripshunClient;
 using PrescripshunGui.ViewModels;
 using PrescripshunGui.Views;
 using PrescripshunLib.Networking.Messages;
+using PrescripshunLib.Util.Sound;
 
 namespace PrescripshunGui.Util;
 
@@ -45,6 +46,11 @@ internal class GuiEvents
     {
         NetworkHandler.Client.RegisterEvents();
         Logger.Info("Registering events in {0}", nameof(GuiEvents));
+
+        OnApplicationBoot += async args =>
+        {
+            await SoundHandler.Get.PlaySoundFromUrlAsync("https://opengameart.org/sites/default/files/montageAudio-20120206%40223055.mp3");
+        };
 
         OnApplicationExit += args =>
         {

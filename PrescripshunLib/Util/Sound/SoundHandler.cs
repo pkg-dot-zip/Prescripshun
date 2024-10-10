@@ -1,16 +1,69 @@
-﻿namespace PrescripshunLib.Util.Sound;
+﻿using NAudio.Wave;
 
-public static class SoundHandler
+namespace PrescripshunLib.Util.Sound;
+
+public class SoundHandler
 {
-    // TODO: Implement.
-    public static void PlaySound(string soundFilePath)
+    #region Singleton
+
+    private static SoundHandler? _instance = null;
+
+    private SoundHandler()
     {
-        throw new NotImplementedException();
+    }
+
+    public static SoundHandler Get => _instance ??= new SoundHandler();
+
+    #endregion
+
+    private WaveOutEvent? _outputDevice = null;
+    private AudioFileReader? _audioFile = null;
+
+    public async Task PlaySoundFromUrlAsync(string url)
+    {
+        await Task.Run(() => PlaySoundFromUrl(url));
+    }
+
+    public void PlaySoundFromUrl(string url)
+    {
+        using (var mf = new MediaFoundationReader(url))
+        using (var wo = new WasapiOut())
+        {
+            wo.Init(mf);
+            wo.Play();
+            while (wo.PlaybackState == PlaybackState.Playing)
+            {
+                Thread.Sleep(1000);
+            }
+        }
+    }
+
+    public void PlaySoundFromFile(string soundFilePath)
+    {
+        if (_outputDevice is null)
+        {
+            _outputDevice = new WaveOutEvent();
+            _outputDevice.PlaybackStopped += OnPlaybackStopped;
+        }
+        if (_audioFile is null)
+        {
+            _audioFile = new AudioFileReader($"{soundFilePath}");
+            _outputDevice.Init(_audioFile);
+        }
+        _outputDevice.Play();
     }
 
     // TODO: Implement.
-    public static Task PlaySoundAsync(string soundFilePath)
+    public async Task PlaySoundFromFileAsync(string soundFilePath)
     {
-        throw new NotImplementedException();
+        await Task.Run(() => PlaySoundFromFile(soundFilePath));
+    }
+
+    private void OnPlaybackStopped(object? sender, StoppedEventArgs args)
+    {
+        _outputDevice?.Dispose();
+        _outputDevice = null;
+        _audioFile?.Dispose();
+        _audioFile = null;
     }
 }
