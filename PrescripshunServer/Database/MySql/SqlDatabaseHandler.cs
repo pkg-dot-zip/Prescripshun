@@ -308,56 +308,19 @@ internal class SqlDatabaseHandler : IDatabaseHandler
 
     public User GetUser(Guid guid)
     {
-        try
-        {
-            return GetPatient(guid);
-        }
-        catch
-        {
-            return GetDoctor(guid);
-        }
-    }
-
-    public User GetDoctor(Guid guid)
-    {
-        User? doctor = null;
+        User? user = null;
 
         _sqlDatabase.ExecuteQuery($"""
                                    SELECT u.*, p.fullname, p.birthdate, p.profilepicture
                                    FROM users u
                                    JOIN profiles p ON u.userKey = p.userKey
-                                   WHERE u.doctorKey IS NULL
-                                   AND u.userKey = '{guid}';
+                                   WHERE u.userKey = '{guid}';
                                    """, reader =>
         {
-            while (reader.Read())
-            {
-                doctor = ParseUser(reader);
-            }
+            while (reader.Read()) user = ParseUser(reader);
         });
 
-        return doctor ?? throw new InvalidOperationException();
-    }
-
-    public User GetPatient(Guid guid)
-    {
-        User? patient = null;
-
-        _sqlDatabase.ExecuteQuery($"""
-                                   SELECT u.*, p.fullname, p.birthdate, p.profilepicture
-                                   FROM users u
-                                   JOIN profiles p ON u.userKey = p.userKey
-                                   WHERE u.doctorKey IS NOT NULL
-                                   AND u.userKey = '{guid}';
-                                   """, reader =>
-        {
-            while (reader.Read())
-            {
-                patient = ParseUser(reader);
-            }
-        });
-
-        return patient ?? throw new InvalidOperationException();
+        return user ?? throw new InvalidOperationException();
     }
 
     public async Task AddMedicalFile(MedicalFile medicalFile)

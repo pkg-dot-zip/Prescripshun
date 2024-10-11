@@ -11,13 +11,11 @@ internal interface IDatabaseHandler
 
     public List<Guid> GetChattableUsers(Guid forUser);
     public List<User> GetUsers();
-    public Task AddDoctor(User doctor);
+    public Task AddDoctor(User doctor); // TODO: Merge with AddPatient.
     public List<User> GetDoctors();
-    public Task AddPatient(User patient);
+    public Task AddPatient(User patient); // TODO: Merge with AddDoctor.
     public List<User> GetPatients();
     public User GetUser(Guid guid);
-    public User GetDoctor(Guid guid);
-    public User GetPatient(Guid guid);
     public Task AddMedicalFile(MedicalFile medicalFile);
     public MedicalFile GetMedicalFile(Guid guid);
     public Task AddChat(Chat chat);
