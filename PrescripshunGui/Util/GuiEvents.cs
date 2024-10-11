@@ -122,14 +122,7 @@ internal class GuiEvents
         {
             foreach (var user in message.Users)
             {
-                if (user.Profile is null)
-                {
-                    Logger.Info("Chattable User Found WITH NO PROFILE: {0}", user.UserName);
-                }
-                else
-                {
-                    Logger.Info("Chattable User Found: {0} - {1}", user.UserName, user.Profile.FullName);
-                }
+                Logger.Info("Chattable User Found: {0} - {1}", user.UserName, user.Profile.FullName);
             }
 
             return Task.CompletedTask;
@@ -137,9 +130,9 @@ internal class GuiEvents
 
         GetNetworkEvents().OnReceiveMessage.AddHandler<ChattableUsersResponse>(async (client, message) =>
         {
+            await Task.Delay(10000);
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                //Handle the ChattableUsersList
                 var currentWindow =
                     (Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
                     ?.MainWindow;
@@ -157,7 +150,6 @@ internal class GuiEvents
                     Logger.Info("NOT {0}", nameof(DashboardViewModel));
                     return Task.CompletedTask;
                 }
-
 
                 (currentWindow.DataContext as DashboardViewModel)?.Items.AddAll(users);
 
