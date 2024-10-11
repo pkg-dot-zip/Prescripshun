@@ -224,10 +224,17 @@ internal class SqlDatabaseHandler : IDatabaseHandler
 
     public List<User> GetUsers()
     {
-        var patients = GetPatients().ToList<User>();
-        var doctors = GetDoctors().ToList<User>();
-        patients.AddRange(doctors);
-        return patients;
+        var users = new List<User>();
+        _sqlDatabase.ExecuteQuery("""
+                                  SELECT u.*, p.fullname, p.birthdate, p.profilepicture
+                                  FROM users u
+                                  JOIN profiles p ON u.userKey = p.userKey;
+                                  """, reader =>
+        {
+            while (reader.Read()) users.Add(ParseUser(reader));
+        });
+
+        return users;
     }
 
     private async Task AddDoctorPatientRelation(User patient)
@@ -262,10 +269,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                                   WHERE u.doctorKey IS NULL;
                                   """, reader =>
         {
-            while (reader.Read())
-            {
-                doctors.Add(ParseUser(reader));
-            }
+            while (reader.Read()) doctors.Add(ParseUser(reader));
         });
 
         return doctors;
@@ -296,10 +300,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                                   WHERE u.doctorKey IS NOT NULL;
                                   """, reader =>
         {
-            while (reader.Read())
-            {
-                patients.Add(ParseUser(reader));
-            }
+            while (reader.Read()) patients.Add(ParseUser(reader));
         });
 
         return patients;
