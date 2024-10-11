@@ -109,7 +109,7 @@ internal class Server : AsyncTcpClient
             Logger.Info($"Connection closed by remote: {closedByRemote}");
             return Task.CompletedTask;
         };
-        
+
 
         ServerEvents.Get.OnApplicationExit += args =>
         {
@@ -144,19 +144,13 @@ internal class Server : AsyncTcpClient
 
         ServerEvents.Get.OnReceiveMessage.AddHandler<LoginRequest>(ProcessLoginRequest);
 
+        // The server will send this message in response to a ChattableUsersRequest.
         ServerEvents.Get.OnReceiveMessage.AddHandler<ChattableUsersRequest>(async (client, message) =>
         {
-            var chattablesList = DatabaseHandler.GetChattableUsers(message.UserKey);
-            var doctorUsers = chattablesList.OfType<UserDoctor>().ToList();
-            var patientUsers = chattablesList.OfType<UserPatient>().ToList();
-
-            // The server will send this message in response to a ChattableUsersRequest.
-            var response = new ChattableUsersResponse()
+            await client.Send(new ChattableUsersResponse()
             {
-                Patients = patientUsers,
-                Doctors = doctorUsers,
-            };
-            await client.Send(response);
+                Users = DatabaseHandler.GetChattableUsers(message.UserKey),
+            });
         });
     }
 

@@ -120,7 +120,7 @@ internal class GuiEvents
 
         GetNetworkEvents().OnReceiveMessage.AddHandler<ChattableUsersResponse>((client, message) =>
         {
-            foreach (var user in message.GetChattableUsers())
+            foreach (var user in message.Users)
             {
                 if (user.Profile is null)
                 {
@@ -144,7 +144,7 @@ internal class GuiEvents
                     (Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
                     ?.MainWindow;
 
-                var users = message.GetChattableUsers();
+                var users = message.Users;
 
                 if (currentWindow is null)
                 {
@@ -159,7 +159,7 @@ internal class GuiEvents
                 }
 
 
-                (currentWindow.DataContext as DashboardViewModel)?.ChattableUsers.AddAll(users);
+                (currentWindow.DataContext as DashboardViewModel)?.Items.AddAll(users);
 
                 Logger.Info("Added new users to DashBoardViewModel");
                 return Task.CompletedTask;

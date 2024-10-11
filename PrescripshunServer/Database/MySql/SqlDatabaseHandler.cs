@@ -250,19 +250,33 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         };
     }
 
-    public List<Guid> GetChattableUsers(Guid forUser)
+    private List<Guid> GetChattableUsersGuids(Guid forUser)
     {
-        if (GetUser(forUser) is User patient) return [patient.DoctоrGuid ?? Guid.Empty];
+        var thisUser = GetUser(forUser);
 
+        // If a patient, only return the doctor.
+        if (thisUser.IsDoctor) return [thisUser.DoctоrGuid ?? throw new InvalidOperationException()];
+
+        // If a doctor, return all patients.
         var toReturn = new List<Guid>();
         _sqlDatabase.ExecuteQuery($"SELECT patientKey FROM `doctor_patient` WHERE doctorKey = '{forUser}'", reader =>
         {
-            while (reader.Read())
-            {
-                toReturn.Add(reader.GetGuid("patientKey"));
-            }
+            while (reader.Read()) toReturn.Add(reader.GetGuid("patientKey"));
         });
 
+        return toReturn;
+    }
+
+    public List<User> GetChattableUsers(Guid forUser)
+    {
+        var thisUser = GetUser(forUser);
+
+        // If a patient, only return the doctor.
+        if (!thisUser.IsDoctor) return [GetUser(thisUser.DoctоrGuid ?? throw new InvalidOperationException())];
+
+        // If a doctor, return all patients.
+        var toReturn = GetUsers();
+        toReturn.RemoveAll(user => !GetChattableUsersGuids(forUser).Contains(user.UserKey));
         return toReturn;
     }
 

@@ -19,7 +19,7 @@
                     <TextBlock>🔍</TextBlock>
                     <TextBox Watermark="Search..."></TextBox>
 				</StackPanel>
-                <ItemsControl ItemsSource="{Binding ChattableUsers}">
+                <ItemsControl ItemsSource="{Binding Items}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border Margin="0,10,0,0"
