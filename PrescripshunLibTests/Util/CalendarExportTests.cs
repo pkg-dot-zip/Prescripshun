@@ -4,8 +4,11 @@ using PrescripshunLib.Models.MedicalFile;
 namespace PrescripshunLib.Util.Tests;
 
 [TestClass]
-public class CalenderExportTests
+public class CalendarExportTests
 {
+
+    // TODO: Create unit tests with special chars: comma (,), period(.), exclamation mark (!) and question mark(?).
+
     [TestMethod]
     [DataRow("Title1")]
     [DataRow("Title2")]
@@ -22,7 +25,7 @@ public class CalenderExportTests
             DateTime = DateTime.Parse(dateTimeString)
         }];
 
-        var exportString = CalenderExport.GetGoogleCalenderAppointmentsExportString(appointments);
+        var exportString = CalendarExport.GetGoogleCalenderAppointmentsExportString(appointments);
 
         Assert.AreEqual($"Subject,Start Date,Start Time,End Date,End Time,Description\r\n{title},01/01/1999,12:00 AM,01/01/1999,12:15 AM,Beschrijving1\r\n", exportString);
     }
@@ -43,7 +46,7 @@ public class CalenderExportTests
             DateTime = DateTime.Parse(dateTimeString)
         }];
 
-        var exportString = CalenderExport.GetGoogleCalenderAppointmentsExportString(appointments);
+        var exportString = CalendarExport.GetGoogleCalenderAppointmentsExportString(appointments);
 
         Assert.AreEqual($"Subject,Start Date,Start Time,End Date,End Time,Description\r\nTitel1,01/01/1999,12:00 AM,01/01/1999,12:15 AM,{description}\r\n", exportString);
     }
