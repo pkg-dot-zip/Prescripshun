@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
+using NLog.Fluent;
 using PrescripshunClient;
 using PrescripshunGui.ViewModels;
 using PrescripshunGui.Views;
@@ -132,9 +133,27 @@ internal class GuiEvents
         {
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                var currentView =
+                var currentWindow =
                     (Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
-                    ?.MainWindow?.Content as Dashboard;
+                    ?.MainWindow;
+
+                if (currentWindow is null)
+                {
+                    Logger.Warn("{0} was null", nameof(currentWindow));
+                    return Task.CompletedTask;
+                }
+
+                var view =
+                    currentWindow?.Content;
+
+                if (view is not Dashboard)
+                {
+                    Logger.Info("{0} was not a {1}", nameof(view), nameof(Dashboard));
+                    return Task.CompletedTask;
+                }
+
+                var currentView =
+                    currentWindow?.Content as Dashboard;
 
                 var users = message.Users;
 
