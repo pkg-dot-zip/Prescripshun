@@ -148,7 +148,7 @@ internal class GuiEvents
 
                 if (view is not Dashboard)
                 {
-                    Logger.Info("{0} was not a {1}", nameof(view), nameof(Dashboard));
+                    Logger.Warn("{0} was not a {1}", nameof(view), nameof(Dashboard));
                     throw new InvalidOperationException();
                 }
 
@@ -159,25 +159,25 @@ internal class GuiEvents
 
                 if (currentView is null)
                 {
-                    Logger.Info("{0} was null", nameof(currentView));
+                    Logger.Warn("{0} was null", nameof(currentView));
                     throw new InvalidOperationException();
                 }
 
                 if (currentView.DataContext is null)
                 {
-                    Logger.Info("{0}.DataContext was null", nameof(currentView));
+                    Logger.Warn("{0}.DataContext was null", nameof(currentView));
                     throw new InvalidOperationException();
                 }
 
                 if (currentView.DataContext is MainViewModel)
                 {
-                    Logger.Info("STILL {0}", nameof(MainViewModel));
+                    Logger.Warn("STILL {0}", nameof(MainViewModel));
                     throw new InvalidOperationException();
                 }
 
                 if (currentView.DataContext is not DashboardViewModel model)
                 {
-                    Logger.Info("NOT {0}", nameof(DashboardViewModel));
+                    Logger.Warn("NOT {0}", nameof(DashboardViewModel));
                     throw new InvalidOperationException();
                 }
 
