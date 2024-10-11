@@ -185,6 +185,7 @@ internal class GuiEvents
 
                 #endregion
 
+                model.Items.Clear();
                 model.Items.AddAll(users);
                 Logger.Info("Added new users to DashBoardViewModel");
 

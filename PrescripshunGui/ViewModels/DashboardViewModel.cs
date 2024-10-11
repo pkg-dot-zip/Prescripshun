@@ -46,7 +46,5 @@ public class DashboardViewModel : ViewModelBase
                 Logger.Warn("New items were null.");
             }
         };
-
-        Items.AddAll(new FakeHandler().GetDoctors());
     }
 }
