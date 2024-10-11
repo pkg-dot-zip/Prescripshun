@@ -23,5 +23,6 @@ public class DashboardViewModel : ViewModelBase
 
     public DashboardViewModel()
     {
+        Items.AddAll(new FakeHandler().GetDoctors());
     }
 }

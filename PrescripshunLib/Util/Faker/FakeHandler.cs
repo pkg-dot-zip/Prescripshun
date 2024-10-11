@@ -18,10 +18,10 @@ public class FakeHandler(int seed = 0, string locale = "nl")
 
     private readonly Random _random = new(seed);
 
-    public List<User> GetDoctors()
+    public List<User> GetDoctors(int amount = 3)
     {
         var doctorsList = new List<User>();
-        for (var i = 0; i < 3; i++)
+        for (var i = 0; i < amount; i++)
         {
             var fullName = _faker.Name.FullName();
             doctorsList.Add(new User()
