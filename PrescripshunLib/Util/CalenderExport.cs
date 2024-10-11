@@ -4,7 +4,7 @@ using PrescripshunLib.Models.MedicalFile;
 
 namespace PrescripshunLib.Util;
 
-// TODO: Maybe move to client gui project since this is only used there?
+// TODO: Fix spelling issue with Calendar!
 public static class CalenderExport
 {
     private class GoogleCalenderAppointment()
@@ -48,11 +48,17 @@ public static class CalenderExport
         return GetGoogleCalenderAppointmentsExportString(appointments.ConvertToGoogleCalender());
     }
 
-    private static string GetGoogleCalenderAppointmentsExportString(IEnumerable<GoogleCalenderAppointment> appointments)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="appointments"></param>
+    /// <param name="includeColumnSeparatorDefinitionPreamble">Excel wants this in CSV files! However, we are working with Google Calendar, so default is <c>false</c>.</param>
+    /// <returns></returns>
+    private static string GetGoogleCalenderAppointmentsExportString(IEnumerable<GoogleCalenderAppointment> appointments, bool includeColumnSeparatorDefinitionPreamble = false)
     {
         var myExport = new CsvExport(
             columnSeparator: ",",
-            includeColumnSeparatorDefinitionPreamble: true, //Excel wants this in CSV files!
+            includeColumnSeparatorDefinitionPreamble: includeColumnSeparatorDefinitionPreamble,
             includeHeaderRow: true
         );
 

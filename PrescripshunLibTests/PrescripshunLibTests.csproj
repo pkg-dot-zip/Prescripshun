@@ -20,8 +20,4 @@
     <ProjectReference Include="..\PrescripshunLib\PrescripshunLib.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Util\" />
-  </ItemGroup>
-
 </Project>
