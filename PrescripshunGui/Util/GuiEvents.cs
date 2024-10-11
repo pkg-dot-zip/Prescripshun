@@ -130,7 +130,6 @@ internal class GuiEvents
 
         GetNetworkEvents().OnReceiveMessage.AddHandler<ChattableUsersResponse>(async (client, message) =>
         {
-            await Task.Delay(200);
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var currentView =
