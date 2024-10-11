@@ -167,6 +167,47 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         foreach (var patient in patientsList) await AddDoctorPatientRelation(patient);
         foreach (var medicalFile in medicalFiles) await AddMedicalFile(medicalFile);
         foreach (var chat in chatMessagesList) await AddChat(chat);
+
+        // Here we add our hardcoded data for easy access.
+        await AddHardcodedDoctor("Mark Rutte", "pkgdotzip", "1234", userKey: Guid.Parse("8842aeb2-5288-4885-ca88-a28837d88f2e"));
+        await AddHardcodedDoctor("Geert Wilders", "loenkas", "1234");
+        await AddHardcodedPatient("Thierry Baudet", "omit", "1234", doctorGuid: Guid.Parse("8842aeb2-5288-4885-ca88-a28837d88f2e"));
+    }
+
+    private async Task AddHardcodedPatient(string fullName, string userName, string password, Guid doctorGuid, Guid? userKey = null)
+    {
+        var patient = new User()
+        {
+            UserKey = userKey ?? Guid.NewGuid(),
+            UserName = userName,
+            Password = password,
+            DoctоrGuid = doctorGuid,
+            Profile = new Profile()
+            {
+                FullName = fullName,
+                BirthDate = DateTime.Parse("2000-01-01"),
+                ProfilePicture = new ProfilePicture("https://via.placeholder.com/360x360/cccccc/9c9c9c.png")
+            }
+        };
+        await AddPatient(patient);
+        await AddDoctorPatientRelation(patient);
+    }
+
+    private async Task AddHardcodedDoctor(string fullName, string userName, string password, Guid? userKey = null)
+    {
+        await AddDoctor(new User()
+        {
+            UserKey = userKey ?? Guid.NewGuid(),
+            UserName = userName,
+            Password = password,
+            DoctоrGuid = null,
+            Profile = new Profile()
+            {
+                FullName = fullName,
+                BirthDate = DateTime.Parse("2000-01-01"),
+                ProfilePicture = new ProfilePicture("https://via.placeholder.com/360x360/cccccc/9c9c9c.png")
+            }
+        });
     }
 
     public async Task Run()
