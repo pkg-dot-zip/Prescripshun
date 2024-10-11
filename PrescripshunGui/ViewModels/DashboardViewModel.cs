@@ -4,6 +4,7 @@ using Bogus;
 using Bogus.DataSets;
 using PrescripshunGui.Util;
 using PrescripshunLib.ExtensionMethods;
+using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Models.User;
 using PrescripshunLib.Util.Faker;
 
@@ -46,5 +47,12 @@ public class DashboardViewModel : ViewModelBase
                 Logger.Warn("New items were null.");
             }
         };
+    }
+
+    private ProfileViewModel? _selectedProfileViewModel;
+    public ProfileViewModel? SelectedProfileViewModel
+    {
+        get => _selectedProfileViewModel;
+        set => SetProperty(ref _selectedProfileViewModel, value);
     }
 }

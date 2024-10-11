@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PrescripshunClient\PrescripshunClient.csproj" />
+    <ProjectReference Include="..\PrescripshunServer\PrescripshunServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
