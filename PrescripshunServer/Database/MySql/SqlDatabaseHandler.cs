@@ -178,7 +178,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         var patients = GetPatients();
         var patient = patients.First();
 
-        var profile = patient.GetPatientProfile;
+        var profile = patient.Profile;
         Logger.Info($"PROFILE RECEIVED: {profile}");
 
         var medicalFile = GetMedicalFile(patient.UserKey);
@@ -193,7 +193,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
 
     public List<Guid> GetChattableUsers(Guid forUser)
     {
-        if (GetUser(forUser) is UserPatient patient) return [patient.DoctоrGuid];
+        if (GetUser(forUser) is User patient) return [patient.DoctоrGuid ?? Guid.Empty];
 
         var toReturn = new List<Guid>();
         _sqlDatabase.ExecuteQuery($"SELECT patientKey FROM `doctor_patient` WHERE doctorKey = '{forUser}'", reader =>
@@ -204,15 +204,15 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         return toReturn;
     }
 
-    public List<IUser> GetUsers()
+    public List<User> GetUsers()
     {
-        var patients = GetPatients().ToList<IUser>();
-        var doctors = GetDoctors().ToList<IUser>();
+        var patients = GetPatients().ToList<User>();
+        var doctors = GetDoctors().ToList<User>();
         patients.AddRange(doctors);
         return patients;
     }
 
-    private async Task AddDoctorPatientRelation(UserPatient patient)
+    private async Task AddDoctorPatientRelation(User patient)
     {
         await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                  INSERT INTO doctor_patient (doctorKey, patientKey)
@@ -220,7 +220,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                                                  """);
     }
 
-    public async Task AddDoctor(UserDoctor doctor)
+    public async Task AddDoctor(User doctor)
     {
         await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                  INSERT INTO users (userKey, username, password)
@@ -234,9 +234,9 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                                                  """);
     }
 
-    public List<UserDoctor> GetDoctors()
+    public List<User> GetDoctors()
     {
-        var doctors = new List<UserDoctor>();
+        var doctors = new List<User>();
         _sqlDatabase.ExecuteQuery("""
                                   SELECT u.*, p.fullname, p.birthdate, p.profilepicture
                                   FROM users u
@@ -246,13 +246,13 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         {
             while (reader.Read())
             {
-                doctors.Add(new UserDoctor()
+                doctors.Add(new User()
                 {
                     // TODO: Retrieve patient list?
                     UserKey = reader.GetGuid("userKey"),
                     UserName = reader.GetString("username"),
                     Password = reader.GetString("password"),
-                    Profile = new PatientProfile()
+                    Profile = new Profile()
                     {
                         BirthDate = reader.GetDateTime("birthdate"),
                         FullName = reader.GetString("fullname"),
@@ -265,7 +265,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         return doctors;
     }
 
-    public async Task AddPatient(UserPatient patient)
+    public async Task AddPatient(User patient)
     {
         await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                  INSERT INTO users (userKey, username, password, doctorKey)
@@ -280,9 +280,9 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                                                  """);
     }
 
-    public List<UserPatient> GetPatients()
+    public List<User> GetPatients()
     {
-        var patients = new List<UserPatient>();
+        var patients = new List<User>();
         _sqlDatabase.ExecuteQuery("""
                                   SELECT u.*, p.fullname, p.birthdate, p.profilepicture
                                   FROM users u
@@ -292,13 +292,13 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         {
             while (reader.Read())
             {
-                patients.Add(new UserPatient()
+                patients.Add(new User()
                 {
                     UserKey = reader.GetGuid("userKey"),
                     DoctоrGuid = reader.GetGuid("doctorKey"),
                     UserName = reader.GetString("username"),
                     Password = reader.GetString("password"),
-                    Profile = new PatientProfile()
+                    Profile = new Profile()
                     {
                         BirthDate = reader.GetDateTime("birthdate"),
                         FullName = reader.GetString("fullname"),
@@ -311,7 +311,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         return patients;
     }
 
-    public IUser GetUser(Guid guid)
+    public User GetUser(Guid guid)
     {
         try
         {
@@ -323,9 +323,9 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         }
     }
 
-    public UserDoctor GetDoctor(Guid guid)
+    public User GetDoctor(Guid guid)
     {
-        UserDoctor? doctor = null;
+        User? doctor = null;
 
         _sqlDatabase.ExecuteQuery($"""
                                    SELECT u.*, p.fullname, p.birthdate, p.profilepicture
@@ -337,13 +337,13 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         {
             while (reader.Read())
             {
-                doctor = new UserDoctor()
+                doctor = new User()
                 {
                     // TODO: Retrieve patient list?
                     UserKey = reader.GetGuid("userKey"),
                     UserName = reader.GetString("username"),
                     Password = reader.GetString("password"),
-                    Profile = new PatientProfile()
+                    Profile = new Profile()
                     {
                         BirthDate = reader.GetDateTime("birthdate"),
                         FullName = reader.GetString("fullname"),
@@ -356,9 +356,9 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         return doctor ?? throw new InvalidOperationException();
     }
 
-    public UserPatient GetPatient(Guid guid)
+    public User GetPatient(Guid guid)
     {
-        UserPatient? patient = null;
+        User? patient = null;
 
         _sqlDatabase.ExecuteQuery($"""
                                    SELECT u.*, p.fullname, p.birthdate, p.profilepicture
@@ -370,13 +370,13 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         {
             while (reader.Read())
             {
-                patient = new UserPatient()
+                patient = new User()
                 {
                     UserKey = reader.GetGuid("userKey"),
                     DoctоrGuid = reader.GetGuid("doctorKey"),
                     UserName = reader.GetString("username"),
                     Password = reader.GetString("password"),
-                    Profile = new PatientProfile()
+                    Profile = new Profile()
                     {
                         BirthDate = reader.GetDateTime("birthdate"),
                         FullName = reader.GetString("fullname"),
@@ -389,7 +389,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         return patient ?? throw new InvalidOperationException();
     }
 
-    public async Task AddMedicalFile(IMedicalFile medicalFile)
+    public async Task AddMedicalFile(MedicalFile medicalFile)
     {
         // Notes.
         foreach (var note in medicalFile.Notes)
@@ -432,7 +432,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         }
     }
 
-    public IMedicalFile GetMedicalFile(Guid guid)
+    public MedicalFile GetMedicalFile(Guid guid)
     {
         var notesList = new List<Note>();
         var appointmentList = new List<Appointment>();
@@ -523,7 +523,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         };
     }
 
-    public async Task AddChat(IChat chat)
+    public async Task AddChat(Chat chat)
     {
         foreach (var message in chat.Messages)
         {
@@ -534,9 +534,9 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         }
     }
 
-    public IChat GetChat(Guid user1, Guid user2)
+    public Chat GetChat(Guid user1, Guid user2)
     {
-        var messages = new List<IChatMessage>();
+        var messages = new List<ChatMessage>();
 
         _sqlDatabase.ExecuteQuery($"""
                                    SELECT *
