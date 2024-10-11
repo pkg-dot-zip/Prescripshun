@@ -1,6 +1,9 @@
-﻿namespace PrescripshunLib.Networking.Messages;
+﻿using PrescripshunLib.Models.MedicalFile;
 
-public class GetMedicalFileResponse
+namespace PrescripshunLib.Networking.Messages;
+
+public class GetMedicalFileResponse : IMessage
 {
-    
+    public MedicalFile MedicalFile { get; set; }
+    public string Reason { get; set; }
 }

@@ -152,6 +152,8 @@ internal class Server : AsyncTcpClient
                 Users = DatabaseHandler.GetChattableUsers(message.UserKey),
             });
         });
+
+        ServerEvents.Get.OnReceiveMessage.AddHandler<GetMedicalFileRequest>(ProcessGetMedicalFileRequest);
     }
 
     private async Task ProcessLoginRequest(AsyncTcpClient client, LoginRequest message)
@@ -173,5 +175,22 @@ internal class Server : AsyncTcpClient
     {
         var messageParam = PrescripshunLib.Networking.Messages.Message.GetMessageFromJsonString(jsonString);
         await ServerEvents.Get.OnReceiveMessage.Invoke(client, messageParam);
+    }
+
+    private async Task ProcessGetMedicalFileRequest(AsyncTcpClient client, GetMedicalFileRequest message)
+    {
+        var medicalFile = DatabaseHandler.GetMedicalFile(message.UserKey);
+        GetMedicalFileResponse response;
+
+        if (medicalFile != null)
+        {
+            response = new GetMedicalFileResponse { MedicalFile = medicalFile };
+        }
+        else
+        {
+            response = new GetMedicalFileResponse { Reason = "Medical file not found" };
+        }
+
+        await client.Send(response);
     }
 }
