@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using MySql.Data.MySqlClient;
 using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Models.MedicalFile;
@@ -166,6 +167,47 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         foreach (var patient in patientsList) await AddDoctorPatientRelation(patient);
         foreach (var medicalFile in medicalFiles) await AddMedicalFile(medicalFile);
         foreach (var chat in chatMessagesList) await AddChat(chat);
+
+        // Here we add our hardcoded data for easy access.
+        await AddHardcodedDoctor("Mark Rutte", "pkgdotzip", "1234", userKey: Guid.Parse("8842aeb2-5288-4885-ca88-a28837d88f2e"));
+        await AddHardcodedDoctor("Geert Wilders", "loenkas", "1234");
+        await AddHardcodedPatient("Thierry Baudet", "omit", "1234", doctorGuid: Guid.Parse("8842aeb2-5288-4885-ca88-a28837d88f2e"));
+    }
+
+    private async Task AddHardcodedPatient(string fullName, string userName, string password, Guid doctorGuid, Guid? userKey = null)
+    {
+        var patient = new User()
+        {
+            UserKey = userKey ?? Guid.NewGuid(),
+            UserName = userName,
+            Password = password,
+            DoctоrGuid = doctorGuid,
+            Profile = new Profile()
+            {
+                FullName = fullName,
+                BirthDate = DateTime.Parse("2000-01-01"),
+                ProfilePicture = new ProfilePicture("https://via.placeholder.com/360x360/cccccc/9c9c9c.png")
+            }
+        };
+        await AddPatient(patient);
+        await AddDoctorPatientRelation(patient);
+    }
+
+    private async Task AddHardcodedDoctor(string fullName, string userName, string password, Guid? userKey = null)
+    {
+        await AddDoctor(new User()
+        {
+            UserKey = userKey ?? Guid.NewGuid(),
+            UserName = userName,
+            Password = password,
+            DoctоrGuid = null,
+            Profile = new Profile()
+            {
+                FullName = fullName,
+                BirthDate = DateTime.Parse("2000-01-01"),
+                ProfilePicture = new ProfilePicture("https://via.placeholder.com/360x360/cccccc/9c9c9c.png")
+            }
+        });
     }
 
     public async Task Run()
@@ -178,7 +220,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         var patients = GetPatients();
         var patient = patients.First();
 
-        var profile = patient.GetPatientProfile;
+        var profile = patient.Profile;
         Logger.Info($"PROFILE RECEIVED: {profile}");
 
         var medicalFile = GetMedicalFile(patient.UserKey);
@@ -191,9 +233,26 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         await _sqlDatabase.DisconnectAsync();
     }
 
+    private User ParseUser(MySqlDataReader reader)
+    {
+        return new User()
+        {
+            UserKey = reader.GetGuid("userKey"),
+            DoctоrGuid = reader.IsDBNull("doctorKey") ? null : reader.GetGuid("doctorKey"),
+            UserName = reader.GetString("username"),
+            Password = reader.GetString("password"),
+            Profile = new Profile()
+            {
+                BirthDate = reader.GetDateTime("birthdate"),
+                FullName = reader.GetString("fullname"),
+                ProfilePicture = new ProfilePicture(reader.GetString("profilepicture")),
+            }
+        };
+    }
+
     public List<Guid> GetChattableUsers(Guid forUser)
     {
-        if (GetUser(forUser) is UserPatient patient) return [patient.DoctоrGuid];
+        if (GetUser(forUser) is User patient) return [patient.DoctоrGuid ?? Guid.Empty];
 
         var toReturn = new List<Guid>();
         _sqlDatabase.ExecuteQuery($"SELECT patientKey FROM `doctor_patient` WHERE doctorKey = '{forUser}'", reader =>
@@ -204,15 +263,22 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         return toReturn;
     }
 
-    public List<IUser> GetUsers()
+    public List<User> GetUsers()
     {
-        var patients = GetPatients().ToList<IUser>();
-        var doctors = GetDoctors().ToList<IUser>();
-        patients.AddRange(doctors);
-        return patients;
+        var users = new List<User>();
+        _sqlDatabase.ExecuteQuery("""
+                                  SELECT u.*, p.fullname, p.birthdate, p.profilepicture
+                                  FROM users u
+                                  JOIN profiles p ON u.userKey = p.userKey;
+                                  """, reader =>
+        {
+            while (reader.Read()) users.Add(ParseUser(reader));
+        });
+
+        return users;
     }
 
-    private async Task AddDoctorPatientRelation(UserPatient patient)
+    private async Task AddDoctorPatientRelation(User patient)
     {
         await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                  INSERT INTO doctor_patient (doctorKey, patientKey)
@@ -220,7 +286,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                                                  """);
     }
 
-    public async Task AddDoctor(UserDoctor doctor)
+    public async Task AddDoctor(User doctor)
     {
         await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                  INSERT INTO users (userKey, username, password)
@@ -234,9 +300,9 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                                                  """);
     }
 
-    public List<UserDoctor> GetDoctors()
+    public List<User> GetDoctors()
     {
-        var doctors = new List<UserDoctor>();
+        var doctors = new List<User>();
         _sqlDatabase.ExecuteQuery("""
                                   SELECT u.*, p.fullname, p.birthdate, p.profilepicture
                                   FROM users u
@@ -244,28 +310,13 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                                   WHERE u.doctorKey IS NULL;
                                   """, reader =>
         {
-            while (reader.Read())
-            {
-                doctors.Add(new UserDoctor()
-                {
-                    // TODO: Retrieve patient list?
-                    UserKey = reader.GetGuid("userKey"),
-                    UserName = reader.GetString("username"),
-                    Password = reader.GetString("password"),
-                    Profile = new PatientProfile()
-                    {
-                        BirthDate = reader.GetDateTime("birthdate"),
-                        FullName = reader.GetString("fullname"),
-                        ProfilePicture = new ProfilePicture(reader.GetString("profilepicture")),
-                    }
-                });
-            }
+            while (reader.Read()) doctors.Add(ParseUser(reader));
         });
 
         return doctors;
     }
 
-    public async Task AddPatient(UserPatient patient)
+    public async Task AddPatient(User patient)
     {
         await _sqlDatabase.ExecuteNonQueryAsync($"""
                                                  INSERT INTO users (userKey, username, password, doctorKey)
@@ -280,9 +331,9 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                                                  """);
     }
 
-    public List<UserPatient> GetPatients()
+    public List<User> GetPatients()
     {
-        var patients = new List<UserPatient>();
+        var patients = new List<User>();
         _sqlDatabase.ExecuteQuery("""
                                   SELECT u.*, p.fullname, p.birthdate, p.profilepicture
                                   FROM users u
@@ -290,106 +341,30 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                                   WHERE u.doctorKey IS NOT NULL;
                                   """, reader =>
         {
-            while (reader.Read())
-            {
-                patients.Add(new UserPatient()
-                {
-                    UserKey = reader.GetGuid("userKey"),
-                    DoctоrGuid = reader.GetGuid("doctorKey"),
-                    UserName = reader.GetString("username"),
-                    Password = reader.GetString("password"),
-                    Profile = new PatientProfile()
-                    {
-                        BirthDate = reader.GetDateTime("birthdate"),
-                        FullName = reader.GetString("fullname"),
-                        ProfilePicture = new ProfilePicture(reader.GetString("profilepicture")),
-                    }
-                });
-            }
+            while (reader.Read()) patients.Add(ParseUser(reader));
         });
 
         return patients;
     }
 
-    public IUser GetUser(Guid guid)
+    public User GetUser(Guid guid)
     {
-        try
-        {
-            return GetPatient(guid);
-        }
-        catch
-        {
-            return GetDoctor(guid);
-        }
-    }
-
-    public UserDoctor GetDoctor(Guid guid)
-    {
-        UserDoctor? doctor = null;
+        User? user = null;
 
         _sqlDatabase.ExecuteQuery($"""
                                    SELECT u.*, p.fullname, p.birthdate, p.profilepicture
                                    FROM users u
                                    JOIN profiles p ON u.userKey = p.userKey
-                                   WHERE u.doctorKey IS NULL
-                                   AND u.userKey = '{guid}';
+                                   WHERE u.userKey = '{guid}';
                                    """, reader =>
         {
-            while (reader.Read())
-            {
-                doctor = new UserDoctor()
-                {
-                    // TODO: Retrieve patient list?
-                    UserKey = reader.GetGuid("userKey"),
-                    UserName = reader.GetString("username"),
-                    Password = reader.GetString("password"),
-                    Profile = new PatientProfile()
-                    {
-                        BirthDate = reader.GetDateTime("birthdate"),
-                        FullName = reader.GetString("fullname"),
-                        ProfilePicture = new ProfilePicture(reader.GetString("profilepicture")),
-                    }
-                };
-            }
+            while (reader.Read()) user = ParseUser(reader);
         });
 
-        return doctor ?? throw new InvalidOperationException();
+        return user ?? throw new InvalidOperationException();
     }
 
-    public UserPatient GetPatient(Guid guid)
-    {
-        UserPatient? patient = null;
-
-        _sqlDatabase.ExecuteQuery($"""
-                                   SELECT u.*, p.fullname, p.birthdate, p.profilepicture
-                                   FROM users u
-                                   JOIN profiles p ON u.userKey = p.userKey
-                                   WHERE u.doctorKey IS NOT NULL
-                                   AND u.userKey = '{guid}';
-                                   """, reader =>
-        {
-            while (reader.Read())
-            {
-                patient = new UserPatient()
-                {
-                    UserKey = reader.GetGuid("userKey"),
-                    DoctоrGuid = reader.GetGuid("doctorKey"),
-                    UserName = reader.GetString("username"),
-                    Password = reader.GetString("password"),
-                    Profile = new PatientProfile()
-                    {
-                        BirthDate = reader.GetDateTime("birthdate"),
-                        FullName = reader.GetString("fullname"),
-                        ProfilePicture = new ProfilePicture(reader.GetString("profilepicture")),
-                    }
-                };
-            }
-        });
-
-        return patient ?? throw new InvalidOperationException();
-    }
-
-    public async Task AddMedicalFile(IMedicalFile medicalFile)
+    public async Task AddMedicalFile(MedicalFile medicalFile)
     {
         // Notes.
         foreach (var note in medicalFile.Notes)
@@ -432,7 +407,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         }
     }
 
-    public IMedicalFile GetMedicalFile(Guid guid)
+    public MedicalFile GetMedicalFile(Guid guid)
     {
         var notesList = new List<Note>();
         var appointmentList = new List<Appointment>();
@@ -523,7 +498,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         };
     }
 
-    public async Task AddChat(IChat chat)
+    public async Task AddChat(Chat chat)
     {
         foreach (var message in chat.Messages)
         {
@@ -534,9 +509,9 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         }
     }
 
-    public IChat GetChat(Guid user1, Guid user2)
+    public Chat GetChat(Guid user1, Guid user2)
     {
-        var messages = new List<IChatMessage>();
+        var messages = new List<ChatMessage>();
 
         _sqlDatabase.ExecuteQuery($"""
                                    SELECT *

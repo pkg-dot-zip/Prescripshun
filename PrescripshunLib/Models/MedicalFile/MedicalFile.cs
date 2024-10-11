@@ -1,6 +1,6 @@
 ﻿namespace PrescripshunLib.Models.MedicalFile;
 
-public class MedicalFile : IMedicalFile
+public class MedicalFile
 {
     public Guid Patient { get; set; }
     public List<Diagnosis> Diagnoses { get; set; } = new();

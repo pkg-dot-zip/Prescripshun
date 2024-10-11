@@ -11,9 +11,9 @@ public class DashboardViewModel : ViewModelBase
 {
     public Guid UserKey => NetworkHandler.Client.UserKey;
 
-    private ObservableCollection<IUser> _items = [];
+    private ObservableCollection<User> _items = [];
 
-    public ObservableCollection<IUser> Items
+    public ObservableCollection<User> Items
     {
         get => _items;
         set => SetProperty(ref _items, value);
