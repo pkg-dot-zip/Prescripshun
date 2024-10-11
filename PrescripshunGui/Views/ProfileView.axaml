@@ -6,5 +6,10 @@
     <StackPanel>
         <TextBlock Text="{Binding Profile.FullName}" FontSize="20" FontWeight="Bold" />
         <TextBlock Text="{Binding Profile.BirthDate}" />
+        <TextBlock Text="" />
+        <TextBlock Text="{Binding MedicalFile.Diagnoses}" />
+        <TextBlock Text="{Binding MedicalFile.Medication}" />
+        <TextBlock Text="{Binding MedicalFile.Appointments}" />
+        <TextBlock Text="{Binding MedicalFile.Notes}" />
     </StackPanel>
 </UserControl>

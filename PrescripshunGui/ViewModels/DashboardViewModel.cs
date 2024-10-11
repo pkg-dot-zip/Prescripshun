@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using MsBox.Avalonia.ViewModels.Commands;
 using PrescripshunGui.Util;
 using PrescripshunLib.ExtensionMethods;
+using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Models.User;
 using PrescripshunLib.Util.Faker;
 
@@ -29,6 +30,13 @@ public class DashboardViewModel : ViewModelBase
         set => SetProperty(ref _selectedProfileViewModel, value);
     }
 
+    private IMedicalFile _medicalFile;
+    public IMedicalFile MedicalFile
+    {
+        get => _medicalFile;
+        set => SetProperty(ref _medicalFile, value);
+    }
+
     public DashboardViewModel()
     {
         Items.AddAll(new FakeHandler().GetDoctors());
@@ -36,6 +44,6 @@ public class DashboardViewModel : ViewModelBase
 
     public void OpenProfileView(IUser user)
     {
-        SelectedProfileViewModel = new ProfileViewModel(user.Profile);
+        SelectedProfileViewModel = new ProfileViewModel(user.Profile, user.MedicalFile);
     }
 }

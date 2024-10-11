@@ -1,4 +1,5 @@
-﻿using PrescripshunLib.Models.User.Profile;
+﻿using PrescripshunLib.Models.MedicalFile;
+using PrescripshunLib.Models.User.Profile;
 
 namespace PrescripshunLib.Models.User;
 
@@ -9,4 +10,6 @@ public interface IUser
     public string Password { get; }
 
     public IProfile Profile { get; }
+
+    public IMedicalFile MedicalFile { get;  }
 }
