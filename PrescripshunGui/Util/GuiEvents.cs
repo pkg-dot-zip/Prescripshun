@@ -1,23 +1,80 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
+using NLog.Fluent;
 using PrescripshunClient;
 using PrescripshunGui.ViewModels;
 using PrescripshunGui.Views;
+using PrescripshunLib.ExtensionMethods;
+using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Networking.Messages;
+using PrescripshunLib.Util.Sound;
+using SoundHandler = PrescripshunGui.Util.Sound.SoundHandler;
 
 namespace PrescripshunGui.Util;
 
-internal static class GuiEvents
+internal class GuiEvents
 {
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
     public static ClientEvents GetNetworkEvents() => ClientEvents.Get;
 
-    public static void RegisterEvents()
+    private static GuiEvents? _instance = null;
+
+    private GuiEvents()
+    {
+    }
+
+    public static GuiEvents Get => _instance ??= new GuiEvents();
+
+
+    #region Events
+    public delegate Task OnApplicationBootDelegate(string[] args);
+
+    /// <summary>
+    /// Event that gets invoked on initiation of the client, before any network code is executed.
+    /// </summary>
+    public OnApplicationBootDelegate OnApplicationBoot { get; set; } = (args) => Task.CompletedTask;
+
+
+    public delegate Task OnApplicationExitDelegate(string[] args);
+
+    /// <summary>
+    /// Event that gets invoked on exit of the client, after the connection is closed.
+    /// </summary>
+    public OnApplicationExitDelegate OnApplicationExit { get; set; } = (args) => Task.CompletedTask;
+
+
+    public delegate Task OnSoundDelegate(string url);
+
+    public OnSoundDelegate OnSoundPlay { get; set; } = url => Task.CompletedTask;
+    public OnSoundDelegate OnSoundEnd { get; set; } = url => Task.CompletedTask;
+
+    #endregion
+
+    public void RegisterEvents()
     {
         NetworkHandler.Client.RegisterEvents();
         Logger.Info("Registering events in {0}", nameof(GuiEvents));
+
+        OnApplicationBoot += async args =>
+        {
+            await SoundHandler.Get.PlaySoundFromUrlAsync("https://opengameart.org/sites/default/files/audio_preview/MS_Realization.ogg.mp3");
+        };
+
+        OnApplicationExit += args =>
+        {
+            NLog.LogManager.Shutdown();
+            return Task.CompletedTask;
+        };
+
+        OnApplicationBoot += args =>
+        {
+            Logger.Info($"Starting client at {DateTime.Now} on {Environment.MachineName}.");
+            return Task.CompletedTask;
+        };
 
         GetNetworkEvents().OnReceiveMessage.AddHandler<LoginResponse>((client, message) =>
         {
@@ -52,8 +109,89 @@ internal static class GuiEvents
                     {
                         DataContext = new DashboardViewModel()
                     };
+
+                    // Here we add users to the list.
+                    client.Send(new ChattableUsersRequest()
+                    {
+                        UserKey = NetworkHandler.Client.UserKey,
+                    });
                 });
             }
         });
+
+        GetNetworkEvents().OnReceiveMessage.AddHandler<ChattableUsersResponse>((client, message) =>
+        {
+            foreach (var user in message.Users)
+            {
+                Logger.Info("Chattable User Found: {0} - {1}", user.UserName, user.Profile.FullName);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        GetNetworkEvents().OnReceiveMessage.AddHandler<ChattableUsersResponse>(async (client, message) =>
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                #region Checks
+
+                var currentWindow =
+                    (Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+                    ?.MainWindow;
+
+                if (currentWindow is null)
+                {
+                    Logger.Warn("{0} was null", nameof(currentWindow));
+                    throw new InvalidOperationException();
+                }
+
+                var view =
+                    currentWindow?.Content;
+
+                if (view is not Dashboard)
+                {
+                    Logger.Warn("{0} was not a {1}", nameof(view), nameof(Dashboard));
+                    throw new InvalidOperationException();
+                }
+
+                var currentView =
+                    currentWindow?.Content as Dashboard;
+
+                var users = message.Users;
+
+                if (currentView is null)
+                {
+                    Logger.Warn("{0} was null", nameof(currentView));
+                    throw new InvalidOperationException();
+                }
+
+                if (currentView.DataContext is null)
+                {
+                    Logger.Warn("{0}.DataContext was null", nameof(currentView));
+                    throw new InvalidOperationException();
+                }
+
+                if (currentView.DataContext is MainViewModel)
+                {
+                    Logger.Warn("STILL {0}", nameof(MainViewModel));
+                    throw new InvalidOperationException();
+                }
+
+                if (currentView.DataContext is not DashboardViewModel model)
+                {
+                    Logger.Warn("NOT {0}", nameof(DashboardViewModel));
+                    throw new InvalidOperationException();
+                }
+
+                #endregion
+
+                model.Items.Clear();
+                model.Items.AddAll(users);
+                Logger.Info("Added new users to DashBoardViewModel");
+
+                return Task.CompletedTask;
+            });
+        });
+
     }
 }

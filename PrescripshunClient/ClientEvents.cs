@@ -15,21 +15,6 @@ namespace PrescripshunClient
 
         public static ClientEvents Get => _instance ??= new ClientEvents();
 
-        public delegate Task OnApplicationBootDelegate(string[] args);
-
-        /// <summary>
-        /// Event that gets invoked on initiation of the client, before any network code is executed.
-        /// </summary>
-        public OnApplicationBootDelegate OnApplicationBoot { get; set; } = (args) => Task.CompletedTask;
-
-
-        public delegate Task OnApplicationExitDelegate(string[] args);
-
-        /// <summary>
-        /// Event that gets invoked on exit of the client, after the connection is closed.
-        /// </summary>
-        public OnApplicationExitDelegate OnApplicationExit { get; set; } = (args) => Task.CompletedTask;
-
 
         public delegate Task OnReceiveStringDelegate(AsyncTcpClient serverClient, [StringSyntax(StringSyntaxAttribute.Json)] string jsonString);
 

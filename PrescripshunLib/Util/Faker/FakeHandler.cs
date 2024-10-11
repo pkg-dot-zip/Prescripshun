@@ -1,4 +1,4 @@
-﻿using PrescripshunLib.ExtensionMethods;
+using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Models.User.Profile;
@@ -18,18 +18,18 @@ public class FakeHandler(int seed = 0, string locale = "nl")
 
     private readonly Random _random = new(seed);
 
-    public List<UserDoctor> GetDoctors()
+    public List<User> GetDoctors(int amount = 3)
     {
-        var doctorsList = new List<UserDoctor>();
-        for (var i = 0; i < 3; i++)
+        var doctorsList = new List<User>();
+        for (var i = 0; i < amount; i++)
         {
             var fullName = _faker.Name.FullName();
-            doctorsList.Add(new UserDoctor()
+            doctorsList.Add(new User()
             {
                 UserKey = Guid.NewGuid(),
                 UserName = _faker.Internet.UserName(fullName.Split(' ', 2)[0], fullName.Split(' ', 2)[1]),
                 Password = _faker.Internet.Password(memorable: true),
-                Profile = new DoctorProfile()
+                Profile = new Profile()
                 {
                     BirthDate = _faker.Date.Past(30, DateTime.Now.AddYears(-10)),
                     FullName = fullName,
@@ -41,19 +41,19 @@ public class FakeHandler(int seed = 0, string locale = "nl")
         return doctorsList;
     }
 
-    public List<UserPatient> GetPatients(ref List<UserDoctor> doctorsList)
+    public List<User> GetPatients(ref List<User> doctorsList)
     {
-        var patientsList = new List<UserPatient>();
+        var patientsList = new List<User>();
         for (var i = 0; i < doctorsList.Count * 10; i++)
         {
             var fullName = _faker.Name.FullName();
-            patientsList.Add(new UserPatient()
+            patientsList.Add(new User()
             {
                 UserKey = Guid.NewGuid(),
                 UserName = _faker.Internet.UserName(fullName.Split(' ', 2)[0], fullName.Split(' ', 2)[1]),
                 Password = _faker.Internet.Password(memorable: true),
                 DoctоrGuid = doctorsList[i % doctorsList.Count].UserKey,
-                Profile = new PatientProfile()
+                Profile = new Profile()
                 {
                     BirthDate = _faker.Date.Past(30, new DateTime(2023, 12, 31)),
                     FullName = fullName,
@@ -61,12 +61,13 @@ public class FakeHandler(int seed = 0, string locale = "nl")
                 }
             });
         }
+
         return patientsList;
     }
 
-    public List<IMedicalFile> GetMedicalFiles(ref List<UserPatient> patientsList)
+    public List<MedicalFile> GetMedicalFiles(ref List<User> patientsList)
     {
-        var medicalFileList = new List<IMedicalFile>();
+        var medicalFileList = new List<MedicalFile>();
         foreach (var patient in patientsList)
         {
             // Create fake appointments.
@@ -77,7 +78,7 @@ public class FakeHandler(int seed = 0, string locale = "nl")
                 {
                     Title = $"Beautiful appointment {i}", // TODO: Fake.
                     Description = "Basic description", // TODO: Fake.
-                    DoctorToMeet = patient.DoctоrGuid,
+                    DoctorToMeet = patient.DoctоrGuid ?? Guid.Empty,
                     DateTime = _faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
                 };
 
@@ -143,16 +144,15 @@ public class FakeHandler(int seed = 0, string locale = "nl")
                 Diagnoses = diagnosisList,
             };
             medicalFileList.Add(medicalFile);
-               
         }
 
         return medicalFileList;
     }
 
-    public List<IChat> GetChats(ref List<UserPatient> patientsList)
+    public List<Chat> GetChats(ref List<User> patientsList)
     {
         // Create fake chat messages between doctors and patients.
-        var chatMessagesList = new List<IChat>();
+        var chatMessagesList = new List<Chat>();
         foreach (var patient in patientsList)
         {
             // Patients seem to be not very talkative. :P
@@ -161,27 +161,27 @@ public class FakeHandler(int seed = 0, string locale = "nl")
             var chatDate = _faker.Date.Between(DateTime.Now.AddYears(-1), DateTime.Now);
             var chat = new Chat()
             {
-                User1 = patient.DoctоrGuid,
+                User1 = patient.DoctоrGuid ?? Guid.Empty,
                 User2 = patient.UserKey,
                 Messages =
                 [
                     new ChatMessage()
                     {
-                        Sender = patient.DoctоrGuid,
+                        Sender = patient.DoctоrGuid ?? Guid.Empty,
                         Recipient = patient.UserKey,
                         Text = $"Hey {patient.Profile.FullName}, kom jij even langs?",
                         Time = chatDate
                     },
                     new ChatMessage()
                     {
-                        Recipient = patient.DoctоrGuid,
+                        Recipient = patient.DoctоrGuid ?? Guid.Empty,
                         Sender = patient.UserKey,
                         Text = "Maar natuurlijk dokter! :)",
                         Time = chatDate.AddMinutes(30)
                     },
                     new ChatMessage()
                     {
-                        Recipient = patient.DoctоrGuid,
+                        Recipient = patient.DoctоrGuid ?? Guid.Empty,
                         Sender = patient.UserKey,
                         Text = $"Tot zo, {patient.Profile.FullName.Split(" ")[0]}!",
                         Time = chatDate.AddMinutes(37)

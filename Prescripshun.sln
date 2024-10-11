@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrescripshunGui", "Prescrip
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrescripshunGui.Desktop", "PrescripshunGui.Desktop\PrescripshunGui.Desktop.csproj", "{6BF0D05D-ED34-4B44-A788-5EE39882EBF4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrescripshunLibTests", "PrescripshunLibTests\PrescripshunLibTests.csproj", "{6B343E43-E017-4845-928C-0D8D9C03699A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{6BF0D05D-ED34-4B44-A788-5EE39882EBF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6BF0D05D-ED34-4B44-A788-5EE39882EBF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6BF0D05D-ED34-4B44-A788-5EE39882EBF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B343E43-E017-4845-928C-0D8D9C03699A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B343E43-E017-4845-928C-0D8D9C03699A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B343E43-E017-4845-928C-0D8D9C03699A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B343E43-E017-4845-928C-0D8D9C03699A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

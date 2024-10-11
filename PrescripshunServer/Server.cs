@@ -4,11 +4,13 @@ using Unclassified.Net;
 using System.Diagnostics.CodeAnalysis;
 using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Util.Sound;
-using PrescripshunServer.Database;
-using PrescripshunServer.Database.MySql;
+using Prescripshun.Database;
+using Prescripshun.Database.MySql;
 using PrescripshunLib.Networking.Messages;
+using Google.Protobuf;
+using PrescripshunLib.Models.User;
 
-namespace PrescripshunServer;
+namespace Prescripshun;
 
 internal class Server : AsyncTcpClient
 {
@@ -108,6 +110,7 @@ internal class Server : AsyncTcpClient
             return Task.CompletedTask;
         };
 
+
         ServerEvents.Get.OnApplicationExit += args =>
         {
             Logger.Info("Shutting down server.");
@@ -140,6 +143,15 @@ internal class Server : AsyncTcpClient
         });
 
         ServerEvents.Get.OnReceiveMessage.AddHandler<LoginRequest>(ProcessLoginRequest);
+
+        // The server will send this message in response to a ChattableUsersRequest.
+        ServerEvents.Get.OnReceiveMessage.AddHandler<ChattableUsersRequest>(async (client, message) =>
+        {
+            await client.Send(new ChattableUsersResponse()
+            {
+                Users = DatabaseHandler.GetChattableUsers(message.UserKey),
+            });
+        });
     }
 
     private async Task ProcessLoginRequest(AsyncTcpClient client, LoginRequest message)
