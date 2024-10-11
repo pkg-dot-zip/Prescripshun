@@ -130,30 +130,42 @@ internal class GuiEvents
 
         GetNetworkEvents().OnReceiveMessage.AddHandler<ChattableUsersResponse>(async (client, message) =>
         {
-            await Task.Delay(10000);
+            await Task.Delay(200);
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                var currentWindow =
-                    (Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
-                    ?.MainWindow;
+                var currentView =
+                    (Application.Current!.ApplicationLifetime as ISingleViewApplicationLifetime)
+                    ?.MainView;
 
                 var users = message.Users;
 
-                if (currentWindow is null)
+                if (currentView is null)
                 {
-                    Logger.Info("{0} was null", nameof(currentWindow));
+                    Logger.Info("{0} was null", nameof(currentView));
                     return Task.CompletedTask;
                 }
 
-                if (currentWindow.DataContext is DashboardViewModel)
+                if (currentView.DataContext is null)
+                {
+                    Logger.Info("{0}.DataContext was null", nameof(currentView));
+                    return Task.CompletedTask;
+                }
+
+                if (currentView.DataContext is MainViewModel)
+                {
+                    Logger.Info("STILL {0}", nameof(MainViewModel));
+                    return Task.CompletedTask;
+                }
+
+                if (currentView.DataContext is not DashboardViewModel model)
                 {
                     Logger.Info("NOT {0}", nameof(DashboardViewModel));
                     return Task.CompletedTask;
                 }
 
-                (currentWindow.DataContext as DashboardViewModel)?.Items.AddAll(users);
-
+                model.Items.AddAll(users);
                 Logger.Info("Added new users to DashBoardViewModel");
+
                 return Task.CompletedTask;
             });
         });
