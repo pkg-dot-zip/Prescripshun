@@ -1,6 +1,6 @@
 ﻿namespace PrescripshunLib.Models.Chat;
 
-public class ChatMessage : IChatMessage
+public class ChatMessage
 {
     public Guid Sender { get; set; }
     public Guid Recipient { get; set; }

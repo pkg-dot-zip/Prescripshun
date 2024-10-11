@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using Bogus;
 using Bogus.DataSets;
@@ -13,10 +13,9 @@ public class DashboardViewModel : ViewModelBase
 {
     public Guid UserKey => NetworkHandler.Client.UserKey;
 
-    private ObservableCollection<IUser> _items = [];
+    private ObservableCollection<User> _items = [];
 
-
-    public ObservableCollection<IUser> ChattableUsers
+    public ObservableCollection<User> Items
     {
         get => _items;
         set => SetProperty(ref _items, value);
