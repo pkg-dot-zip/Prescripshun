@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using MySql.Data.MySqlClient;
 using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Models.MedicalFile;
@@ -191,6 +192,23 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         await _sqlDatabase.DisconnectAsync();
     }
 
+    private User ParseUser(MySqlDataReader reader)
+    {
+        return new User()
+        {
+            UserKey = reader.GetGuid("userKey"),
+            DoctоrGuid = reader.IsDBNull("doctorKey") ? null : reader.GetGuid("doctorKey"),
+            UserName = reader.GetString("username"),
+            Password = reader.GetString("password"),
+            Profile = new Profile()
+            {
+                BirthDate = reader.GetDateTime("birthdate"),
+                FullName = reader.GetString("fullname"),
+                ProfilePicture = new ProfilePicture(reader.GetString("profilepicture")),
+            }
+        };
+    }
+
     public List<Guid> GetChattableUsers(Guid forUser)
     {
         if (GetUser(forUser) is User patient) return [patient.DoctоrGuid ?? Guid.Empty];
@@ -246,19 +264,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         {
             while (reader.Read())
             {
-                doctors.Add(new User()
-                {
-                    // TODO: Retrieve patient list?
-                    UserKey = reader.GetGuid("userKey"),
-                    UserName = reader.GetString("username"),
-                    Password = reader.GetString("password"),
-                    Profile = new Profile()
-                    {
-                        BirthDate = reader.GetDateTime("birthdate"),
-                        FullName = reader.GetString("fullname"),
-                        ProfilePicture = new ProfilePicture(reader.GetString("profilepicture")),
-                    }
-                });
+                doctors.Add(ParseUser(reader));
             }
         });
 
@@ -292,19 +298,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         {
             while (reader.Read())
             {
-                patients.Add(new User()
-                {
-                    UserKey = reader.GetGuid("userKey"),
-                    DoctоrGuid = reader.GetGuid("doctorKey"),
-                    UserName = reader.GetString("username"),
-                    Password = reader.GetString("password"),
-                    Profile = new Profile()
-                    {
-                        BirthDate = reader.GetDateTime("birthdate"),
-                        FullName = reader.GetString("fullname"),
-                        ProfilePicture = new ProfilePicture(reader.GetString("profilepicture")),
-                    }
-                });
+                patients.Add(ParseUser(reader));
             }
         });
 
@@ -337,19 +331,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         {
             while (reader.Read())
             {
-                doctor = new User()
-                {
-                    // TODO: Retrieve patient list?
-                    UserKey = reader.GetGuid("userKey"),
-                    UserName = reader.GetString("username"),
-                    Password = reader.GetString("password"),
-                    Profile = new Profile()
-                    {
-                        BirthDate = reader.GetDateTime("birthdate"),
-                        FullName = reader.GetString("fullname"),
-                        ProfilePicture = new ProfilePicture(reader.GetString("profilepicture")),
-                    }
-                };
+                doctor = ParseUser(reader);
             }
         });
 
@@ -370,19 +352,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         {
             while (reader.Read())
             {
-                patient = new User()
-                {
-                    UserKey = reader.GetGuid("userKey"),
-                    DoctоrGuid = reader.GetGuid("doctorKey"),
-                    UserName = reader.GetString("username"),
-                    Password = reader.GetString("password"),
-                    Profile = new Profile()
-                    {
-                        BirthDate = reader.GetDateTime("birthdate"),
-                        FullName = reader.GetString("fullname"),
-                        ProfilePicture = new ProfilePicture(reader.GetString("profilepicture")),
-                    }
-                };
+                patient = ParseUser(reader);
             }
         });
 
