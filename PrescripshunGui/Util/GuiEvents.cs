@@ -133,6 +133,8 @@ internal class GuiEvents
         {
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
+                #region Checks
+
                 var currentWindow =
                     (Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
                     ?.MainWindow;
@@ -180,6 +182,8 @@ internal class GuiEvents
                     Logger.Warn("NOT {0}", nameof(DashboardViewModel));
                     throw new InvalidOperationException();
                 }
+
+                #endregion
 
                 model.Items.AddAll(users);
                 Logger.Info("Added new users to DashBoardViewModel");
