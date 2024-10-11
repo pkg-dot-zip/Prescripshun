@@ -134,8 +134,8 @@ internal class GuiEvents
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var currentView =
-                    (Application.Current!.ApplicationLifetime as ISingleViewApplicationLifetime)
-                    ?.MainView;
+                    (Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+                    ?.MainWindow?.Content as Dashboard;
 
                 var users = message.Users;
 
