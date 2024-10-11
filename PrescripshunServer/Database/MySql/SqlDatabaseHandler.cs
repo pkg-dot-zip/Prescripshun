@@ -255,7 +255,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         var thisUser = GetUser(forUser);
 
         // If a patient, only return the doctor.
-        if (thisUser.IsDoctor) return [thisUser.DoctоrGuid ?? throw new InvalidOperationException()];
+        if (!thisUser.IsDoctor) return [thisUser.DoctоrGuid ?? throw new InvalidOperationException()];
 
         // If a doctor, return all patients.
         var toReturn = new List<Guid>();
