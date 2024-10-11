@@ -1,7 +1,7 @@
 using System.Data;
 using MySql.Data.MySqlClient;
 
-namespace PrescripshunServer.Database.MySql;
+namespace Prescripshun.Database.MySql;
 
 /// <summary>
 /// Represents a MySQL database connection manager that handles database connection,

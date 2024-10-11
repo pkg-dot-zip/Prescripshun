@@ -1,11 +1,15 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
+using NLog.Fluent;
 using PrescripshunClient;
 using PrescripshunGui.ViewModels;
 using PrescripshunGui.Views;
+using PrescripshunLib.ExtensionMethods;
+using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Networking.Messages;
 using PrescripshunLib.Util.Sound;
 using SoundHandler = PrescripshunGui.Util.Sound.SoundHandler;
@@ -105,8 +109,89 @@ internal class GuiEvents
                     {
                         DataContext = new DashboardViewModel()
                     };
+
+                    // Here we add users to the list.
+                    client.Send(new ChattableUsersRequest()
+                    {
+                        UserKey = NetworkHandler.Client.UserKey,
+                    });
                 });
             }
         });
+
+        GetNetworkEvents().OnReceiveMessage.AddHandler<ChattableUsersResponse>((client, message) =>
+        {
+            foreach (var user in message.Users)
+            {
+                Logger.Info("Chattable User Found: {0} - {1}", user.UserName, user.Profile.FullName);
+            }
+
+            return Task.CompletedTask;
+        });
+
+        GetNetworkEvents().OnReceiveMessage.AddHandler<ChattableUsersResponse>(async (client, message) =>
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                #region Checks
+
+                var currentWindow =
+                    (Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+                    ?.MainWindow;
+
+                if (currentWindow is null)
+                {
+                    Logger.Warn("{0} was null", nameof(currentWindow));
+                    throw new InvalidOperationException();
+                }
+
+                var view =
+                    currentWindow?.Content;
+
+                if (view is not Dashboard)
+                {
+                    Logger.Warn("{0} was not a {1}", nameof(view), nameof(Dashboard));
+                    throw new InvalidOperationException();
+                }
+
+                var currentView =
+                    currentWindow?.Content as Dashboard;
+
+                var users = message.Users;
+
+                if (currentView is null)
+                {
+                    Logger.Warn("{0} was null", nameof(currentView));
+                    throw new InvalidOperationException();
+                }
+
+                if (currentView.DataContext is null)
+                {
+                    Logger.Warn("{0}.DataContext was null", nameof(currentView));
+                    throw new InvalidOperationException();
+                }
+
+                if (currentView.DataContext is MainViewModel)
+                {
+                    Logger.Warn("STILL {0}", nameof(MainViewModel));
+                    throw new InvalidOperationException();
+                }
+
+                if (currentView.DataContext is not DashboardViewModel model)
+                {
+                    Logger.Warn("NOT {0}", nameof(DashboardViewModel));
+                    throw new InvalidOperationException();
+                }
+
+                #endregion
+
+                model.Items.Clear();
+                model.Items.AddAll(users);
+                Logger.Info("Added new users to DashBoardViewModel");
+
+                return Task.CompletedTask;
+            });
+        });
+
     }
 }

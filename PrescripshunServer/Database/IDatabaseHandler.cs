@@ -1,15 +1,15 @@
-﻿using PrescripshunLib.Models.Chat;
+using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Models.User;
 
-namespace PrescripshunServer.Database;
+namespace Prescripshun.Database;
 
 internal interface IDatabaseHandler
 {
     public Task Run();
     public Task Stop();
 
-    public List<Guid> GetChattableUsers(Guid forUser);
+    public List<User> GetChattableUsers(Guid forUser);
     public List<User> GetUsers();
     public Task AddDoctor(User doctor); // TODO: Merge with AddPatient.
     public List<User> GetDoctors();

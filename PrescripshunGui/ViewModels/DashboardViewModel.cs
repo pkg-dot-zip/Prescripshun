@@ -1,5 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
+using Bogus;
+using Bogus.DataSets;
 using PrescripshunGui.Util;
 using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Models.User;
@@ -9,6 +11,8 @@ namespace PrescripshunGui.ViewModels;
 
 public class DashboardViewModel : ViewModelBase
 {
+    private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
     public Guid UserKey => NetworkHandler.Client.UserKey;
 
     private ObservableCollection<User> _items = [];
@@ -21,6 +25,26 @@ public class DashboardViewModel : ViewModelBase
 
     public DashboardViewModel()
     {
-        Items.AddAll(new FakeHandler().GetDoctors());
+        Items.CollectionChanged += (sender, args) =>
+        {
+            if (args.NewItems is not null)
+            {
+                foreach (var argsNewItem in args.NewItems)
+                {
+                    if (argsNewItem is User newUser)
+                    {
+                        Logger.Info("Added {0} to observable collection of users.", newUser.Profile.FullName);
+                    }
+                    else
+                    {
+                        Logger.Warn("Item added was not a user?! That is impossible?!?!");
+                    }
+                }
+            }
+            else
+            {
+                Logger.Warn("New items were null.");
+            }
+        };
     }
 }
