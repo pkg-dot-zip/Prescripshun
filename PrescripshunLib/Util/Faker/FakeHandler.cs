@@ -7,7 +7,13 @@ using Bogus;
 
 namespace PrescripshunLib.Util.Faker;
 
-public class FakeHandler(int seed = 0, string locale = "nl")
+/// <summary>
+/// Creates 'fake' data we use to fill our database with test data since we do not have access to actual data used by
+/// general practitioners.
+/// </summary>
+/// <param name="seed">Seed to use for our <seealso cref="Bogus.Faker.Random"/> and our own <seealso cref="Random"/> instance.</param>
+/// <param name="locale">Language setting to use. Right now the default is 'nl', which is Dutch. Note that Flemish is also supported but not used.</param>
+public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish locale has boring names. Use 'nl'. :(
 {
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
