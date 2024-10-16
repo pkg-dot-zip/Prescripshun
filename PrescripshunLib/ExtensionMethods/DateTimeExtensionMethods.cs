@@ -1,5 +1,8 @@
 ﻿namespace PrescripshunLib.ExtensionMethods;
 
+/// <summary>
+/// Contains extension methods for <seealso cref="DateTime"/>.
+/// </summary>
 public static class DateTimeExtensionMethods
 {
     /// <summary>

@@ -1,5 +1,8 @@
 ﻿namespace PrescripshunLib.ExtensionMethods;
 
+/// <summary>
+/// Contains extension methods for <seealso cref="Random"/>.
+/// </summary>
 public static class RandomExtensions
 {
     /// <summary>
