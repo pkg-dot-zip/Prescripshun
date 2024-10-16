@@ -1,11 +1,16 @@
 ﻿namespace PrescripshunLib.ExtensionMethods;
 
+/// <summary>
+/// Contains extension methods for <seealso cref="IList{T}"/>.
+/// </summary>
+// ReSharper disable once InconsistentNaming
 public static class IListExtensions
 {
     /// <summary>
     /// Adds all of the <paramref name="elements"/> to the end of the <paramref name="collection"/>.
+    /// Useful since <seealso cref="List{T}.AddRange"/> is only available in the implementation <seealso cref="List{T}"/>.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T"><see langword="type"/> of <seealso cref="elements"/></typeparam>
     /// <param name="collection">Collection to add the <paramref name="elements"/> to.</param>
     /// <param name="elements">Elements to add to <paramref name="collection"/>.</param>
     public static void AddAll<T>(this IList<T> collection, params T[] elements)
@@ -15,8 +20,9 @@ public static class IListExtensions
 
     /// <summary>
     /// Adds all of the <paramref name="elements"/> to the end of the <paramref name="collection"/>.
+    /// Useful since <seealso cref="List{T}.AddRange"/> is only available in the implementation <seealso cref="List{T}"/>.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T"><see langword="type"/> of <seealso cref="elements"/></typeparam>
     /// <param name="collection">Collection to add the <paramref name="elements"/> to.</param>
     /// <param name="elements">Elements to add to <paramref name="collection"/>.</param>
     public static void AddAll<T>(this IList<T> collection, IEnumerable<T> elements)
