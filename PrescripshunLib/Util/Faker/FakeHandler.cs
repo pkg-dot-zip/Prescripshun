@@ -80,14 +80,7 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
             var appointmentsList = new List<Appointment>();
             for (int i = 0; i < _random.Next(1, 5); i++)
             {
-                var appointment = new Appointment()
-                {
-                    Title = $"Beautiful appointment {i}", // TODO: Fake.
-                    Description = "Basic description", // TODO: Fake.
-                    DoctorToMeet = patient.DoctоrGuid ?? Guid.Empty,
-                    DateTime = _faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
-                };
-
+                var appointment = GetAppointment(patient);
                 appointmentsList.Add(appointment);
             }
 
@@ -95,13 +88,7 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
             var notesList = new List<Note>();
             for (int i = 0; i < _random.Next(1, 5); i++)
             {
-                var note = new Note()
-                {
-                    Title = $"Extraordinary note {i}", // TODO: Fake.
-                    Description = "Basic description", // TODO: Fake.
-                    DateTime = _faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
-                };
-
+                var note = GetNote(patient);
                 notesList.Add(note);
             }
 
@@ -109,21 +96,7 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
             var medicationList = new List<Medication>();
             for (int i = 0; i < _random.Next(1, 5); i++)
             {
-                var medication = new Medication()
-                {
-                    Title = $"Amazingly complicated medication name {i}", // TODO: Fake.
-                    Description = "Basic description", // TODO: Fake.
-                    StartedUsingOn = _faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
-                };
-
-                // Sometimes people are still using the meds, so we do not always add them.
-                if (_random.NextBool())
-                {
-                    medication.StoppedUsingOn =
-                        _faker.Date.Between(medication.StartedUsingOn, new DateTime(2023, 12, 31));
-                }
-
-                Logger.Trace($"Adding medication with stoppedUsingOn = {medication.StoppedUsingOn}");
+                var medication = GetMedication(patient);
                 medicationList.Add(medication);
             }
 
@@ -131,13 +104,7 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
             var diagnosisList = new List<Diagnosis>();
             for (int i = 0; i < _random.Next(1, 5); i++)
             {
-                var diagnosis = new Diagnosis()
-                {
-                    Title = $"Very long disease or disorder name {i}", // TODO: Fake.
-                    Description = "Basic description", // TODO: Fake.
-                    DateTime = _faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
-                };
-
+                var diagnosis = GetDiagnosis(patient);
                 diagnosisList.Add(diagnosis);
             }
 
@@ -153,6 +120,56 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         }
 
         return medicalFileList;
+    }
+
+    private Appointment GetAppointment(User patient)
+    {
+        return new Appointment()
+        {
+            Title = $"Beautiful appointment", // TODO: Fake.
+            Description = "Basic description", // TODO: Fake.
+            DoctorToMeet = patient.DoctоrGuid ?? Guid.Empty,
+            DateTime = _faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
+        };
+    }
+
+    private Note GetNote(User patient)
+    {
+        return new Note()
+        {
+            Title = $"Extraordinary note", // TODO: Fake.
+            Description = "Basic description", // TODO: Fake.
+            DateTime = _faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
+        };
+    }
+
+    private Medication GetMedication(User patient)
+    {
+        var medication = new Medication()
+        {
+            Title = $"Amazingly complicated medication name", // TODO: Fake.
+            Description = "Basic description", // TODO: Fake.
+            StartedUsingOn = _faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
+        };
+
+        // Sometimes people are still using the meds, so we do not always add them.
+        if (_random.NextBool())
+        {
+            medication.StoppedUsingOn =
+                _faker.Date.Between(medication.StartedUsingOn, new DateTime(2023, 12, 31));
+        }
+
+        return medication;
+    }
+
+    private Diagnosis GetDiagnosis(User patient)
+    {
+        return new Diagnosis()
+        {
+            Title = $"Very long disease or disorder name", // TODO: Fake.
+            Description = "Basic description", // TODO: Fake.
+            DateTime = _faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
+        };
     }
 
     public List<Chat> GetChats(ref List<User> patientsList)
