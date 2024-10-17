@@ -118,8 +118,8 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
 
         return new Appointment()
         {
-            Title = $"Beautiful appointment", // TODO: Fake.
-            Description = "Basic description", // TODO: Fake.
+            Title = $"Beautiful appointment {_faker.Lorem.Word()}",
+            Description = $"Basic description that goes like {_faker.Lorem.Sentence()}",
             DoctorToMeet = patient.DoctоrGuid ?? Guid.Empty,
             DateTime = _faker.Date.Between(patient.Profile.BirthDate, RefDateTime)
         };
