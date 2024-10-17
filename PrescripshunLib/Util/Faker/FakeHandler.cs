@@ -42,7 +42,7 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         {
             UserKey = Guid.NewGuid(),
             UserName = _faker.Internet.UserName(fullName.Split(' ', 2)[0], fullName.Split(' ', 2)[1]),
-            Password = _faker.Internet.Password(memorable: true, length:passwordLength),
+            Password = _faker.Internet.Password(memorable: true, length: passwordLength),
             DoctоrGuid = doctorKey,
             Profile = GetProfile(fullName)
         };
@@ -160,7 +160,7 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
     private Diagnosis GetDiagnosis(User patient)
     {
         if (patient.IsDoctor) throw new InvalidOperationException();
-        
+
         return new Diagnosis()
         {
             Title = $"Very long disease or disorder name", // TODO: Fake.
@@ -169,18 +169,64 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         };
     }
 
-    public List<Chat> GetChats(ref List<User> patientsList)
+    public List<Chat> GetChats(ref List<User> patientsList, double defaultPatientDoctorChatChance = 0.1,
+        double otherChatChance = 0.6)
     {
         // Create fake chat messages between doctors and patients.
         var chatMessagesList = new List<Chat>();
         foreach (var patient in patientsList)
         {
-            // Patients seem to be not very talkative. :P
-            if (_random.NextBool(0.1)) continue;
+            if (patient.IsDoctor) throw new InvalidOperationException();
+            if (_random.NextBool(defaultPatientDoctorChatChance)) continue;
             chatMessagesList.Add(GetDefaultChatForPatient(patient));
         }
 
+        foreach (var patient in patientsList)
+        {
+            if (patient.IsDoctor) throw new InvalidOperationException();
+
+            // If any chat message was already added for this user, we do not create a new one.
+            if (chatMessagesList.Select(ch => ch.User1 == patient.UserKey || ch.User2 == patient.UserKey)
+                .Any(b => b)) continue;
+
+            if (_random.NextBool(otherChatChance)) continue;
+            chatMessagesList.Add(GetLoremIpsumChatForPatient(patient));
+        }
+
         return chatMessagesList;
+    }
+
+    private Chat GetLoremIpsumChatForPatient(User patient, int messageAmount = 10, int sentenceAmountMin = 1,
+        int sentenceAmountMax = 3, int minMinuteDifference = 1,
+        int maxMinuteDifference = 5)
+    {
+        if (patient.IsDoctor) throw new InvalidOperationException();
+
+        var chatDate = _faker.Date.Between(DateTime.Now.AddYears(-1), DateTime.Now);
+        Chat chat = new Chat()
+        {
+            User1 = patient.DoctоrGuid ?? throw new InvalidOperationException(),
+            User2 = patient.UserKey,
+        };
+
+        var patientIsSender = true;
+        for (int i = 0; i < messageAmount; i++)
+        {
+            patientIsSender.Flip();
+            chatDate = chatDate.AddMinutes(_random.Next(minMinuteDifference, maxMinuteDifference));
+            chat.Messages.Add(new ChatMessage()
+            {
+                Sender =
+                    patientIsSender ? patient.UserKey : patient.DoctоrGuid ?? throw new InvalidOperationException(),
+                Recipient = !patientIsSender
+                    ? patient.UserKey
+                    : patient.DoctоrGuid ?? throw new InvalidOperationException(),
+                Text = _faker.Lorem.Sentences(_random.Next(sentenceAmountMin, sentenceAmountMax)),
+                Time = chatDate
+            });
+        }
+
+        return chat;
     }
 
     private Chat GetDefaultChatForPatient(User patient)
@@ -196,21 +242,21 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
             [
                 new ChatMessage()
                 {
-                    Sender = patient.DoctоrGuid ?? Guid.Empty,
+                    Sender = patient.DoctоrGuid ?? throw new InvalidOperationException(),
                     Recipient = patient.UserKey,
                     Text = $"Hey {patient.Profile.FullName}, kom jij even langs?",
                     Time = chatDate
                 },
                 new ChatMessage()
                 {
-                    Recipient = patient.DoctоrGuid ?? Guid.Empty,
+                    Recipient = patient.DoctоrGuid ?? throw new InvalidOperationException(),
                     Sender = patient.UserKey,
                     Text = "Maar natuurlijk dokter! :)",
                     Time = chatDate.AddMinutes(30)
                 },
                 new ChatMessage()
                 {
-                    Recipient = patient.DoctоrGuid ?? Guid.Empty,
+                    Recipient = patient.DoctоrGuid ?? throw new InvalidOperationException(),
                     Sender = patient.UserKey,
                     Text = $"Tot zo, {patient.Profile.FullName.Split(" ")[0]}!",
                     Time = chatDate.AddMinutes(37)
