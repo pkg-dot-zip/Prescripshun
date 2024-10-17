@@ -170,8 +170,10 @@ internal class SqlDatabaseHandler : IDatabaseHandler
 
         // Here we add our hardcoded data for easy access.
         await AddHardcodedDoctor("Mark Rutte", "pkgdotzip", "1234", userKey: Guid.Parse("8842aeb2-5288-4885-ca88-a28837d88f2e"));
-        await AddHardcodedDoctor("Geert Wilders", "loenkas", "1234");
+        await AddHardcodedDoctor("Geert Wilders", "loenkas", "1234", userKey: Guid.Parse("469d44ef-073c-4603-9097-95e1bb7460bf"));
         await AddHardcodedPatient("Thierry Baudet", "omit", "1234", doctorGuid: Guid.Parse("8842aeb2-5288-4885-ca88-a28837d88f2e"));
+        await AddHardcodedPatient("Dick Schoof", "elpatrondick", "1234", doctorGuid: Guid.Parse("469d44ef-073c-4603-9097-95e1bb7460bf"));
+        await AddHardcodedPatient("Caroline van der Plas", "car", "1234", doctorGuid: Guid.Parse("469d44ef-073c-4603-9097-95e1bb7460bf"));
     }
 
     private async Task AddHardcodedPatient(string fullName, string userName, string password, Guid doctorGuid, Guid? userKey = null)

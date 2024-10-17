@@ -91,7 +91,7 @@ internal class GuiEvents
 
         GetNetworkEvents().OnReceiveMessage.AddHandler<LoginResponse>(async (client, message) =>
         {
-            if (message.IsValid()) await MessageBoxHandler.SimplePopUp("TEST SUCCESSFUL!", "CAN LOGIN!"); // TODO: Remove.
+            if (message.IsValid()) await MessageBoxHandler.SimplePopUp("TEST SUCCESSFUL!", "CAN LOGIN!"); // TODO: Remove
             if (!message.IsValid()) await MessageBoxHandler.SimplePopUp("Login Failed!", message.Reason);
         });
 

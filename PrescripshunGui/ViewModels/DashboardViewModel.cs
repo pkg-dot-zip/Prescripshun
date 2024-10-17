@@ -4,6 +4,7 @@ using Bogus;
 using Bogus.DataSets;
 using PrescripshunGui.Util;
 using PrescripshunLib.ExtensionMethods;
+using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Models.User;
 using PrescripshunLib.Util.Faker;
 
@@ -16,6 +17,11 @@ public class DashboardViewModel : ViewModelBase
     public Guid UserKey => NetworkHandler.Client.UserKey;
 
     private ObservableCollection<User> _items = [];
+
+    private ObservableCollection<ChatMessage> chatMessages = new ObservableCollection<ChatMessage>()
+    {
+        new ChatMessage()
+    };
 
     public ObservableCollection<User> Items
     {
