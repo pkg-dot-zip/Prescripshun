@@ -85,6 +85,8 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
 
     private MedicalFile GetMedicalFile(User patient)
     {
+        if (patient.IsDoctor) throw new InvalidOperationException();
+
         var appointments = new List<Appointment>();
         var notes = new List<Note>();
         var medication = new List<Medication>();
@@ -107,6 +109,8 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
 
     private Appointment GetAppointment(User patient)
     {
+        if (patient.IsDoctor) throw new InvalidOperationException();
+
         return new Appointment()
         {
             Title = $"Beautiful appointment", // TODO: Fake.
@@ -118,6 +122,8 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
 
     private Note GetNote(User patient)
     {
+        if (patient.IsDoctor) throw new InvalidOperationException();
+
         return new Note()
         {
             Title = $"Extraordinary note", // TODO: Fake.
@@ -128,6 +134,8 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
 
     private Medication GetMedication(User patient)
     {
+        if (patient.IsDoctor) throw new InvalidOperationException();
+
         var medication = new Medication()
         {
             Title = $"Amazingly complicated medication name", // TODO: Fake.
@@ -147,6 +155,8 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
 
     private Diagnosis GetDiagnosis(User patient)
     {
+        if (patient.IsDoctor) throw new InvalidOperationException();
+        
         return new Diagnosis()
         {
             Title = $"Very long disease or disorder name", // TODO: Fake.
