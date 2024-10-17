@@ -4,6 +4,7 @@ using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Models.User.Profile;
 using PrescripshunLib.Models.User;
 using Bogus;
+using PhilosopherPanda.ExtensionMethods.DataTypes;
 
 namespace PrescripshunLib.Util.Faker;
 
@@ -78,35 +79,19 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         {
             // Create fake appointments.
             var appointmentsList = new List<Appointment>();
-            for (int i = 0; i < _random.Next(1, 5); i++)
-            {
-                var appointment = GetAppointment(patient);
-                appointmentsList.Add(appointment);
-            }
+            _random.Next(1, 5).DoFor(() => appointmentsList.Add(GetAppointment(patient)));
 
             // Create fake notes.
             var notesList = new List<Note>();
-            for (int i = 0; i < _random.Next(1, 5); i++)
-            {
-                var note = GetNote(patient);
-                notesList.Add(note);
-            }
+            _random.Next(1, 5).DoFor(() => notesList.Add(GetNote(patient)));
 
             // Create fake medication.
             var medicationList = new List<Medication>();
-            for (int i = 0; i < _random.Next(1, 5); i++)
-            {
-                var medication = GetMedication(patient);
-                medicationList.Add(medication);
-            }
+            _random.Next(1, 5).DoFor(() => medicationList.Add(GetMedication(patient)));
 
             // Create fake diagnoses.
             var diagnosisList = new List<Diagnosis>();
-            for (int i = 0; i < _random.Next(1, 5); i++)
-            {
-                var diagnosis = GetDiagnosis(patient);
-                diagnosisList.Add(diagnosis);
-            }
+            _random.Next(1, 5).DoFor(() => diagnosisList.Add(GetDiagnosis(patient)));
 
             var medicalFile = new MedicalFile()
             {
