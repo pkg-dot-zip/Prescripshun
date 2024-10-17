@@ -56,7 +56,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
 
         string chatMessagesTable = """
                                    CREATE TABLE chatmessages (
-                                       id INT AUTO_INCREMENT PRIMARY KEY,  -- Unique ID for each message (auto-increment). This way we can reference the message if we ever tweak the chat system to allow editing.
+                                       id INT AUTO_INCREMENT PRIMARY KEY,  -- Unique ID for each message (auto-increment). WE NEED AN AUTO-INCREMENT HERE CAUSE text TEXT can not be part of the key.
                                        sender CHAR(36) NOT NULL,           -- GUID of the sender (references a user)
                                        recipient CHAR(36) NOT NULL,        -- GUID of the recipient (references a user)
                                        text TEXT NOT NULL,                 -- The message text, large enough to hold long messages
@@ -85,12 +85,12 @@ internal class SqlDatabaseHandler : IDatabaseHandler
 
         string notesTable = """
                             CREATE TABLE notes (
-                                noteId INT AUTO_INCREMENT PRIMARY KEY,    -- Unique ID for each note (auto-increment)
                                 userKey CHAR(36) NOT NULL,                -- Reference to the user who created the note
                                 title VARCHAR(255) NOT NULL,              -- Title of the note (required)
                                 description TEXT NOT NULL,                -- Description of the note (required)
                                 datetime DATETIME NOT NULL,               -- Date and time when the note was created
                                 
+                                PRIMARY KEY (userKey, title, datetime),
                                 FOREIGN KEY (userKey) REFERENCES users(userKey) ON DELETE CASCADE  -- Foreign key reference to users table
                             ) ENGINE=InnoDB;
                             """;
@@ -99,12 +99,12 @@ internal class SqlDatabaseHandler : IDatabaseHandler
 
         string diagnosesTable = """
                                 CREATE TABLE diagnoses (
-                                    diagnosisId INT AUTO_INCREMENT PRIMARY KEY, -- Unique ID for each diagnosis (auto-increment)
                                     userKey CHAR(36) NOT NULL,                  -- Reference to the user (patient) diagnosed
                                     title VARCHAR(255) NOT NULL,                -- Title of the diagnosis (required)
                                     description TEXT NOT NULL,                  -- Description of the diagnosis (required)
                                     datetime DATETIME NOT NULL,                 -- Date and time of the diagnosis
                                     
+                                    PRIMARY KEY (userKey, title, datetime),
                                     FOREIGN KEY (userKey) REFERENCES users(userKey) ON DELETE CASCADE -- Foreign key reference to users table
                                 ) ENGINE=InnoDB;
                                 """;
@@ -113,13 +113,13 @@ internal class SqlDatabaseHandler : IDatabaseHandler
 
         string medicationTable = """
                                  CREATE TABLE medication (
-                                     medicationId INT AUTO_INCREMENT PRIMARY KEY, -- Unique ID for each medication (auto-increment)
                                      userKey CHAR(36) NOT NULL,                   -- Reference to the user (patient) prescribed the medication
                                      title VARCHAR(255) NOT NULL,                 -- Name or title of the medication
                                      description TEXT NOT NULL,                   -- Description of the medication
                                      startedUsingOn DATETIME NOT NULL,            -- Date when the medication started being used
                                      stoppedUsingOn DATETIME NULL,                -- Date when the medication stopped (nullable)
                                      
+                                     PRIMARY KEY (userKey, title, startedUsingOn),
                                      FOREIGN KEY (userKey) REFERENCES users(userKey) ON DELETE CASCADE -- Foreign key reference to users table
                                  ) ENGINE=InnoDB;
                                  """;
@@ -128,13 +128,13 @@ internal class SqlDatabaseHandler : IDatabaseHandler
 
         string appointments = """
                               CREATE TABLE appointments (
-                                  appointmentId INT AUTO_INCREMENT PRIMARY KEY, -- Unique ID for each appointment (auto-increment)
                                   userKey CHAR(36) NOT NULL,                    -- Reference to the user (patient) having the appointment
                                   doctorKey CHAR(36) NOT NULL,                  -- Reference to the doctor involved in the appointment
                                   title VARCHAR(255) NOT NULL,                  -- Title of the appointment (required)
                                   description TEXT NOT NULL,                    -- Description of the appointment (required)
                                   datetime DATETIME NOT NULL,                   -- Date and time of the appointment
                                   
+                                  PRIMARY KEY (userKey, doctorKey, dateTime),
                                   FOREIGN KEY (userKey) REFERENCES users(userKey) ON DELETE CASCADE,  -- Foreign key reference to patient (user)
                                   FOREIGN KEY (doctorKey) REFERENCES users(userKey) ON DELETE CASCADE -- Foreign key reference to doctor
                               ) ENGINE=InnoDB;
