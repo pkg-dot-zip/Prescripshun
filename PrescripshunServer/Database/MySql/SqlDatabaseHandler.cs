@@ -56,7 +56,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
 
         string chatMessagesTable = """
                                    CREATE TABLE chatmessages (
-                                       id INT AUTO_INCREMENT PRIMARY KEY,  -- Unique ID for each message (auto-increment). This way we can reference the message if we ever tweak the chat system to allow editing.
+                                       id INT AUTO_INCREMENT PRIMARY KEY,  -- Unique ID for each message (auto-increment). WE NEED AN AUTO-INCREMENT HERE CAUSE text TEXT can not be part of the key.
                                        sender CHAR(36) NOT NULL,           -- GUID of the sender (references a user)
                                        recipient CHAR(36) NOT NULL,        -- GUID of the recipient (references a user)
                                        text TEXT NOT NULL,                 -- The message text, large enough to hold long messages
@@ -85,12 +85,12 @@ internal class SqlDatabaseHandler : IDatabaseHandler
 
         string notesTable = """
                             CREATE TABLE notes (
-                                noteId INT AUTO_INCREMENT PRIMARY KEY,    -- Unique ID for each note (auto-increment)
                                 userKey CHAR(36) NOT NULL,                -- Reference to the user who created the note
                                 title VARCHAR(255) NOT NULL,              -- Title of the note (required)
                                 description TEXT NOT NULL,                -- Description of the note (required)
                                 datetime DATETIME NOT NULL,               -- Date and time when the note was created
                                 
+                                PRIMARY KEY (userKey, title, datetime),
                                 FOREIGN KEY (userKey) REFERENCES users(userKey) ON DELETE CASCADE  -- Foreign key reference to users table
                             ) ENGINE=InnoDB;
                             """;
