@@ -25,19 +25,27 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
 
     private readonly Random _random = new(seed);
 
+
+    private User GetUser(Guid? doctorKey = null)
+    {
+        var fullName = _faker.Name.FullName();
+
+        return new User()
+        {
+            UserKey = Guid.NewGuid(),
+            UserName = _faker.Internet.UserName(fullName.Split(' ', 2)[0], fullName.Split(' ', 2)[1]),
+            Password = _faker.Internet.Password(memorable: true),
+            DoctоrGuid = doctorKey,
+            Profile = GetProfile(fullName)
+        };
+    }
+
     public List<User> GetDoctors(int amount = 3)
     {
         var doctorsList = new List<User>();
         for (var i = 0; i < amount; i++)
         {
-            var fullName = _faker.Name.FullName();
-            doctorsList.Add(new User()
-            {
-                UserKey = Guid.NewGuid(),
-                UserName = _faker.Internet.UserName(fullName.Split(' ', 2)[0], fullName.Split(' ', 2)[1]),
-                Password = _faker.Internet.Password(memorable: true),
-                Profile = GetProfile(fullName)
-            });
+            doctorsList.Add(GetUser());
         }
 
         return doctorsList;
@@ -48,15 +56,7 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         var patientsList = new List<User>();
         for (var i = 0; i < doctorsList.Count * 10; i++)
         {
-            var fullName = _faker.Name.FullName();
-            patientsList.Add(new User()
-            {
-                UserKey = Guid.NewGuid(),
-                UserName = _faker.Internet.UserName(fullName.Split(' ', 2)[0], fullName.Split(' ', 2)[1]),
-                Password = _faker.Internet.Password(memorable: true),
-                DoctоrGuid = doctorsList[i % doctorsList.Count].UserKey,
-                Profile = GetProfile(fullName)
-            });
+            patientsList.Add(GetUser(doctorsList[i % doctorsList.Count].UserKey));
         }
 
         return patientsList;
