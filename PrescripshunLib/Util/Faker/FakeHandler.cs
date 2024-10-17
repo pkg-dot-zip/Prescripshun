@@ -88,7 +88,15 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         return medicalFileList;
     }
 
-    private MedicalFile GetMedicalFile(User patient)
+    private MedicalFile GetMedicalFile(User patient, int minRandomAmount = 0, int maxRandomAmount = 4)
+    {
+        return GetMedicalFile(patient, _random.Next(minRandomAmount, maxRandomAmount),
+            _random.Next(minRandomAmount, maxRandomAmount), _random.Next(minRandomAmount, maxRandomAmount),
+            _random.Next(minRandomAmount, maxRandomAmount));
+    }
+
+    private MedicalFile GetMedicalFile(User patient, int appointmentAmount, int noteAmount, int medicationAmount,
+        int diagnosesAmount)
     {
         if (patient.IsDoctor) throw new InvalidOperationException();
 
@@ -97,10 +105,10 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         var medication = new List<Medication>();
         var diagnoses = new List<Diagnosis>();
 
-        _random.Next(1, 5).DoFor(() => appointments.Add(GetAppointment(patient)));
-        _random.Next(1, 5).DoFor(() => notes.Add(GetNote(patient)));
-        _random.Next(1, 5).DoFor(() => medication.Add(GetMedication(patient)));
-        _random.Next(1, 5).DoFor(() => diagnoses.Add(GetDiagnosis(patient)));
+        appointmentAmount.DoFor(() => appointments.Add(GetAppointment(patient)));
+        noteAmount.DoFor(() => notes.Add(GetNote(patient)));
+        medicationAmount.DoFor(() => medication.Add(GetMedication(patient)));
+        diagnosesAmount.DoFor(() => diagnoses.Add(GetDiagnosis(patient)));
 
         return new MedicalFile()
         {
