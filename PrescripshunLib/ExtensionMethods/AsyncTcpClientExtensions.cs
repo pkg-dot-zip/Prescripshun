@@ -4,6 +4,9 @@ using Unclassified.Net;
 
 namespace PrescripshunLib.ExtensionMethods;
 
+/// <summary>
+/// Contains extension methods for <seealso cref="AsyncTcpClient"/>.
+/// </summary>
 public static class AsyncTcpClientExtensions
 {
     /// <summary>

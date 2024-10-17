@@ -210,6 +210,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         });
     }
 
+    /// <inheritdoc/>
     public async Task Run()
     {
         await _sqlDatabase.ConnectAsync();
@@ -217,6 +218,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         await InitTables();
         await InitTestData();
 
+        // TODO: Remove? This looks like a test log we never got rid of.
         var patients = GetPatients();
         var patient = patients.First();
 
@@ -227,6 +229,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         Logger.Info($"FILE RECEIVED: {medicalFile}");
     }
 
+    /// <inheritdoc/>
     public async Task Stop()
     {
         Logger.Info("Stopping database.");
@@ -267,6 +270,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         return toReturn;
     }
 
+    /// <inheritdoc/>
     public List<User> GetChattableUsers(Guid forUser)
     {
         var thisUser = GetUser(forUser);
@@ -280,6 +284,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         return toReturn;
     }
 
+    /// <inheritdoc/>
     public List<User> GetUsers()
     {
         var users = new List<User>();
@@ -303,6 +308,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                                                  """);
     }
 
+    /// <inheritdoc/>
     public async Task AddDoctor(User doctor)
     {
         await _sqlDatabase.ExecuteNonQueryAsync($"""
@@ -317,6 +323,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                                                  """);
     }
 
+    /// <inheritdoc/>
     public List<User> GetDoctors()
     {
         var doctors = new List<User>();
@@ -333,6 +340,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         return doctors;
     }
 
+    /// <inheritdoc/>
     public async Task AddPatient(User patient)
     {
         await _sqlDatabase.ExecuteNonQueryAsync($"""
@@ -348,6 +356,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
                                                  """);
     }
 
+    /// <inheritdoc/>
     public List<User> GetPatients()
     {
         var patients = new List<User>();
@@ -364,6 +373,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         return patients;
     }
 
+    /// <inheritdoc/>
     public User GetUser(Guid guid)
     {
         User? user = null;
@@ -381,6 +391,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         return user ?? throw new InvalidOperationException();
     }
 
+    /// <inheritdoc/>
     public async Task AddMedicalFile(MedicalFile medicalFile)
     {
         // Notes.
@@ -424,6 +435,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         }
     }
 
+    /// <inheritdoc/>
     public MedicalFile GetMedicalFile(Guid guid)
     {
         var notesList = new List<Note>();
@@ -515,6 +527,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         };
     }
 
+    /// <inheritdoc/>
     public async Task AddChat(Chat chat)
     {
         foreach (var message in chat.Messages)
@@ -526,6 +539,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         }
     }
 
+    /// <inheritdoc/>
     public Chat GetChat(Guid user1, Guid user2)
     {
         var messages = new List<ChatMessage>();
@@ -557,6 +571,7 @@ internal class SqlDatabaseHandler : IDatabaseHandler
         };
     }
 
+    /// <inheritdoc/>
     public bool TryLogin(string username, string password, out Guid userKey, out string reason)
     {
         Guid id = Guid.Empty;

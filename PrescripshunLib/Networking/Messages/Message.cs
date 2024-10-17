@@ -74,12 +74,10 @@ public static class Message
     /// <returns>Sub<see cref="Type"/> of <see cref="IMessage"/>.</returns>
     private static Type GetMessageTypeByName(string messageType)
     {
-        // Get all the message types that inherit from BaseMessage
         var assembly = Assembly.GetExecutingAssembly();
         var messageTypes = assembly.GetTypes()
             .Where(t => typeof(IMessage).IsAssignableFrom(t) && t is { IsAbstract: false, IsInterface: false });
 
-        // Find the type that matches the name
         return messageTypes.FirstOrDefault(t => t.Name.Equals(messageType, StringComparison.OrdinalIgnoreCase));
     }
 
