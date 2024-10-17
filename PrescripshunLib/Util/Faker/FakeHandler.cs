@@ -196,6 +196,17 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         return chatMessagesList;
     }
 
+    /// <summary>
+    /// Creates a chat history between a <paramref name="patient"/> and a doctor containing lorem ipsum nonsense.
+    /// </summary>
+    /// <param name="patient"></param>
+    /// <param name="messageAmount">Amount of messages for this chat to contain</param>
+    /// <param name="sentenceAmountMin">Minimum amount of sentences for each message.</param>
+    /// <param name="sentenceAmountMax">Maximum amount of sentences for each message.</param>
+    /// <param name="minMinuteDifference">Minimum amount of minutes that have to be passed for a new message.</param>
+    /// <param name="maxMinuteDifference">Maximum amount of minutes that have to be passed for a new message.</param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
     private Chat GetLoremIpsumChatForPatient(User patient, int messageAmount = 10, int sentenceAmountMin = 1,
         int sentenceAmountMax = 3, int minMinuteDifference = 1,
         int maxMinuteDifference = 5)
@@ -229,6 +240,12 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         return chat;
     }
 
+    /// <summary>
+    /// Creates a default hardcoded chat history in Dutch between a <paramref name="patient"/> and doctor.
+    /// </summary>
+    /// <param name="patient"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
     private Chat GetDefaultChatForPatient(User patient)
     {
         if (patient.IsDoctor) throw new InvalidOperationException();
