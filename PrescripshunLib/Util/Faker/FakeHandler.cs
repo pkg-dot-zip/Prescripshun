@@ -131,8 +131,8 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
 
         return new Note()
         {
-            Title = $"Extraordinary note", // TODO: Fake.
-            Description = "Basic description", // TODO: Fake.
+            Title = $"Extraordinary note {_faker.Lorem.Word()}",
+            Description = $"Description that goes like {_faker.Lorem.Sentence()}",
             DateTime = _faker.Date.Between(patient.Profile.BirthDate, RefDateTime)
         };
     }
