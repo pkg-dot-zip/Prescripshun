@@ -113,13 +113,13 @@ internal class SqlDatabaseHandler : IDatabaseHandler
 
         string medicationTable = """
                                  CREATE TABLE medication (
-                                     medicationId INT AUTO_INCREMENT PRIMARY KEY, -- Unique ID for each medication (auto-increment)
                                      userKey CHAR(36) NOT NULL,                   -- Reference to the user (patient) prescribed the medication
                                      title VARCHAR(255) NOT NULL,                 -- Name or title of the medication
                                      description TEXT NOT NULL,                   -- Description of the medication
                                      startedUsingOn DATETIME NOT NULL,            -- Date when the medication started being used
                                      stoppedUsingOn DATETIME NULL,                -- Date when the medication stopped (nullable)
                                      
+                                     PRIMARY KEY (userKey, title, startedUsingOn),
                                      FOREIGN KEY (userKey) REFERENCES users(userKey) ON DELETE CASCADE -- Foreign key reference to users table
                                  ) ENGINE=InnoDB;
                                  """;
