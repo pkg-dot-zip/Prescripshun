@@ -177,41 +177,45 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         {
             // Patients seem to be not very talkative. :P
             if (_random.NextBool(0.1)) continue;
-
-            var chatDate = _faker.Date.Between(DateTime.Now.AddYears(-1), DateTime.Now);
-            var chat = new Chat()
-            {
-                User1 = patient.DoctоrGuid ?? Guid.Empty,
-                User2 = patient.UserKey,
-                Messages =
-                [
-                    new ChatMessage()
-                    {
-                        Sender = patient.DoctоrGuid ?? Guid.Empty,
-                        Recipient = patient.UserKey,
-                        Text = $"Hey {patient.Profile.FullName}, kom jij even langs?",
-                        Time = chatDate
-                    },
-                    new ChatMessage()
-                    {
-                        Recipient = patient.DoctоrGuid ?? Guid.Empty,
-                        Sender = patient.UserKey,
-                        Text = "Maar natuurlijk dokter! :)",
-                        Time = chatDate.AddMinutes(30)
-                    },
-                    new ChatMessage()
-                    {
-                        Recipient = patient.DoctоrGuid ?? Guid.Empty,
-                        Sender = patient.UserKey,
-                        Text = $"Tot zo, {patient.Profile.FullName.Split(" ")[0]}!",
-                        Time = chatDate.AddMinutes(37)
-                    },
-                ]
-            };
-
-            chatMessagesList.Add(chat);
+            chatMessagesList.Add(GetDefaultChatForPatient(patient));
         }
 
         return chatMessagesList;
+    }
+
+    private Chat GetDefaultChatForPatient(User patient)
+    {
+        if (patient.IsDoctor) throw new InvalidOperationException();
+
+        var chatDate = _faker.Date.Between(DateTime.Now.AddYears(-1), DateTime.Now);
+        return new Chat()
+        {
+            User1 = patient.DoctоrGuid ?? throw new InvalidOperationException(),
+            User2 = patient.UserKey,
+            Messages =
+            [
+                new ChatMessage()
+                {
+                    Sender = patient.DoctоrGuid ?? Guid.Empty,
+                    Recipient = patient.UserKey,
+                    Text = $"Hey {patient.Profile.FullName}, kom jij even langs?",
+                    Time = chatDate
+                },
+                new ChatMessage()
+                {
+                    Recipient = patient.DoctоrGuid ?? Guid.Empty,
+                    Sender = patient.UserKey,
+                    Text = "Maar natuurlijk dokter! :)",
+                    Time = chatDate.AddMinutes(30)
+                },
+                new ChatMessage()
+                {
+                    Recipient = patient.DoctоrGuid ?? Guid.Empty,
+                    Sender = patient.UserKey,
+                    Text = $"Tot zo, {patient.Profile.FullName.Split(" ")[0]}!",
+                    Time = chatDate.AddMinutes(37)
+                },
+            ]
+        };
     }
 }
