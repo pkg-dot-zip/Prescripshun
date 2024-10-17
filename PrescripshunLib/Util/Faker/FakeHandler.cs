@@ -25,8 +25,16 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
 
     private readonly Random _random = new(seed);
 
+    // Used as base date for random dates instead of today.
+    private static readonly DateTime RefDateTime = new DateTime(2023, 12, 31);
 
-    private User GetUser(Guid? doctorKey = null)
+    /// <summary>
+    /// Creates new user. If a <paramref name="doctorKey"/> is specified the user is a <b>patient</b>. If not, it is a <b>doctor</b>.
+    /// </summary>
+    /// <param name="doctorKey">Guid of the patients doctor. If not specified, the user itself is a doctor.</param>
+    /// <param name="passwordLength">Length of the password in characters.</param>
+    /// <returns></returns>
+    private User GetUser(Guid? doctorKey = null, int passwordLength = 10)
     {
         var fullName = _faker.Name.FullName();
 
@@ -34,7 +42,7 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         {
             UserKey = Guid.NewGuid(),
             UserName = _faker.Internet.UserName(fullName.Split(' ', 2)[0], fullName.Split(' ', 2)[1]),
-            Password = _faker.Internet.Password(memorable: true),
+            Password = _faker.Internet.Password(memorable: true, length:passwordLength),
             DoctоrGuid = doctorKey,
             Profile = GetProfile(fullName)
         };
@@ -43,11 +51,7 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
     public List<User> GetDoctors(int amount = 3)
     {
         var doctorsList = new List<User>();
-        for (var i = 0; i < amount; i++)
-        {
-            doctorsList.Add(GetUser());
-        }
-
+        amount.DoFor(() => doctorsList.Add(GetUser()));
         return doctorsList;
     }
 
@@ -66,7 +70,7 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
     {
         return new Profile()
         {
-            BirthDate = _faker.Date.Past(30, new DateTime(2023, 12, 31)),
+            BirthDate = _faker.Date.Past(30, RefDateTime),
             FullName = fullName,
             ProfilePicture = new ProfilePicture(_faker.Image.PlaceholderUrl(360, 360)),
         };
@@ -116,7 +120,7 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
             Title = $"Beautiful appointment", // TODO: Fake.
             Description = "Basic description", // TODO: Fake.
             DoctorToMeet = patient.DoctоrGuid ?? Guid.Empty,
-            DateTime = _faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
+            DateTime = _faker.Date.Between(patient.Profile.BirthDate, RefDateTime)
         };
     }
 
@@ -128,7 +132,7 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         {
             Title = $"Extraordinary note", // TODO: Fake.
             Description = "Basic description", // TODO: Fake.
-            DateTime = _faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
+            DateTime = _faker.Date.Between(patient.Profile.BirthDate, RefDateTime)
         };
     }
 
@@ -140,14 +144,14 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         {
             Title = $"Amazingly complicated medication name", // TODO: Fake.
             Description = "Basic description", // TODO: Fake.
-            StartedUsingOn = _faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
+            StartedUsingOn = _faker.Date.Between(patient.Profile.BirthDate, RefDateTime)
         };
 
         // Sometimes people are still using the meds, so we do not always add them.
         if (_random.NextBool())
         {
             medication.StoppedUsingOn =
-                _faker.Date.Between(medication.StartedUsingOn, new DateTime(2023, 12, 31));
+                _faker.Date.Between(medication.StartedUsingOn, RefDateTime);
         }
 
         return medication;
@@ -161,7 +165,7 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         {
             Title = $"Very long disease or disorder name", // TODO: Fake.
             Description = "Basic description", // TODO: Fake.
-            DateTime = _faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
+            DateTime = _faker.Date.Between(patient.Profile.BirthDate, RefDateTime)
         };
     }
 
