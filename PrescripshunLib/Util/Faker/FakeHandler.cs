@@ -141,10 +141,12 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
     {
         if (patient.IsDoctor) throw new InvalidOperationException();
 
+        var (title, desc) = MedicationFaker.GetRandomMedication(_random);
+
         var medication = new Medication()
         {
-            Title = $"Amazingly complicated medication name", // TODO: Fake.
-            Description = "Basic description", // TODO: Fake.
+            Title = title,
+            Description = desc,
             StartedUsingOn = _faker.Date.Between(patient.Profile.BirthDate, RefDateTime)
         };
 
