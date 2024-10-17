@@ -36,12 +36,7 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
                 UserKey = Guid.NewGuid(),
                 UserName = _faker.Internet.UserName(fullName.Split(' ', 2)[0], fullName.Split(' ', 2)[1]),
                 Password = _faker.Internet.Password(memorable: true),
-                Profile = new Profile()
-                {
-                    BirthDate = _faker.Date.Past(30, DateTime.Now.AddYears(-10)),
-                    FullName = fullName,
-                    ProfilePicture = new ProfilePicture(_faker.Image.PlaceholderUrl(360, 360)),
-                }
+                Profile = GetProfile(fullName)
             });
         }
 
@@ -60,16 +55,21 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
                 UserName = _faker.Internet.UserName(fullName.Split(' ', 2)[0], fullName.Split(' ', 2)[1]),
                 Password = _faker.Internet.Password(memorable: true),
                 DoctоrGuid = doctorsList[i % doctorsList.Count].UserKey,
-                Profile = new Profile()
-                {
-                    BirthDate = _faker.Date.Past(30, new DateTime(2023, 12, 31)),
-                    FullName = fullName,
-                    ProfilePicture = new ProfilePicture(_faker.Image.PlaceholderUrl(360, 360)),
-                }
+                Profile = GetProfile(fullName)
             });
         }
 
         return patientsList;
+    }
+
+    private Profile GetProfile(string fullName)
+    {
+        return new Profile()
+        {
+            BirthDate = _faker.Date.Past(30, new DateTime(2023, 12, 31)),
+            FullName = fullName,
+            ProfilePicture = new ProfilePicture(_faker.Image.PlaceholderUrl(360, 360)),
+        };
     }
 
     public List<MedicalFile> GetMedicalFiles(ref List<User> patientsList)
