@@ -128,13 +128,13 @@ internal class SqlDatabaseHandler : IDatabaseHandler
 
         string appointments = """
                               CREATE TABLE appointments (
-                                  appointmentId INT AUTO_INCREMENT PRIMARY KEY, -- Unique ID for each appointment (auto-increment)
                                   userKey CHAR(36) NOT NULL,                    -- Reference to the user (patient) having the appointment
                                   doctorKey CHAR(36) NOT NULL,                  -- Reference to the doctor involved in the appointment
                                   title VARCHAR(255) NOT NULL,                  -- Title of the appointment (required)
                                   description TEXT NOT NULL,                    -- Description of the appointment (required)
                                   datetime DATETIME NOT NULL,                   -- Date and time of the appointment
                                   
+                                  PRIMARY KEY (userKey, doctorKey, dateTime),
                                   FOREIGN KEY (userKey) REFERENCES users(userKey) ON DELETE CASCADE,  -- Foreign key reference to patient (user)
                                   FOREIGN KEY (doctorKey) REFERENCES users(userKey) ON DELETE CASCADE -- Foreign key reference to doctor
                               ) ENGINE=InnoDB;
