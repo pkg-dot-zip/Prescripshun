@@ -60,12 +60,16 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         return doctorsList;
     }
 
-    // TODO: Make amount configurable.
-    // TODO: Write doc.
-    public List<User> GetPatients(ref List<User> doctorsList)
+    /// <summary>
+    /// Returns a <seealso cref="List{T}"/> of patients. Takes in <paramref name="doctorsList"/> to grab <see cref="User.DoctоrGuid"/> from.
+    /// </summary>
+    /// <param name="doctorsList">Doctors to generate patients for.</param>
+    /// <param name="patientMultiplier">Amount of patients to add per doctor from <paramref name="doctorsList"/>.</param>
+    /// <returns></returns>
+    public List<User> GetPatients(ref List<User> doctorsList, int patientMultiplier = 10)
     {
         var patientsList = new List<User>();
-        for (var i = 0; i < doctorsList.Count * 10; i++)
+        for (var i = 0; i < doctorsList.Count * patientMultiplier; i++)
         {
             patientsList.Add(GetUser(doctorsList[i % doctorsList.Count].UserKey));
         }
