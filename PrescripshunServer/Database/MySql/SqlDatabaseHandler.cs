@@ -99,12 +99,12 @@ internal class SqlDatabaseHandler : IDatabaseHandler
 
         string diagnosesTable = """
                                 CREATE TABLE diagnoses (
-                                    diagnosisId INT AUTO_INCREMENT PRIMARY KEY, -- Unique ID for each diagnosis (auto-increment)
                                     userKey CHAR(36) NOT NULL,                  -- Reference to the user (patient) diagnosed
                                     title VARCHAR(255) NOT NULL,                -- Title of the diagnosis (required)
                                     description TEXT NOT NULL,                  -- Description of the diagnosis (required)
                                     datetime DATETIME NOT NULL,                 -- Date and time of the diagnosis
                                     
+                                    PRIMARY KEY (userKey, title, datetime),
                                     FOREIGN KEY (userKey) REFERENCES users(userKey) ON DELETE CASCADE -- Foreign key reference to users table
                                 ) ENGINE=InnoDB;
                                 """;
