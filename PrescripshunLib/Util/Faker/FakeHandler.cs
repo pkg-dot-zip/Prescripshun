@@ -77,34 +77,32 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         var medicalFileList = new List<MedicalFile>();
         foreach (var patient in patientsList)
         {
-            // Create fake appointments.
-            var appointmentsList = new List<Appointment>();
-            _random.Next(1, 5).DoFor(() => appointmentsList.Add(GetAppointment(patient)));
-
-            // Create fake notes.
-            var notesList = new List<Note>();
-            _random.Next(1, 5).DoFor(() => notesList.Add(GetNote(patient)));
-
-            // Create fake medication.
-            var medicationList = new List<Medication>();
-            _random.Next(1, 5).DoFor(() => medicationList.Add(GetMedication(patient)));
-
-            // Create fake diagnoses.
-            var diagnosisList = new List<Diagnosis>();
-            _random.Next(1, 5).DoFor(() => diagnosisList.Add(GetDiagnosis(patient)));
-
-            var medicalFile = new MedicalFile()
-            {
-                Patient = patient.UserKey,
-                Appointments = appointmentsList,
-                Notes = notesList,
-                Medication = medicationList,
-                Diagnoses = diagnosisList,
-            };
-            medicalFileList.Add(medicalFile);
+            medicalFileList.Add(GetMedicalFile(patient));
         }
 
         return medicalFileList;
+    }
+
+    private MedicalFile GetMedicalFile(User patient)
+    {
+        var appointments = new List<Appointment>();
+        var notes = new List<Note>();
+        var medication = new List<Medication>();
+        var diagnoses = new List<Diagnosis>();
+
+        _random.Next(1, 5).DoFor(() => appointments.Add(GetAppointment(patient)));
+        _random.Next(1, 5).DoFor(() => notes.Add(GetNote(patient)));
+        _random.Next(1, 5).DoFor(() => medication.Add(GetMedication(patient)));
+        _random.Next(1, 5).DoFor(() => diagnoses.Add(GetDiagnosis(patient)));
+
+        return new MedicalFile()
+        {
+            Patient = patient.UserKey,
+            Appointments = appointments,
+            Notes = notes,
+            Medication = medication,
+            Diagnoses = diagnoses,
+        };
     }
 
     private Appointment GetAppointment(User patient)
