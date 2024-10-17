@@ -1,4 +1,6 @@
-﻿namespace PrescripshunLib.ExtensionMethods;
+﻿using System.Runtime.CompilerServices;
+
+namespace PrescripshunLib.ExtensionMethods;
 
 /// <summary>
 /// Contains extension methods for <seealso cref="IList{T}"/>.

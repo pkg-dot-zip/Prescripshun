@@ -1,3 +1,4 @@
+using System.Reflection;
 using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Models.MedicalFile;
@@ -161,10 +162,11 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
     {
         if (patient.IsDoctor) throw new InvalidOperationException();
 
+        var (title, desc) = DiagnosisFaker.GetDiagnosisForDisease(_random);
         return new Diagnosis()
         {
-            Title = $"Very long disease or disorder name", // TODO: Fake.
-            Description = "Basic description", // TODO: Fake.
+            Title = title,
+            Description = desc,
             DateTime = _faker.Date.Between(patient.Profile.BirthDate, RefDateTime)
         };
     }
