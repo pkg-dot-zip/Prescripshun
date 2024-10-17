@@ -1,4 +1,3 @@
-using System.Reflection;
 using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Models.MedicalFile;
@@ -49,6 +48,11 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         };
     }
 
+    /// <summary>
+    /// Returns a newly initiated lists with an <seealso cref="amount"/> amount of doctors.
+    /// </summary>
+    /// <param name="amount">Amount of doctors to return in a <see cref="List{T}"/>.</param>
+    /// <returns></returns>
     public List<User> GetDoctors(int amount = 3)
     {
         var doctorsList = new List<User>();
@@ -56,6 +60,8 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         return doctorsList;
     }
 
+    // TODO: Make amount configurable.
+    // TODO: Write doc.
     public List<User> GetPatients(ref List<User> doctorsList)
     {
         var patientsList = new List<User>();
@@ -67,6 +73,11 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         return patientsList;
     }
 
+    /// <summary>
+    /// Returns a newly initiated <seealso cref="Profile"/>.
+    /// </summary>
+    /// <param name="fullName">Full name for the profile.</param>
+    /// <returns></returns>
     private Profile GetProfile(string fullName)
     {
         return new Profile()
@@ -77,17 +88,30 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         };
     }
 
+    /// <summary>
+    /// Returns a <see cref="List{T}"/> of medical files for every user in <paramref name="patientsList"/>.
+    /// </summary>
+    /// <param name="patientsList">Patients to generate medical files for</param>
+    /// <returns></returns>
     public List<MedicalFile> GetMedicalFiles(ref List<User> patientsList)
     {
         var medicalFileList = new List<MedicalFile>();
         foreach (var patient in patientsList)
         {
+            if (patient.IsDoctor) throw new InvalidOperationException();
             medicalFileList.Add(GetMedicalFile(patient));
         }
 
         return medicalFileList;
     }
 
+    /// <summary>
+    /// Creates a medical file for the <paramref name="patient"/>.
+    /// </summary>
+    /// <param name="patient">Patient to generate <seealso cref="MedicalFile"/> for.</param>
+    /// <param name="minRandomAmount">Minimum amount of entries to add to the medical file for <seealso cref="Note"/>, <seealso cref="Appointment"/> etc.</param>
+    /// <param name="maxRandomAmount">Maximum amount of entries to add to the medical file for <seealso cref="Note"/>, <seealso cref="Appointment"/> etc.</param>
+    /// <returns></returns>
     private MedicalFile GetMedicalFile(User patient, int minRandomAmount = 0, int maxRandomAmount = 4)
     {
         return GetMedicalFile(patient, _random.Next(minRandomAmount, maxRandomAmount),
@@ -95,6 +119,16 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
             _random.Next(minRandomAmount, maxRandomAmount));
     }
 
+    /// <summary>
+    /// Creates a medical file for the <paramref name="patient"/>.
+    /// </summary>
+    /// <param name="patient">Patient to generate <seealso cref="MedicalFile"/> for.</param>
+    /// <param name="appointmentAmount">Amount of <seealso cref="Appointment"/> to add.</param>
+    /// <param name="noteAmount">Amount of <seealso cref="Note"/> to add.</param>
+    /// <param name="medicationAmount">Amount of <seealso cref="Medication"/> to add.</param>
+    /// <param name="diagnosesAmount">Amount of <seealso cref="Diagnosis"/> to add.</param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException">Throws if <paramref name="patient"/> is a doctor.</exception>
     private MedicalFile GetMedicalFile(User patient, int appointmentAmount, int noteAmount, int medicationAmount,
         int diagnosesAmount)
     {
@@ -181,6 +215,14 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
         };
     }
 
+    /// <summary>
+    /// Creates a <seealso cref="Chat"/> history between each patient of <paramref name="patientsList"/> and their doctor containing lorem ipsum nonsense.
+    /// </summary>
+    /// <param name="patientsList">Patients to generate a <seealso cref="Chat"/> history for with their doctor.</param>
+    /// <param name="defaultPatientDoctorChatChance">Chance of having a default hardcoded chat.</param>
+    /// <param name="otherChatChance">Chance of having a lorem ipsum chat.</param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException">If any <seealso cref="User"/> in <paramref name="patientsList"/> is a doctor.</exception>
     public List<Chat> GetChats(ref List<User> patientsList, double defaultPatientDoctorChatChance = 0.1,
         double otherChatChance = 0.6)
     {
@@ -209,7 +251,7 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
     }
 
     /// <summary>
-    /// Creates a chat history between a <paramref name="patient"/> and a doctor containing lorem ipsum nonsense.
+    /// Creates a <seealso cref="Chat"/> history between a <paramref name="patient"/> and a doctor containing lorem ipsum nonsense.
     /// </summary>
     /// <param name="patient"></param>
     /// <param name="messageAmount">Amount of messages for this chat to contain</param>
@@ -218,7 +260,7 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
     /// <param name="minMinuteDifference">Minimum amount of minutes that have to be passed for a new message.</param>
     /// <param name="maxMinuteDifference">Maximum amount of minutes that have to be passed for a new message.</param>
     /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="InvalidOperationException">If <paramref name="patient"/> is a doctor.</exception>
     private Chat GetLoremIpsumChatForPatient(User patient, int messageAmount = 10, int sentenceAmountMin = 1,
         int sentenceAmountMax = 3, int minMinuteDifference = 1,
         int maxMinuteDifference = 5)

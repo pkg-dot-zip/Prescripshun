@@ -2,6 +2,9 @@
 
 namespace PrescripshunLib.Util.Faker;
 
+/// <summary>
+/// Contains an array of disease names to grab data from for <seealso cref="FakeHandler"/> when generating diagnoses.
+/// </summary>
 internal static class DiagnosisFaker
 {
     private static readonly string[] Diseases = new[]
@@ -26,15 +29,19 @@ internal static class DiagnosisFaker
         "Kinkhoest"
     };
 
+    /// <summary>
+    /// Grabs a random disease from the <see cref="Diseases"/> and returns its title and a description.
+    /// </summary>
+    /// <param name="random"></param>
+    /// <returns>A pair of a disease title and description.</returns>
     public static (string, string) GetDiagnosisForDisease(Random random)
     {
         var disease = Diseases[random.Next(0, Diseases.Length - 1)];
 
-        // Either return desc 1 or 2. Only implemented descriptions.
+        // Either return desc 1 or 2; only implemented two descriptions.
         var description = random.NextBool()
             ? $"Na uitgebreid onderzoeken hebben wij bij de patient {disease} geconstateerd."
             : $"Vandaag hebben wij {disease} aangetroffen bij de patient.";
-
 
         return (disease, description);
     }

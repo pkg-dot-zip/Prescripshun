@@ -1,5 +1,8 @@
 ﻿namespace PrescripshunLib.Util.Faker;
 
+/// <summary>
+/// Contains an array of medication names and description to grab data from for <seealso cref="FakeHandler"/> when generating medication entries.
+/// </summary>
 internal class MedicationFaker
 {
     private static readonly (string, string)[] Medication = new[]
@@ -46,7 +49,11 @@ internal class MedicationFaker
             "Ciprofloxacine is een breed-spectrum antibioticum dat wordt gebruikt voor de behandeling van verschillende bacteriële infecties, zoals blaasontstekingen en huidinfecties.")
     };
 
-
+    /// <summary>
+    /// Grabs a random title and description pair from <see cref="Medication"/> and returns it.
+    /// </summary>
+    /// <param name="random"></param>
+    /// <returns>A pair of a title and a description for medication.</returns>
     public static (string, string) GetRandomMedication(Random random)
     {
         return Medication[random.Next(0, Medication.Length - 1)];
