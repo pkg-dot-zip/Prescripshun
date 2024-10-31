@@ -1,43 +1,39 @@
-﻿using System;
-using System.Threading.Tasks;
-using CommunityToolkit.Mvvm.Input;
-using PrescripshunGui.Util;
+﻿using PrescripshunGui.ViewModels;
 using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Models.User.Profile;
+using System.Threading.Tasks;
+using System;
+using PrescripshunClient;
 using PrescripshunLib.Networking.Messages;
 using Unclassified.Net;
-
-namespace PrescripshunGui.ViewModels;
+using PrescripshunGui.Util;
 
 public class ProfileViewModel : ViewModelBase
 {
     public Profile Profile { get; }
-    public MedicalFile MedicalFile { get; set; }
-    private AsyncTcpClient _client;
+    public MedicalFile MedicalFile { get; private set; }
+    public MedicalFileHandler MedicalFileHandler;
 
-    public ProfileViewModel(Profile profile)
+    private readonly Client _client;
+
+    public ProfileViewModel(Profile profile, Guid userkey, Client client)
     {
         Profile = profile;
-    }
-
-    public void MedicalFileService(AsyncTcpClient client)
-    {
         _client = client;
+        InitializeAsync(userkey);
+        GuiEvents.Get.RegisterMedicalFileCallback(OnMedicalFileReceived);
     }
 
-    public async Task<MedicalFile> GetMedicalFileAsync(Guid userKey)
+    private async Task InitializeAsync(Guid userKey)
     {
-        var request = new GetMedicalFileRequest { UserKey = userKey };
-        await _client.Send(request) //ToDo omzetten naar bytes;
+        MedicalFileHandler MedicalFileHandler = new MedicalFileHandler();
+        await MedicalFileHandler.GetMedicalFileAsync(userKey);
+        OnPropertyChanged(nameof(MedicalFile)); // Notify the UI that MedicalFile has changed
+    }
 
-        var response = await _client //ToDo;
-        if (response.MedicalFile != null)
-        {
-            return response.MedicalFile;
-        }
-        else
-        {
-            throw new Exception(response.Reason);
-        }
+    private void OnMedicalFileReceived(MedicalFile medicalFile)
+    {
+        MedicalFile = medicalFile;
+        OnPropertyChanged(nameof(MedicalFile)); // Notify the UI that the MedicalFile has been updated
     }
 }

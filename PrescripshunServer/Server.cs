@@ -182,14 +182,7 @@ internal class Server : AsyncTcpClient
         var medicalFile = DatabaseHandler.GetMedicalFile(message.UserKey);
         GetMedicalFileResponse response;
 
-        if (medicalFile != null)
-        {
-            response = new GetMedicalFileResponse { MedicalFile = medicalFile };
-        }
-        else
-        {
-            response = new GetMedicalFileResponse { Reason = "Medical file not found" };
-        }
+        response = new GetMedicalFileResponse { MedicalFile = medicalFile };
 
         await client.Send(response);
     }

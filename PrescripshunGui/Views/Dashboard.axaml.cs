@@ -14,7 +14,7 @@ namespace PrescripshunGui.Views
 
         private void OpenProfileView(object sender, RoutedEventArgs e)
         {
-            if (sender is Button button && button.Tag is IUser user)
+            if (sender is Button button && button.Tag is User user)
             {
                 if (DataContext is DashboardViewModel viewModel)
                 {

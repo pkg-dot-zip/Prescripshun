@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -10,6 +11,7 @@ using PrescripshunGui.ViewModels;
 using PrescripshunGui.Views;
 using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Models.Chat;
+using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Networking.Messages;
 using PrescripshunLib.Util.Sound;
 using SoundHandler = PrescripshunGui.Util.Sound.SoundHandler;
@@ -191,7 +193,20 @@ internal class GuiEvents
 
                 return Task.CompletedTask;
             });
-        });
 
+            GetNetworkEvents().OnReceiveMessage.AddHandler<GetMedicalFileResponse>((serverClient, response) =>
+            {
+                _callback?.Invoke(response.MedicalFile);
+
+                return Task.CompletedTask;
+            });
+        });
+    }
+
+    private Action<MedicalFile>? _callback;
+
+    public void RegisterMedicalFileCallback(Action<MedicalFile> callback)
+    {
+        _callback = callback;
     }
 }

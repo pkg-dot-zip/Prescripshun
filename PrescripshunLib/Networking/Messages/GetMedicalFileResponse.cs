@@ -1,4 +1,5 @@
-﻿using PrescripshunLib.Models.MedicalFile;
+﻿using NAudio.CoreAudioApi.Interfaces;
+using PrescripshunLib.Models.MedicalFile;
 
 namespace PrescripshunLib.Networking.Messages;
 
