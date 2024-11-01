@@ -1,16 +1,65 @@
-    <UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="PrescripshunGui.Views.ProfileView"
              xmlns:vm="clr-namespace:PrescripshunGui.ViewModels"
              xmlns:global="clr-namespace:"
              x:DataType="global:ProfileViewModel">
-    <StackPanel>
-        <TextBlock Text="{Binding Profile.FullName}" FontSize="20" FontWeight="Bold" />
-        <TextBlock Text="{Binding Profile.BirthDate}" />
-        <TextBlock Text="" />
-        <TextBlock Text="{Binding MedicalFile.Diagnoses}" />
-        <TextBlock Text="{Binding MedicalFile.Medication}" />
-        <TextBlock Text="{Binding MedicalFile.Appointments}" />
-        <TextBlock Text="{Binding MedicalFile.Notes}" />
-    </StackPanel>
+	<StackPanel>
+		<!-- Profile Information -->
+		<TextBlock Text="{Binding Profile.FullName}" FontSize="20" FontWeight="Bold" />
+		<TextBlock Text="{Binding Profile.BirthDate}" />
+
+		<!-- Medical File Details -->
+
+		<!-- Diagnoses -->
+		<TextBlock Text="Diagnoses:" FontWeight="Bold" Margin="0,10,0,0"/>
+		<ItemsControl ItemsSource="{Binding MedicalFile.Diagnoses}">
+			<ItemsControl.ItemTemplate>
+				<DataTemplate>
+					<TextBlock Text="{Binding}" Margin="5,0,0,0" />
+				</DataTemplate>
+			</ItemsControl.ItemTemplate>
+		</ItemsControl>
+
+		<!-- Medication -->
+		<TextBlock Text="Medication:" FontWeight="Bold" Margin="0,10,0,0"/>
+		<ItemsControl ItemsSource="{Binding MedicalFile.Medication}">
+			<ItemsControl.ItemTemplate>
+				<DataTemplate>
+					<TextBlock Text="{Binding}" Margin="5,0,0,0" />
+				</DataTemplate>
+			</ItemsControl.ItemTemplate>
+		</ItemsControl>
+
+		<!-- Appointments -->
+		<TextBlock Text="Appointments:" FontWeight="Bold" Margin="0,10,0,0"/>
+		<ItemsControl ItemsSource="{Binding MedicalFile.Appointments}">
+			<ItemsControl.ItemTemplate>
+				<DataTemplate>
+					<StackPanel Margin="0,5,0,0">
+						<TextBlock Text="{Binding Title}" FontWeight="Bold" />
+						<TextBlock Text="{Binding Description}" />
+						<TextBlock Text="{Binding DateTime, StringFormat='{}{0:dd-MM-yyyy HH:mm}'}" />
+						<!-- Correct binding to DateTime -->
+					</StackPanel>
+				</DataTemplate>
+			</ItemsControl.ItemTemplate>
+		</ItemsControl>
+
+		<!-- Notes -->
+		<TextBlock Text="Notes:" FontWeight="Bold" Margin="0,10,0,0"/>
+		<ItemsControl ItemsSource="{Binding MedicalFile.Notes}">
+			<ItemsControl.ItemTemplate>
+				<DataTemplate>
+					<Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5" Padding="5" Margin="0,5,0,0">
+						<StackPanel>
+							<TextBlock Text="{Binding Title}" FontWeight="Bold" />
+							<TextBlock Text="{Binding DateTime, StringFormat='{}{0:dd-MM-yyyy HH:mm}'}" FontStyle="Italic" />
+							<TextBlock Text="{Binding Description}" TextWrapping="Wrap" Margin="0,5,0,0" />
+						</StackPanel>
+					</Border>
+				</DataTemplate>
+			</ItemsControl.ItemTemplate>
+		</ItemsControl>
+	</StackPanel>
 </UserControl>

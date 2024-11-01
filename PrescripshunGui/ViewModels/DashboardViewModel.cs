@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using PrescripshunGui.Util;
 using PrescripshunLib.Models.User;
 
@@ -11,7 +14,7 @@ public class DashboardViewModel : ViewModelBase
 
     public Guid UserKey => NetworkHandler.Client.UserKey;
 
-    private ObservableCollection<User> _items = [];
+    private ObservableCollection<User> _items = new ObservableCollection<User>();
 
     public ObservableCollection<User> Items
     {
@@ -54,5 +57,13 @@ public class DashboardViewModel : ViewModelBase
     public void OpenProfileView(User user)
     {
         SelectedProfileViewModel = new ProfileViewModel(user.Profile, user.UserKey);
+    }
+
+    protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        field = value;
+        OnPropertyChanged(propertyName);
+        return true;
     }
 }
