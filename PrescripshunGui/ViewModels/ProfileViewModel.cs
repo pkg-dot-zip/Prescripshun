@@ -43,7 +43,7 @@ public class ProfileViewModel : ViewModelBase
 
     public ICommand MedicalFileCommand { get; private set; }
 
-    private async Task GetMedicalFileAsync(Guid userKey)
+    public async Task GetMedicalFileAsync(Guid userKey)
     {
         MedicalFileCommand = new AsyncRelayCommand(async () =>
         {

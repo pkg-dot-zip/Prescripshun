@@ -54,9 +54,17 @@ public class DashboardViewModel : ViewModelBase
         set => SetProperty(ref _selectedProfileViewModel, value);
     }
 
+    public Guid checkUserKey;
     public void OpenProfileView(User user)
     {
-        SelectedProfileViewModel = new ProfileViewModel(user.Profile, user.UserKey);
+        if(checkUserKey != user.UserKey)
+        {
+            checkUserKey = user.UserKey;
+            SelectedProfileViewModel = new ProfileViewModel(user.Profile, user.UserKey);
+        } else
+        {
+            SelectedProfileViewModel.GetMedicalFileAsync(user.UserKey);
+        }
     }
 
     protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
