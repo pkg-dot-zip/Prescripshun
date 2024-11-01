@@ -193,13 +193,13 @@ internal class GuiEvents
 
                 return Task.CompletedTask;
             });
+        });
 
-            GetNetworkEvents().OnReceiveMessage.AddHandler<GetMedicalFileResponse>((serverClient, response) =>
-            {
-                _callback?.Invoke(response.MedicalFile);
+        GetNetworkEvents().OnReceiveMessage.AddHandler<GetMedicalFileResponse>((serverClient, response) =>
+        {
+            _callback?.Invoke(response.MedicalFile);
 
-                return Task.CompletedTask;
-            });
+            return Task.CompletedTask;
         });
     }
 

@@ -1,13 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
-using Bogus;
-using Bogus.DataSets;
-using PrescripshunClient;
 using PrescripshunGui.Util;
-using PrescripshunLib.ExtensionMethods;
-using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Models.User;
-using PrescripshunLib.Util.Faker;
 
 namespace PrescripshunGui.ViewModels;
 
@@ -59,6 +53,6 @@ public class DashboardViewModel : ViewModelBase
 
     public void OpenProfileView(User user)
     {
-        SelectedProfileViewModel = new ProfileViewModel(user.Profile, user.UserKey, new Client());
+        SelectedProfileViewModel = new ProfileViewModel(user.Profile, user.UserKey);
     }
 }

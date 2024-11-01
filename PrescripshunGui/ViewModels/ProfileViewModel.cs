@@ -5,35 +5,61 @@ using System.Threading.Tasks;
 using System;
 using PrescripshunClient;
 using PrescripshunLib.Networking.Messages;
-using Unclassified.Net;
 using PrescripshunGui.Util;
+using System.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using System.Windows.Input;
 
 public class ProfileViewModel : ViewModelBase
 {
+    private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
     public Profile Profile { get; }
-    public MedicalFile MedicalFile { get; private set; }
-    public MedicalFileHandler MedicalFileHandler;
-
-    private readonly Client _client;
-
-    public ProfileViewModel(Profile profile, Guid userkey, Client client)
+    private MedicalFile _medicalFile;
+    public MedicalFile MedicalFile
     {
-        Profile = profile;
-        _client = client;
-        InitializeAsync(userkey);
-        GuiEvents.Get.RegisterMedicalFileCallback(OnMedicalFileReceived);
+        get => _medicalFile;
+        private set
+        {
+            _medicalFile = value;
+            OnPropertyChanged(nameof(MedicalFile));
+        }
     }
 
-    private async Task InitializeAsync(Guid userKey)
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    public ProfileViewModel(Profile profile, Guid userkey)
     {
-        MedicalFileHandler MedicalFileHandler = new MedicalFileHandler();
-        await MedicalFileHandler.GetMedicalFileAsync(userKey);
-        OnPropertyChanged(nameof(MedicalFile)); // Notify the UI that MedicalFile has changed
+        Profile = profile;
+        GuiEvents.Get.RegisterMedicalFileCallback(OnMedicalFileReceived);
+        GetMedicalFileAsync(userkey);
+        Logger.Info("ProfileViewModel initialized for user: {0}", userkey);
+    }
+
+    public ICommand MedicalFileCommand { get; private set; }
+
+    public async Task GetMedicalFileAsync(Guid userKey)
+    {
+        MedicalFileCommand = new AsyncRelayCommand(async () =>
+        {
+            Logger.Info("Sending GetMedicalFileRequest for user: {0}", userKey);
+            await NetworkHandler.Send(new GetMedicalFileRequest()
+            {
+                UserKey = userKey,
+            });
+        });
+
+        MedicalFileCommand.Execute(null);
     }
 
     private void OnMedicalFileReceived(MedicalFile medicalFile)
     {
+        Logger.Info("Medical file received for patient: {0}", medicalFile.Patient);
         MedicalFile = medicalFile;
-        OnPropertyChanged(nameof(MedicalFile)); // Notify the UI that the MedicalFile has been updated
+    }
+
+    protected void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

@@ -153,7 +153,15 @@ internal class Server : AsyncTcpClient
             });
         });
 
-        ServerEvents.Get.OnReceiveMessage.AddHandler<GetMedicalFileRequest>(ProcessGetMedicalFileRequest);
+        ServerEvents.Get.OnReceiveMessage.AddHandler<GetMedicalFileRequest>(async (client, message) =>
+        {
+            Logger.Info("Sending GetMedicalFileResponse for user: {0}", message.UserKey);
+
+            await client.Send(new GetMedicalFileResponse()
+            {
+                MedicalFile = DatabaseHandler.GetMedicalFile(message.UserKey),
+            });
+        });
     }
 
     private async Task ProcessLoginRequest(AsyncTcpClient client, LoginRequest message)
@@ -175,15 +183,5 @@ internal class Server : AsyncTcpClient
     {
         var messageParam = PrescripshunLib.Networking.Messages.Message.GetMessageFromJsonString(jsonString);
         await ServerEvents.Get.OnReceiveMessage.Invoke(client, messageParam);
-    }
-
-    private async Task ProcessGetMedicalFileRequest(AsyncTcpClient client, GetMedicalFileRequest message)
-    {
-        var medicalFile = DatabaseHandler.GetMedicalFile(message.UserKey);
-        GetMedicalFileResponse response;
-
-        response = new GetMedicalFileResponse { MedicalFile = medicalFile };
-
-        await client.Send(response);
     }
 }
