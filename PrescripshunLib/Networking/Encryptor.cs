@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using PrescripshunLib.Networking.EncryptionLib;
 using PrescripshunLib.Networking.Messages;
 
 namespace PrescripshunLib.Networking;
@@ -7,10 +8,13 @@ namespace PrescripshunLib.Networking;
 /// <summary>
 /// Handles (or delegates) all tasks related to encoding, encrypting & decoding and decrypting <seealso cref="IMessage"/> instances.
 /// In other words, turning usable data into bytes and vice versa is handled here.
+///
+/// Currently symmetric encryption is used, and the key for this encryption is hardcoded into <see cref="PassKey"/>.
 /// </summary>
 public static class Encryptor
 {
     private static readonly Encoding Encoding = Encoding.UTF8; // UTF8 seems fine. If you need something else feel free to change it.
+    private const string PassKey = "Oosterwijk"; // This is the string used for encryption. NEEDS to be the same on the client and the server!
 
     /// <summary>
     /// Simple extension method that calls <seealso cref="Encrypt(string)"/>
@@ -22,18 +26,18 @@ public static class Encryptor
 
     /// <summary>
     /// Turns a <seealso cref="string"/> into <seealso cref="byte"/>s. Follows the following steps:<br/>
-    /// 1. Firstly the <paramref name="jsonString"/> is encoded using the default <see cref="Encoding"/>. <br/>
-    /// 2. Then the <paramref name="jsonString"/> is encrypted. <br/>
+    /// 1. Firstly the <paramref name="jsonString"/> is encrypted. <br/>
+    /// 2. Then the <paramref name="jsonString"/> is encoded using the default <see cref="Encoding"/>. <br/>
     /// </summary>
     /// <param name="jsonString"><seealso cref="string"/> to convert into <seealso cref="byte"/>s. Will always be in json format for our application, but works for any <seealso cref="string"/>.</param>
     /// <returns></returns>
     public static byte[] Encrypt([StringSyntax(StringSyntaxAttribute.Json)] string jsonString)
     {
-        // First we encode.
-        byte[] encodedString = Encoding.GetBytes(jsonString);
+        // First we encrypt.
+        var encryptedString = AES.Encrypt(jsonString, PassKey);
 
-        // Then we encrypt.
-        // TODO: Implement encryption.
+        // Then we encode.
+        byte[] encodedString = Encoding.GetBytes(encryptedString);
 
         return encodedString;
     }
@@ -53,8 +57,8 @@ public static class Encryptor
         string decodedString = Encoding.GetString(bytes, index, count);
 
         // Then we decrypt.
-        // TODO: Implement decryption.
+        var decryptedString = AES.Decrypt(decodedString, PassKey);
 
-        return decodedString;
+        return decryptedString;
     }
 }

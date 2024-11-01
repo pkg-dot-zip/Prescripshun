@@ -4,6 +4,7 @@ using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Models.User.Profile;
 using PrescripshunLib.Models.User;
 using Bogus;
+using PhilosopherPanda.ExtensionMethods.DataTypes;
 
 namespace PrescripshunLib.Util.Faker;
 
@@ -24,180 +25,318 @@ public class FakeHandler(int seed = 0, string locale = "nl") // Note: Flemish lo
 
     private readonly Random _random = new(seed);
 
+    // Used as base date for random dates instead of today.
+    private static readonly DateTime RefDateTime = new DateTime(2023, 12, 31);
+
+    /// <summary>
+    /// Creates new user. If a <paramref name="doctorKey"/> is specified the user is a <b>patient</b>. If not, it is a <b>doctor</b>.
+    /// </summary>
+    /// <param name="doctorKey">Guid of the patients doctor. If not specified, the user itself is a doctor.</param>
+    /// <param name="passwordLength">Length of the password in characters.</param>
+    /// <returns></returns>
+    private User GetUser(Guid? doctorKey = null, int passwordLength = 10)
+    {
+        var fullName = _faker.Name.FullName();
+
+        return new User()
+        {
+            UserKey = Guid.NewGuid(),
+            UserName = _faker.Internet.UserName(fullName.Split(' ', 2)[0], fullName.Split(' ', 2)[1]),
+            Password = _faker.Internet.Password(memorable: true, length: passwordLength),
+            DoctоrGuid = doctorKey,
+            Profile = GetProfile(fullName)
+        };
+    }
+
+    /// <summary>
+    /// Returns a newly initiated lists with an <seealso cref="amount"/> amount of doctors.
+    /// </summary>
+    /// <param name="amount">Amount of doctors to return in a <see cref="List{T}"/>.</param>
+    /// <returns></returns>
     public List<User> GetDoctors(int amount = 3)
     {
         var doctorsList = new List<User>();
-        for (var i = 0; i < amount; i++)
-        {
-            var fullName = _faker.Name.FullName();
-            doctorsList.Add(new User()
-            {
-                UserKey = Guid.NewGuid(),
-                UserName = _faker.Internet.UserName(fullName.Split(' ', 2)[0], fullName.Split(' ', 2)[1]),
-                Password = _faker.Internet.Password(memorable: true),
-                Profile = new Profile()
-                {
-                    BirthDate = _faker.Date.Past(30, DateTime.Now.AddYears(-10)),
-                    FullName = fullName,
-                    ProfilePicture = new ProfilePicture(_faker.Image.PlaceholderUrl(360, 360)),
-                }
-            });
-        }
-
+        amount.DoFor(() => doctorsList.Add(GetUser()));
         return doctorsList;
     }
 
-    public List<User> GetPatients(ref List<User> doctorsList)
+    /// <summary>
+    /// Returns a <seealso cref="List{T}"/> of patients. Takes in <paramref name="doctorsList"/> to grab <see cref="User.DoctоrGuid"/> from.
+    /// </summary>
+    /// <param name="doctorsList">Doctors to generate patients for.</param>
+    /// <param name="patientMultiplier">Amount of patients to add per doctor from <paramref name="doctorsList"/>.</param>
+    /// <returns></returns>
+    public List<User> GetPatients(ref List<User> doctorsList, int patientMultiplier = 10)
     {
         var patientsList = new List<User>();
-        for (var i = 0; i < doctorsList.Count * 10; i++)
+        for (var i = 0; i < doctorsList.Count * patientMultiplier; i++)
         {
-            var fullName = _faker.Name.FullName();
-            patientsList.Add(new User()
-            {
-                UserKey = Guid.NewGuid(),
-                UserName = _faker.Internet.UserName(fullName.Split(' ', 2)[0], fullName.Split(' ', 2)[1]),
-                Password = _faker.Internet.Password(memorable: true),
-                DoctоrGuid = doctorsList[i % doctorsList.Count].UserKey,
-                Profile = new Profile()
-                {
-                    BirthDate = _faker.Date.Past(30, new DateTime(2023, 12, 31)),
-                    FullName = fullName,
-                    ProfilePicture = new ProfilePicture(_faker.Image.PlaceholderUrl(360, 360)),
-                }
-            });
+            patientsList.Add(GetUser(doctorsList[i % doctorsList.Count].UserKey));
         }
 
         return patientsList;
     }
 
+    /// <summary>
+    /// Returns a newly initiated <seealso cref="Profile"/>.
+    /// </summary>
+    /// <param name="fullName">Full name for the profile.</param>
+    /// <returns></returns>
+    private Profile GetProfile(string fullName)
+    {
+        return new Profile()
+        {
+            BirthDate = _faker.Date.Past(30, RefDateTime),
+            FullName = fullName,
+            ProfilePicture = new ProfilePicture(_faker.Image.PlaceholderUrl(360, 360)),
+        };
+    }
+
+    /// <summary>
+    /// Returns a <see cref="List{T}"/> of medical files for every user in <paramref name="patientsList"/>.
+    /// </summary>
+    /// <param name="patientsList">Patients to generate medical files for</param>
+    /// <returns></returns>
     public List<MedicalFile> GetMedicalFiles(ref List<User> patientsList)
     {
         var medicalFileList = new List<MedicalFile>();
         foreach (var patient in patientsList)
         {
-            // Create fake appointments.
-            var appointmentsList = new List<Appointment>();
-            for (int i = 0; i < _random.Next(1, 5); i++)
-            {
-                var appointment = new Appointment()
-                {
-                    Title = $"Beautiful appointment {i}", // TODO: Fake.
-                    Description = "Basic description", // TODO: Fake.
-                    DoctorToMeet = patient.DoctоrGuid ?? Guid.Empty,
-                    DateTime = _faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
-                };
-
-                appointmentsList.Add(appointment);
-            }
-
-            // Create fake notes.
-            var notesList = new List<Note>();
-            for (int i = 0; i < _random.Next(1, 5); i++)
-            {
-                var note = new Note()
-                {
-                    Title = $"Extraordinary note {i}", // TODO: Fake.
-                    Description = "Basic description", // TODO: Fake.
-                    DateTime = _faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
-                };
-
-                notesList.Add(note);
-            }
-
-            // Create fake medication.
-            var medicationList = new List<Medication>();
-            for (int i = 0; i < _random.Next(1, 5); i++)
-            {
-                var medication = new Medication()
-                {
-                    Title = $"Amazingly complicated medication name {i}", // TODO: Fake.
-                    Description = "Basic description", // TODO: Fake.
-                    StartedUsingOn = _faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
-                };
-
-                // Sometimes people are still using the meds, so we do not always add them.
-                if (_random.NextBool())
-                {
-                    medication.StoppedUsingOn =
-                        _faker.Date.Between(medication.StartedUsingOn, new DateTime(2023, 12, 31));
-                }
-
-                Logger.Trace($"Adding medication with stoppedUsingOn = {medication.StoppedUsingOn}");
-                medicationList.Add(medication);
-            }
-
-            // Create fake diagnoses.
-            var diagnosisList = new List<Diagnosis>();
-            for (int i = 0; i < _random.Next(1, 5); i++)
-            {
-                var diagnosis = new Diagnosis()
-                {
-                    Title = $"Very long disease or disorder name {i}", // TODO: Fake.
-                    Description = "Basic description", // TODO: Fake.
-                    DateTime = _faker.Date.Between(patient.Profile.BirthDate, new DateTime(2023, 12, 31))
-                };
-
-                diagnosisList.Add(diagnosis);
-            }
-
-            var medicalFile = new MedicalFile()
-            {
-                Patient = patient.UserKey,
-                Appointments = appointmentsList,
-                Notes = notesList,
-                Medication = medicationList,
-                Diagnoses = diagnosisList,
-            };
-            medicalFileList.Add(medicalFile);
+            if (patient.IsDoctor) throw new InvalidOperationException();
+            medicalFileList.Add(GetMedicalFile(patient));
         }
 
         return medicalFileList;
     }
 
-    public List<Chat> GetChats(ref List<User> patientsList)
+    /// <summary>
+    /// Creates a medical file for the <paramref name="patient"/>.
+    /// </summary>
+    /// <param name="patient">Patient to generate <seealso cref="MedicalFile"/> for.</param>
+    /// <param name="minRandomAmount">Minimum amount of entries to add to the medical file for <seealso cref="Note"/>, <seealso cref="Appointment"/> etc.</param>
+    /// <param name="maxRandomAmount">Maximum amount of entries to add to the medical file for <seealso cref="Note"/>, <seealso cref="Appointment"/> etc.</param>
+    /// <returns></returns>
+    private MedicalFile GetMedicalFile(User patient, int minRandomAmount = 0, int maxRandomAmount = 4)
+    {
+        return GetMedicalFile(patient, _random.Next(minRandomAmount, maxRandomAmount),
+            _random.Next(minRandomAmount, maxRandomAmount), _random.Next(minRandomAmount, maxRandomAmount),
+            _random.Next(minRandomAmount, maxRandomAmount));
+    }
+
+    /// <summary>
+    /// Creates a medical file for the <paramref name="patient"/>.
+    /// </summary>
+    /// <param name="patient">Patient to generate <seealso cref="MedicalFile"/> for.</param>
+    /// <param name="appointmentAmount">Amount of <seealso cref="Appointment"/> to add.</param>
+    /// <param name="noteAmount">Amount of <seealso cref="Note"/> to add.</param>
+    /// <param name="medicationAmount">Amount of <seealso cref="Medication"/> to add.</param>
+    /// <param name="diagnosesAmount">Amount of <seealso cref="Diagnosis"/> to add.</param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException">Throws if <paramref name="patient"/> is a doctor.</exception>
+    private MedicalFile GetMedicalFile(User patient, int appointmentAmount, int noteAmount, int medicationAmount,
+        int diagnosesAmount)
+    {
+        if (patient.IsDoctor) throw new InvalidOperationException();
+
+        var appointments = new List<Appointment>();
+        var notes = new List<Note>();
+        var medication = new List<Medication>();
+        var diagnoses = new List<Diagnosis>();
+
+        appointmentAmount.DoFor(() => appointments.Add(GetAppointment(patient)));
+        noteAmount.DoFor(() => notes.Add(GetNote(patient)));
+        medicationAmount.DoFor(() => medication.Add(GetMedication(patient)));
+        diagnosesAmount.DoFor(() => diagnoses.Add(GetDiagnosis(patient)));
+
+        return new MedicalFile()
+        {
+            Patient = patient.UserKey,
+            Appointments = appointments,
+            Notes = notes,
+            Medication = medication,
+            Diagnoses = diagnoses,
+        };
+    }
+
+    private Appointment GetAppointment(User patient)
+    {
+        if (patient.IsDoctor) throw new InvalidOperationException();
+
+        return new Appointment()
+        {
+            Title = $"Beautiful appointment {_faker.Lorem.Word()}",
+            Description = $"Basic description that goes like {_faker.Lorem.Sentence()}",
+            DoctorToMeet = patient.DoctоrGuid ?? Guid.Empty,
+            DateTime = _faker.Date.Between(patient.Profile.BirthDate, RefDateTime)
+        };
+    }
+
+    private Note GetNote(User patient)
+    {
+        if (patient.IsDoctor) throw new InvalidOperationException();
+
+        return new Note()
+        {
+            Title = $"Extraordinary note {_faker.Lorem.Word()}",
+            Description = $"Description that goes like {_faker.Lorem.Sentence()}",
+            DateTime = _faker.Date.Between(patient.Profile.BirthDate, RefDateTime)
+        };
+    }
+
+    private Medication GetMedication(User patient)
+    {
+        if (patient.IsDoctor) throw new InvalidOperationException();
+
+        var (title, desc) = MedicationFaker.GetRandomMedication(_random);
+
+        var medication = new Medication()
+        {
+            Title = title,
+            Description = desc,
+            StartedUsingOn = _faker.Date.Between(patient.Profile.BirthDate, RefDateTime)
+        };
+
+        // Sometimes people are still using the meds, so we do not always add them.
+        if (_random.NextBool())
+        {
+            medication.StoppedUsingOn =
+                _faker.Date.Between(medication.StartedUsingOn, RefDateTime);
+        }
+
+        return medication;
+    }
+
+    private Diagnosis GetDiagnosis(User patient)
+    {
+        if (patient.IsDoctor) throw new InvalidOperationException();
+
+        var (title, desc) = DiagnosisFaker.GetDiagnosisForDisease(_random);
+        return new Diagnosis()
+        {
+            Title = title,
+            Description = desc,
+            DateTime = _faker.Date.Between(patient.Profile.BirthDate, RefDateTime)
+        };
+    }
+
+    /// <summary>
+    /// Creates a <seealso cref="Chat"/> history between each patient of <paramref name="patientsList"/> and their doctor containing lorem ipsum nonsense.
+    /// </summary>
+    /// <param name="patientsList">Patients to generate a <seealso cref="Chat"/> history for with their doctor.</param>
+    /// <param name="defaultPatientDoctorChatChance">Chance of having a default hardcoded chat.</param>
+    /// <param name="otherChatChance">Chance of having a lorem ipsum chat.</param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException">If any <seealso cref="User"/> in <paramref name="patientsList"/> is a doctor.</exception>
+    public List<Chat> GetChats(ref List<User> patientsList, double defaultPatientDoctorChatChance = 0.1,
+        double otherChatChance = 0.6)
     {
         // Create fake chat messages between doctors and patients.
         var chatMessagesList = new List<Chat>();
         foreach (var patient in patientsList)
         {
-            // Patients seem to be not very talkative. :P
-            if (_random.NextBool(0.1)) continue;
+            if (patient.IsDoctor) throw new InvalidOperationException();
+            if (_random.NextBool(defaultPatientDoctorChatChance)) continue;
+            chatMessagesList.Add(GetDefaultChatForPatient(patient));
+        }
 
-            var chatDate = _faker.Date.Between(DateTime.Now.AddYears(-1), DateTime.Now);
-            var chat = new Chat()
-            {
-                User1 = patient.DoctоrGuid ?? Guid.Empty,
-                User2 = patient.UserKey,
-                Messages =
-                [
-                    new ChatMessage()
-                    {
-                        Sender = patient.DoctоrGuid ?? Guid.Empty,
-                        Recipient = patient.UserKey,
-                        Text = $"Hey {patient.Profile.FullName}, kom jij even langs?",
-                        Time = chatDate
-                    },
-                    new ChatMessage()
-                    {
-                        Recipient = patient.DoctоrGuid ?? Guid.Empty,
-                        Sender = patient.UserKey,
-                        Text = "Maar natuurlijk dokter! :)",
-                        Time = chatDate.AddMinutes(30)
-                    },
-                    new ChatMessage()
-                    {
-                        Recipient = patient.DoctоrGuid ?? Guid.Empty,
-                        Sender = patient.UserKey,
-                        Text = $"Tot zo, {patient.Profile.FullName.Split(" ")[0]}!",
-                        Time = chatDate.AddMinutes(37)
-                    },
-                ]
-            };
+        foreach (var patient in patientsList)
+        {
+            if (patient.IsDoctor) throw new InvalidOperationException();
 
-            chatMessagesList.Add(chat);
+            // If any chat message was already added for this user, we do not create a new one.
+            if (chatMessagesList.Select(ch => ch.User1 == patient.UserKey || ch.User2 == patient.UserKey)
+                .Any(b => b)) continue;
+
+            if (_random.NextBool(otherChatChance)) continue;
+            chatMessagesList.Add(GetLoremIpsumChatForPatient(patient));
         }
 
         return chatMessagesList;
+    }
+
+    /// <summary>
+    /// Creates a <seealso cref="Chat"/> history between a <paramref name="patient"/> and a doctor containing lorem ipsum nonsense.
+    /// </summary>
+    /// <param name="patient"></param>
+    /// <param name="messageAmount">Amount of messages for this chat to contain</param>
+    /// <param name="sentenceAmountMin">Minimum amount of sentences for each message.</param>
+    /// <param name="sentenceAmountMax">Maximum amount of sentences for each message.</param>
+    /// <param name="minMinuteDifference">Minimum amount of minutes that have to be passed for a new message.</param>
+    /// <param name="maxMinuteDifference">Maximum amount of minutes that have to be passed for a new message.</param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException">If <paramref name="patient"/> is a doctor.</exception>
+    private Chat GetLoremIpsumChatForPatient(User patient, int messageAmount = 10, int sentenceAmountMin = 1,
+        int sentenceAmountMax = 3, int minMinuteDifference = 1,
+        int maxMinuteDifference = 5)
+    {
+        if (patient.IsDoctor) throw new InvalidOperationException();
+
+        var chatDate = _faker.Date.Between(DateTime.Now.AddYears(-1), DateTime.Now);
+        Chat chat = new Chat()
+        {
+            User1 = patient.DoctоrGuid ?? throw new InvalidOperationException(),
+            User2 = patient.UserKey,
+        };
+
+        var patientIsSender = true;
+        for (int i = 0; i < messageAmount; i++)
+        {
+            patientIsSender.Flip();
+            chatDate = chatDate.AddMinutes(_random.Next(minMinuteDifference, maxMinuteDifference));
+            chat.Messages.Add(new ChatMessage()
+            {
+                Sender =
+                    patientIsSender ? patient.UserKey : patient.DoctоrGuid ?? throw new InvalidOperationException(),
+                Recipient = !patientIsSender
+                    ? patient.UserKey
+                    : patient.DoctоrGuid ?? throw new InvalidOperationException(),
+                Text = _faker.Lorem.Sentences(_random.Next(sentenceAmountMin, sentenceAmountMax)),
+                Time = chatDate
+            });
+        }
+
+        return chat;
+    }
+
+    /// <summary>
+    /// Creates a default hardcoded chat history in Dutch between a <paramref name="patient"/> and doctor.
+    /// </summary>
+    /// <param name="patient"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    private Chat GetDefaultChatForPatient(User patient)
+    {
+        if (patient.IsDoctor) throw new InvalidOperationException();
+
+        var chatDate = _faker.Date.Between(DateTime.Now.AddYears(-1), DateTime.Now);
+        return new Chat()
+        {
+            User1 = patient.DoctоrGuid ?? throw new InvalidOperationException(),
+            User2 = patient.UserKey,
+            Messages =
+            [
+                new ChatMessage()
+                {
+                    Sender = patient.DoctоrGuid ?? throw new InvalidOperationException(),
+                    Recipient = patient.UserKey,
+                    Text = $"Hey {patient.Profile.FullName}, kom jij even langs?",
+                    Time = chatDate
+                },
+                new ChatMessage()
+                {
+                    Recipient = patient.DoctоrGuid ?? throw new InvalidOperationException(),
+                    Sender = patient.UserKey,
+                    Text = "Maar natuurlijk dokter! :)",
+                    Time = chatDate.AddMinutes(30)
+                },
+                new ChatMessage()
+                {
+                    Recipient = patient.DoctоrGuid ?? throw new InvalidOperationException(),
+                    Sender = patient.UserKey,
+                    Text = $"Tot zo, {patient.Profile.FullName.Split(" ")[0]}!",
+                    Time = chatDate.AddMinutes(37)
+                },
+            ]
+        };
     }
 }
