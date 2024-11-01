@@ -1,10 +1,7 @@
 ﻿using PrescripshunLib.Networking;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using Unclassified.Net;
 using PrescripshunLib.Networking.Messages;
-using PrescripshunLib.Models.User;
-using PrescripshunLib.Models.MedicalFile;
 
 namespace PrescripshunClient;
 
@@ -59,12 +56,6 @@ public class Client : AsyncTcpClient
         ClientEvents.Get.OnReceiveMessage.AddHandler<Message.DebugPrint>((client, message) =>
         {
             Logger.Info("{0}", message.GetPrintString());
-            return Task.CompletedTask;
-        });
-
-        ClientEvents.Get.OnReceiveMessage.AddHandler<GetMedicalFileRequest>((client, message) =>
-        {
-            Logger.Info("Received MedicalFile: {0}", message);
             return Task.CompletedTask;
         });
     }

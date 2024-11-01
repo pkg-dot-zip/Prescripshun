@@ -13,8 +13,11 @@ public class DashboardViewModel : ViewModelBase
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
     public Guid UserKey => NetworkHandler.Client.UserKey;
+    private Guid _checkUserKey;
 
-    private ObservableCollection<User> _items = new ObservableCollection<User>();
+    private ProfileViewModel? _selectedProfileViewModel;
+
+    private ObservableCollection<User> _items = [];
 
     public ObservableCollection<User> Items
     {
@@ -47,31 +50,18 @@ public class DashboardViewModel : ViewModelBase
         };
     }
 
-    private ProfileViewModel? _selectedProfileViewModel;
     public ProfileViewModel? SelectedProfileViewModel
     {
         get => _selectedProfileViewModel;
         set => SetProperty(ref _selectedProfileViewModel, value);
     }
-
-    public Guid checkUserKey;
     public void OpenProfileView(User user)
     {
-        if(checkUserKey != user.UserKey)
-        {
-            checkUserKey = user.UserKey;
+        if(_checkUserKey != user.UserKey){
+            _checkUserKey = user.UserKey;
             SelectedProfileViewModel = new ProfileViewModel(user.Profile, user.UserKey);
-        } else
-        {
-            SelectedProfileViewModel.GetMedicalFileAsync(user.UserKey);
+        } else {
+            SelectedProfileViewModel.GetMedicalFile(user.UserKey);
         }
-    }
-
-    protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-    {
-        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
-        field = value;
-        OnPropertyChanged(propertyName);
-        return true;
     }
 }

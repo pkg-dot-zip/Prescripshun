@@ -6,6 +6,7 @@
              x:DataType="global:ProfileViewModel">
 	<StackPanel>
 		<!-- Profile Information -->
+		<Image Source="{Binding Profile.ProfilePicture}" Width="50" Height="50"/>
 		<TextBlock Text="{Binding Profile.FullName}" FontSize="20" FontWeight="Bold" />
 		<TextBlock Text="{Binding Profile.BirthDate}" />
 
@@ -16,7 +17,11 @@
 		<ItemsControl ItemsSource="{Binding MedicalFile.Diagnoses}">
 			<ItemsControl.ItemTemplate>
 				<DataTemplate>
-					<TextBlock Text="{Binding}" Margin="5,0,0,0" />
+					<StackPanel Margin="0,5,0,0">
+						<TextBlock Text="{Binding Title}" FontWeight="Bold" />
+						<TextBlock Text="{Binding Description}" TextWrapping="Wrap" Margin="0,5,0,0"/>
+						<TextBlock Text="{Binding DateTime, StringFormat='{}{0:dd-MM-yyyy}'}" FontStyle="Italic" />
+					</StackPanel>
 				</DataTemplate>
 			</ItemsControl.ItemTemplate>
 		</ItemsControl>
@@ -26,7 +31,12 @@
 		<ItemsControl ItemsSource="{Binding MedicalFile.Medication}">
 			<ItemsControl.ItemTemplate>
 				<DataTemplate>
-					<TextBlock Text="{Binding}" Margin="5,0,0,0" />
+					<StackPanel Margin="0,5,0,0">
+						<TextBlock Text="{Binding Title}" FontWeight="Bold" />
+						<TextBlock Text="{Binding Description}" TextWrapping="Wrap" Margin="0,5,0,0"/>
+						<TextBlock Text="{Binding StartedUsingOn, StringFormat='Started: {0:dd-MM-yyyy}'}" />
+						<TextBlock Text="{Binding StoppedUsingOn, StringFormat='Stopped: {0:dd-MM-yyyy}'}" />
+					</StackPanel>
 				</DataTemplate>
 			</ItemsControl.ItemTemplate>
 		</ItemsControl>

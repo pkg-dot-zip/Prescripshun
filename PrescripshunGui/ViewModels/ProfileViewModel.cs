@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Threading.Tasks;
-using CommunityToolkit.Mvvm.Input;
 using System.Windows.Input;
 using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Models.User.Profile;
@@ -37,29 +34,17 @@ public class ProfileViewModel : ViewModelBase
     {
         Profile = profile;
         GuiEvents.Get.RegisterMedicalFileCallback(OnMedicalFileReceived);
-        GetMedicalFileAsync(userKey);
-        Logger.Info("ProfileViewModel initialized for user: {0}", userKey);
+        GetMedicalFile(userKey);
     }
 
-    public ICommand MedicalFileCommand { get; private set; }
-
-    public async Task GetMedicalFileAsync(Guid userKey)
+    public void GetMedicalFile(Guid userKey)
     {
-        MedicalFileCommand = new AsyncRelayCommand(async () =>
-        {
-            Logger.Info("Sending GetMedicalFileRequest for user: {0}", userKey);
-            await NetworkHandler.Send(new GetMedicalFileRequest() { UserKey = userKey });
-        });
-
-        MedicalFileCommand.Execute(null);
+        Logger.Info("Sending GetMedicalFileRequest for user: {0}", userKey);
+        NetworkHandler.Send(new GetMedicalFileRequest() { UserKey = userKey });
     }
 
     private void OnMedicalFileReceived(MedicalFile medicalFile)
     {
-        Logger.Info("Medical file received for patient: {0}", medicalFile.Patient);
         MedicalFile = medicalFile;
     }
-
-    protected void OnPropertyChanged(string propertyName) =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }

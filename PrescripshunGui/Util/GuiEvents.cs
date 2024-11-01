@@ -1,19 +1,14 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Net.Sockets;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
-using NLog.Fluent;
 using PrescripshunClient;
 using PrescripshunGui.ViewModels;
 using PrescripshunGui.Views;
 using PrescripshunLib.ExtensionMethods;
-using PrescripshunLib.Models.Chat;
 using PrescripshunLib.Models.MedicalFile;
 using PrescripshunLib.Networking.Messages;
-using PrescripshunLib.Util.Sound;
 using SoundHandler = PrescripshunGui.Util.Sound.SoundHandler;
 
 namespace PrescripshunGui.Util;
