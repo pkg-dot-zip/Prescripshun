@@ -152,6 +152,16 @@ internal class Server : AsyncTcpClient
                 Users = DatabaseHandler.GetChattableUsers(message.UserKey),
             });
         });
+
+        ServerEvents.Get.OnReceiveMessage.AddHandler<GetMedicalFileRequest>(async (client, message) =>
+        {
+            Logger.Info("Sending GetMedicalFileResponse for user: {0}", message.UserKey);
+
+            await client.Send(new GetMedicalFileResponse()
+            {
+                MedicalFile = DatabaseHandler.GetMedicalFile(message.UserKey),
+            });
+        });
     }
 
     private async Task ProcessLoginRequest(AsyncTcpClient client, LoginRequest message)

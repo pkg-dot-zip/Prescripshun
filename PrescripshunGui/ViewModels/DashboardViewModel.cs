@@ -1,11 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Bogus;
-using Bogus.DataSets;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using PrescripshunGui.Util;
-using PrescripshunLib.ExtensionMethods;
 using PrescripshunLib.Models.User;
-using PrescripshunLib.Util.Faker;
 
 namespace PrescripshunGui.ViewModels;
 
@@ -14,6 +13,9 @@ public class DashboardViewModel : ViewModelBase
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
     public Guid UserKey => NetworkHandler.Client.UserKey;
+    private Guid _checkUserKey;
+
+    private ProfileViewModel? _selectedProfileViewModel;
 
     private ObservableCollection<User> _items = [];
 
@@ -46,5 +48,20 @@ public class DashboardViewModel : ViewModelBase
                 Logger.Warn("New items were null.");
             }
         };
+    }
+
+    public ProfileViewModel? SelectedProfileViewModel
+    {
+        get => _selectedProfileViewModel;
+        set => SetProperty(ref _selectedProfileViewModel, value);
+    }
+    public void OpenProfileView(User user)
+    {
+        if(_checkUserKey != user.UserKey){
+            _checkUserKey = user.UserKey;
+            SelectedProfileViewModel = new ProfileViewModel(user.Profile, user.UserKey);
+        } else {
+            SelectedProfileViewModel.GetMedicalFile(user.UserKey);
+        }
     }
 }

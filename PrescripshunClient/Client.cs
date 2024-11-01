@@ -2,7 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Unclassified.Net;
 using PrescripshunLib.Networking.Messages;
-using PrescripshunLib.Models.User;
 
 namespace PrescripshunClient;
 
