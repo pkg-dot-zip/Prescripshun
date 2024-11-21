@@ -1,0 +1,44 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="PrescripshunGui.Views.ChatView">
+
+	<Grid Background="Red" Margin="0">
+		<Grid x:Name="ChatContainer">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="*" />
+				<RowDefinition Height="Auto" />
+			</Grid.RowDefinitions>
+
+			<Border BorderBrush="Gray" BorderThickness="2" CornerRadius="5" Margin="10,10,10,0">
+				<ScrollViewer x:Name="ChatScrollViewer" VerticalScrollBarVisibility="Auto">
+					<TextBlock x:Name="ChatDisplay"
+                             Text="Chat messages will appear here..."
+                             Background="White"
+                             TextWrapping="Wrap"
+                             Padding="10"/>
+				</ScrollViewer>
+			</Border>
+
+			<Grid Grid.Row="1" Margin="10">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="Auto" />
+				</Grid.ColumnDefinitions>
+
+				<TextBox x:Name="ChatInput"
+                        Grid.Column="0"
+                        Watermark="Type a message..."
+                        VerticalAlignment="Center"
+                        Background="LightGray"
+                        Margin="0,0,10,0" />
+
+				<Button Grid.Column="1"
+                        Content="Send"
+                        Click="OnSendButtonClick"/>
+			</Grid>
+		</Grid>
+	</Grid>
+</UserControl>

@@ -11,11 +11,11 @@ namespace PrescripshunGui.Views
             InitializeComponent();
         }
 
-        private void OnChatButtonClick(object sender, RoutedEventArgs e)
-        {
-            // Toggle visibility of the chat elements inside the ChatContainer
-            ChatContainer.IsVisible = !ChatContainer.IsVisible;
-        }
+        //private void OnChatButtonClick(object sender, RoutedEventArgs e)
+        //{
+        //    // Toggle visibility of the chat elements inside the ChatContainer
+        //    ChatContainer.IsVisible = !ChatContainer.IsVisible;
+        //}
 
         private void OnSendButtonClick(object sender, RoutedEventArgs e)
         {
